@@ -591,6 +591,7 @@ export default function Calendario({ t }: { t: Theme }) {
       {vista === 'mensual' ? (
         <Card t={t} style={{ padding: '14px' }}>
           <div
+  className="cal-mensual"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(7, 1fr)',
@@ -803,7 +804,7 @@ export default function Calendario({ t }: { t: Theme }) {
             </div>
           </Card>
 
-          <Card t={t}>
+         <Card t={t} className="cal-panel-lateral">
             <Eb text="RESUMEN OPERATIVO" t={t} />
             <div style={{ display: 'grid', gap: '14px' }}>
               <div>
