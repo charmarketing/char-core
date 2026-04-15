@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
 import './globals.css'
+import Calendario from './components/Calendario'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
