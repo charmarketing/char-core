@@ -804,7 +804,8 @@ export default function Calendario({ t }: { t: Theme }) {
             </div>
           </Card>
 
-         <Card t={t} className="cal-panel-lateral">
+         <div className="cal-panel-lateral">
+<Card t={t}>
             <Eb text="RESUMEN OPERATIVO" t={t} />
             <div style={{ display: 'grid', gap: '14px' }}>
               <div>
