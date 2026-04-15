@@ -453,7 +453,6 @@ export default function Calendario({ t }: { t: Theme }) {
             Calendario de Contenidos
           </h1>
           <div style={{ fontSize: '12px', color: c.text3, marginTop: '6px' }}>
-            Planificación visual mensual y semanal para una agencia de marketing de nivel enterprise
           </div>
         </div>
 
@@ -829,7 +828,7 @@ export default function Calendario({ t }: { t: Theme }) {
                       >
                         <div style={{ fontSize: '12px', color: c.text, fontWeight: 700 }}>{ev.titulo}</div>
                         <div style={{ fontSize: '10px', color: c.text3, marginTop: '3px' }}>
-                          {ev.cliente} · {ev.fecha} · {ev.hora}
+                          {ev.cliente} · {new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-AR',{day:'numeric',month:'short'})} · {ev.hora}hs
                         </div>
                       </div>
                     ))}
@@ -838,13 +837,22 @@ export default function Calendario({ t }: { t: Theme }) {
 
               <div>
                 <div style={{ fontSize: '14px', color: c.text, fontWeight: 700, marginBottom: '8px' }}>
-                  Estado del pipeline
+                  Estado de contenidos
                 </div>
-                <div style={{ display: 'grid', gap: '8px' }}>
-                  <div style={statLine(c, 'Borrador', resumen.borrador, AMBER)} />
-                  <div style={statLine(c, 'Aprobado', resumen.aprobado, BLUE)} />
-                  <div style={statLine(c, 'Publicado', resumen.publicado, GREEN)} />
-                </div>
+               <div style={{ display: 'grid', gap: '8px' }}>
+  <div style={{ padding:'10px 12px', borderRadius:'10px', border:`1px solid ${c.border}`, background:c.s2, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+    <span style={{ color:c.text2, fontSize:'13px' }}>Borrador</span>
+    <span style={{ color:AMBER, fontWeight:800, fontSize:'18px' }}>{resumen.borrador}</span>
+  </div>
+  <div style={{ padding:'10px 12px', borderRadius:'10px', border:`1px solid ${c.border}`, background:c.s2, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+    <span style={{ color:c.text2, fontSize:'13px' }}>Aprobado</span>
+    <span style={{ color:BLUE, fontWeight:800, fontSize:'18px' }}>{resumen.aprobado}</span>
+  </div>
+  <div style={{ padding:'10px 12px', borderRadius:'10px', border:`1px solid ${c.border}`, background:c.s2, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+    <span style={{ color:c.text2, fontSize:'13px' }}>Publicado</span>
+    <span style={{ color:GREEN, fontWeight:800, fontSize:'18px' }}>{resumen.publicado}</span>
+  </div>
+</div>
               </div>
 
               <div>
@@ -852,9 +860,9 @@ export default function Calendario({ t }: { t: Theme }) {
                   Integraciones
                 </div>
                 <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                  <Tag label="BUFFER READY" color={GREEN} />
-                  <Tag label="GOOGLE CALENDAR READY" color={BLUE} />
-                  <Tag label="API PENDIENTE" color={AMBER} />
+                 <Tag label="BUFFER LISTO" color={GREEN} />
+                 <Tag label="GOOGLE CALENDAR LISTO" color={BLUE} />
+                 <Tag label="API PENDIENTE" color={AMBER} />
                 </div>
               </div>
             </div>
