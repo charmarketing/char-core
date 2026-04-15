@@ -619,7 +619,7 @@ export default function App(){
       case 'cm':         return <VCM t={theme}/>
       case 'sem':        return <VSEM t={theme}/>
       case 'seo':        return <VSEO t={theme}/>
-      case 'calendario': return <Placeholder ti="Calendario" mod="MÓDULO 3" t={theme}/>
+      case 'calendario': return <Calendario t={theme}/>
       case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
       case 'alertas':    return <Placeholder ti="Alertas" mod="MÓDULO 4" t={theme}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
