@@ -98,7 +98,14 @@ body {
   .g4 { grid-template-columns: repeat(2,1fr) !important; }
   .g3 { grid-template-columns: 1fr !important; }
   .g2 { grid-template-columns: 1fr !important; }
-  .topbar { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+  .topbar { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; } 
+    .cal-dias-semana {
+    display: none !important;
+  }
+
+  .cal-dia-mobile {
+    display: inline !important;
+  }
 
   /* CALENDARIO RESPONSIVE */
 [style*="repeat(7, 1fr)"] {
