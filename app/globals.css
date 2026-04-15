@@ -94,9 +94,32 @@ body {
     height: 100vh;
   }
   .char-sidebar.open { transform: translateX(0) !important; }
-  .char-main  { padding: 20px 16px !important; }
+  .char-main { padding: 20px 16px !important; }
   .g4 { grid-template-columns: repeat(2,1fr) !important; }
   .g3 { grid-template-columns: 1fr !important; }
   .g2 { grid-template-columns: 1fr !important; }
   .topbar { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
+
+  /* CALENDARIO RESPONSIVE */
+  .cal-mensual {
+    grid-template-columns: repeat(3,1fr) !important;
+  }
+  .cal-semanal {
+    grid-template-columns: 1fr !important;
+  }
+  .cal-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .cal-botones {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+  .cal-panel-lateral {
+    display: none !important;
+  }
+  .cal-grid-semanal {
+    grid-template-columns: 1fr !important;
+  }
 }
