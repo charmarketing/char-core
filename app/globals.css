@@ -101,17 +101,16 @@ body {
   .topbar { flex-direction: column !important; gap: 12px !important; align-items: flex-start !important; }
 
   /* CALENDARIO RESPONSIVE */
-  .cal-mensual {
-    grid-template-columns: repeat(3,1fr) !important;
-  }
-  .cal-semanal {
-    grid-template-columns: 1fr !important;
-  }
-  .cal-header {
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    gap: 10px !important;
-  }
+[style*="repeat(7, 1fr)"] {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+[style*="2fr 1fr"] {
+  grid-template-columns: 1fr !important;
+  display: block !important;
+}
+[style*="repeat(7,1fr)"] {
+  grid-template-columns: repeat(2, 1fr) !important;
+}
   .cal-botones {
     width: 100% !important;
     justify-content: flex-start !important;
