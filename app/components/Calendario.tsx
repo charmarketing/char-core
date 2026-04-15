@@ -591,7 +591,7 @@ export default function Calendario({ t }: { t: Theme }) {
       {vista === 'mensual' ? (
         <Card t={t} style={{ padding: '14px' }}>
           <div
-  className="cal-mensual"
+  className="cal-dias-semana"
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(7, 1fr)',
@@ -657,16 +657,31 @@ export default function Calendario({ t }: { t: Theme }) {
                     boxShadow: esHoy ? `0 0 0 1px ${GOLD}30 inset` : 'none',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div
-                      style={{
-                        fontSize: '12px',
-                        fontWeight: 800,
-                        color: esHoy ? GOLD : c.text,
-                      }}
-                    >
-                      {fecha.getDate()}
-                    </div>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap:'8px' }}>
+  <div
+    style={{
+      fontSize: '12px',
+      fontWeight: 800,
+      color: esHoy ? GOLD : c.text,
+      display:'flex',
+      flexDirection:'column',
+      lineHeight:'1.1'
+    }}
+  >
+    <span
+      className="cal-dia-mobile"
+      style={{
+        display:'none',
+        fontSize:'10px',
+        color:c.text3,
+        fontWeight:700,
+        letterSpacing:'0.5px'
+      }}
+    >
+      {fecha.toLocaleDateString('es-AR', { weekday: 'short' })}
+    </span>
+    <span>{fecha.getDate()}</span>
+  </div>
                     {items.length > 0 && <Tag label={`${items.length} PIEZA${items.length > 1 ? 'S' : ''}`} color={GOLD} />}
                   </div>
 
