@@ -602,6 +602,7 @@ const META:Record<string,{label:string;icon:JSX.Element}>={
 
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App(){
+  const [alertasNoLeidas,setAlertasNoLeidas]=useState(3)
   const [vista,setVista]=useState('dashboard')
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
@@ -622,7 +623,7 @@ export default function App(){
       case 'seo':        return <VSEO t={theme}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
-      case 'alertas': return <Alertas t={theme}/>
+      case 'alertas': return <Alertas t={theme} onActualizar={setAlertasNoLeidas}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
@@ -666,7 +667,7 @@ export default function App(){
           {NAV.map(k=>(
             <button key={k} className="char-nav" onClick={()=>irA(k)} style={sb(k)}>
               {META[k].icon}{META[k].label}
-              {k==='alertas'&&<span style={{marginLeft:'auto',background:RED,color:'#fff',fontSize:'9px',fontWeight:800,padding:'1px 7px',borderRadius:'10px',boxShadow:`0 0 8px ${RED}80`}}>3</span>}
+              {k==='alertas'&&alertasNoLeidas>0&&<span style={{marginLeft:'auto',background:RED,color:'#fff',fontSize:'9px',fontWeight:800,padding:'1px 7px',borderRadius:'10px',boxShadow:`0 0 8px ${RED}80`}}>{alertasNoLeidas}</span>}
             </button>
           ))}
 
