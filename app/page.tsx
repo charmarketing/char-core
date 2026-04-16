@@ -627,6 +627,40 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
   {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
 ])
   const [clientes,setClientes]=useState(CLIENTES)
+const [modalNuevoCliente,setModalNuevoCliente]=useState(false)
+const [nuevoNombre,setNuevoNombre]=useState('')
+const [nuevoRed,setNuevoRed]=useState('Instagram')
+
+const agregarCliente=async()=>{
+  if(!nuevoNombre.trim()) return
+  try {
+    const {data,error} = await supabase.from('clientes').insert([{
+      nombre: nuevoNombre,
+      red_social: nuevoRed,
+      estado: 'activo',
+      tareas_count: 0,
+      campanas_count: 0
+    }]).select()
+    if(error) throw error
+    if(data){
+      const nuevo = {
+        id: data[0].id,
+        nombre: data[0].nombre,
+        red: data[0].red_social,
+        horas: 0,
+        tareas: 0,
+        campañas: 0,
+        color: COLORES_CLIENTE[clientes.length % COLORES_CLIENTE.length]
+      }
+      setClientes([...clientes, nuevo])
+    }
+  } catch(e){
+    console.log('Error agregando cliente:', e)
+  }
+  setNuevoNombre('')
+  setNuevoRed('Instagram')
+  setModalNuevoCliente(false)
+}
 
 useEffect(()=>{
   async function cargarClientes(){
