@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -94,7 +94,7 @@ function tipoIcon(tipo:Alerta['tipo']){
   return I.info
 }
 
-export default function Alertas({t}:{t:Theme}){
+export default function Alertas({t,onActualizar}:{t:Theme;onActualizar?:(n:number)=>void}){
   const c=th(t)
   const [alertas,setAlertas]=useState<Alerta[]>(ALERTAS_INICIALES)
   const [filtro,setFiltro]=useState<'todas'|'urgente'|'atencion'|'info'>('todas')
@@ -128,6 +128,9 @@ export default function Alertas({t}:{t:Theme}){
     .filter(a=>soloNoLeidas?!a.leida:true)
 
   const noLeidas=alertas.filter(a=>!a.leida).length
+  useEffect(()=>{
+  onActualizar?.(alertas.filter(a=>!a.leida).length)
+},[alertas])
   const urgentes=alertas.filter(a=>a.tipo==='urgente').length
 
   const exportar=()=>exportCSV('CHAR_Alertas',
