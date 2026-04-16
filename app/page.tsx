@@ -736,6 +736,7 @@ useEffect(()=>{
           color:COLORES_CLIENTE[clientes.length%COLORES_CLIENTE.length]
         }
         setClientes((prev:any)=>[...prev,nuevo])
+window.location.reload()
       }
     } catch(e){console.log('Error:',e)}
     setGuardando(false)
