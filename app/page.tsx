@@ -405,9 +405,11 @@ function VClientes({t}:{t:Theme}){
             </Card>
           )
         })}
-<Card t={t} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`2px dashed ${c.border}`}} onClick={()=>(window as any).__abrirModalCliente?.()}>
-  <div style={{width:'40px',height:'40px',borderRadius:'50%',background:c.s2,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontSize:'24px',marginBottom:'10px'}}>+</div>
-  <div style={{color:c.text3,fontSize:'13px',fontWeight:600}}>Agregar cliente</div>
+<Card t={t} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',border:`2px dashed ${c.border}`}}>
+  <div onClick={()=>(window as any).__abrirModalCliente?.()} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',cursor:'pointer',width:'100%',height:'100%'}}>
+    <div style={{width:'40px',height:'40px',borderRadius:'50%',background:c.s2,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontSize:'24px',marginBottom:'10px'}}>+</div>
+    <div style={{color:c.text3,fontSize:'13px',fontWeight:600}}>Agregar cliente</div>
+  </div>
 </Card>
       </div>
     </div>
