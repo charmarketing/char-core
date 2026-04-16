@@ -623,7 +623,7 @@ export default function App(){
       case 'seo':        return <VSEO t={theme}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
-      case 'alertas': return <Alertas t={theme} onActualizar={setAlertasNoLeidas}/>
+      case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
