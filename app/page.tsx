@@ -361,7 +361,7 @@ function VClientes({t,clientes,setClientes}:any){
   const c=th(t)
   const exp=()=>exportCSV('CHAR_Clientes',
     ['Cliente','Red Social','Horas sin actividad','Tareas activas','Campañas activas','Estado'],
-    CLIENTES.map(cl=>[cl.nombre,cl.red,cl.horas,cl.tareas,cl.campañas,est(cl.horas).l]))
+    clientes.map(cl=>[cl.nombre,cl.red,cl.horas,cl.tareas,cl.campañas,est(cl.horas).l]))
   return(
     <div className="char-fade" style={{display:'grid',gap:'28px'}}>
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
@@ -372,7 +372,7 @@ function VClientes({t,clientes,setClientes}:any){
         </div>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
-        {CLIENTES.map(cl=>{
+        {clientes.map(cl=>{
           const e=est(cl.horas)
           return(
             <Card key={cl.id} t={t} glow>
