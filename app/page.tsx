@@ -28,7 +28,11 @@ function exportCSV(name:string, headers:string[], rows:(string|number)[][]) {
 
 // ── DATOS ─────────────────────────────────────────────────────────────────
 const COLORES_CLIENTE = [GOLD, BLUE, PURPLE, GREEN, AMBER]
-const CLIENTES_DEFAULT:any[] = []
+const CLIENTES = [
+  {id:1,nombre:'Cliente Alfa', red:'Instagram',horas:2, tareas:3,campañas:1,color:GOLD},
+  {id:2,nombre:'Cliente Beta', red:'YouTube',  horas:50,tareas:5,campañas:0,color:BLUE},
+  {id:3,nombre:'Cliente Gamma',red:'LinkedIn', horas:20,tareas:2,campañas:1,color:PURPLE},
+]
 const TAREAS_HOY = [
   {texto:'Calendario de contenido Mayo — Alfa',rol:'CM', p:'alta'},
   {texto:'Configurar campaña Google Ads',      rol:'SEM',p:'alta'},
