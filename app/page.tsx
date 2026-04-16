@@ -240,7 +240,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
           </h1>
           <p style={{color:c.text3,fontSize:'12px',margin:0,textTransform:'capitalize'}}>{fecha}</p>
         </div>
-        <Btn v="primary" t={t} onClick={()=>irA('clientes')}>{I.plus} Nuevo Cliente</Btn>
+        <Btn v="primary" t={t} onClick={()=>{irA('clientes');setTimeout(()=>(window as any).__abrirModalCliente?.(),300)}}>{I.plus} Nuevo Cliente</Btn>
       </div>
 
       <div>
@@ -407,7 +407,7 @@ function VClientes({t}:{t:Theme}){
         })}
         <Card t={t} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`1px dashed ${c.b2}`}}>
           <div style={{width:'40px',height:'40px',borderRadius:'50%',background:c.s2,display:'flex',alignItems:'center',justifyContent:'center',color:c.text3,marginBottom:'10px'}}>{I.plus}</div>
-          <div style={{fontSize:'13px',color:c.text3,fontWeight:600}}>Agregar cliente</div>
+          <div onClick={()=>(window as any).__abrirModalCliente?.()} style={{cursor:'pointer'}}>+ Agregar cliente</div>
         </Card>
       </div>
     </div>
@@ -928,7 +928,7 @@ useEffect(()=>{
           {render()}
         </main>
       </div>
-      {modalNuevoCliente && <ModalNuevoCliente c={c} theme={theme} clientes={clientes} setClientes={setClientes} setModalNuevoCliente={setModalNuevoCliente} COLORES_CLIENTE={COLORES_CLIENTE}/>}
+     {modalNuevoCliente && <ModalNuevoCliente c={c} theme={theme} clientes={clientes} setClientes={setClientes} setModalNuevoCliente={setModalNuevoCliente} COLORES_CLIENTE={COLORES_CLIENTE}/>}
     </div>
   )
 }
