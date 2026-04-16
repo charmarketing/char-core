@@ -109,6 +109,22 @@ body {
     .cal-celda-vacia {
     min-height: 80px !important;
   }
+    /* ARCHIVOS RESPONSIVE */
+  .char-row[style*="border-left"] {
+    flex-wrap: wrap !important;
+  }
+  .char-row[style*="border-left"] > span {
+    display: none !important;
+  }
+  .char-row[style*="border-left"] > div:last-child {
+    width: 100% !important;
+    justify-content: flex-end !important;
+  }
+  .char-row[style*="border-left"] > div:nth-child(2) {
+    flex: 1 !important;
+    min-width: 0 !important;
+    max-width: calc(100% - 40px) !important;
+  }
 
   /* CALENDARIO RESPONSIVE */
 [style*="repeat(7, 1fr)"] {
