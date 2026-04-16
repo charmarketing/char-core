@@ -94,9 +94,9 @@ function tipoIcon(tipo:Alerta['tipo']){
   return I.info
 }
 
-export default function Alertas({t,onActualizar,alertasIniciales,onCambio}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:any[];onCambio?:(a:any[])=>void}){
+export default function Alertas({t,onActualizar,alertasIniciales,onCambio}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:Alerta[];onCambio?:(a:Alerta[])=>void}){
   const c=th(t)
-  const [alertas,setAlertas]=useState<Alerta[]>(alertasIniciales as Alerta[]||ALERTAS_INICIALES)
+  const [alertas,setAlertas]=useState<Alerta[]>(alertasIniciales||ALERTAS_INICIALES)
   const [filtro,setFiltro]=useState<'todas'|'urgente'|'atencion'|'info'>('todas')
   const [soloNoLeidas,setSoloNoLeidas]=useState(false)
   const [mostrarForm,setMostrarForm]=useState(false)
