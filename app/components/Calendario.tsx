@@ -729,7 +729,7 @@ export default function Calendario({ t }: { t: Theme }) {
           </div>
         </Card>
       ) : (
-        <div className="g2" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '16px' }}>
+        <div style={{ display: 'grid', gap: '16px' }}>
           <Card t={t} style={{ padding: '14px' }}>
             <div
               style={{
