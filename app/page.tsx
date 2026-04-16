@@ -357,7 +357,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
 }
 
 // ── VISTA CLIENTES ────────────────────────────────────────────────────────
-function VClientes({t}:{t:Theme}){
+function VClientes({t,clientes,setClientes}:any){
   const c=th(t)
   const exp=()=>exportCSV('CHAR_Clientes',
     ['Cliente','Red Social','Horas sin actividad','Tareas activas','Campañas activas','Estado'],
@@ -820,7 +820,7 @@ useEffect(()=>{
   const render=()=>{
     switch(vista){
       case 'dashboard':  return <VDash t={theme} usuario={usuario} irA={irA}/>
-      case 'clientes':   return <VClientes t={theme}/>
+      case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes}/>
       case 'ceo':        return <VCEO t={theme}/>
       case 'cm':         return <VCM t={theme}/>
       case 'sem':        return <VSEM t={theme}/>
