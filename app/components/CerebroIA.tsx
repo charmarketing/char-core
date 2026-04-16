@@ -69,19 +69,18 @@ const RESPUESTAS_IA: Record<string,string> = {
 function obtenerRespuesta(texto:string,cliente:string):string{
   const t=texto.toLowerCase()
   const ctx=FILOSOFIAS_CLIENTES[cliente]
-  const intro=cliente==='CHAR'?'Desde la filosofía CHAR':
-    `Pensando en ${cliente} (${ctx?.tono||''})`
+  const intro=cliente==='CHAR'?'Desde la filosofía CHAR':`Pensando en ${cliente} (${ctx?.tono||''})`
   if(t.includes('contenido')||t.includes('post')||t.includes('reel'))
     return `${intro}: Para maximizar el engagement recomiendo contenido que refleje el estilo ${ctx?.estilo||''}. El público objetivo es ${ctx?.publico||''}. ¿Querés que genere ideas específicas?`
   if(t.includes('cliente')||t.includes('gestión'))
-    return `${intro}: La estrategia debe estar alineada con la filosofía "${ctx?.descripcion||''}". ¿Arrancamos con una auditoría de presencia digital?`
+    return `${intro}: La estrategia debe estar alineada con la filosofía de ${cliente}. ¿Arrancamos con una auditoría de presencia digital?`
   if(t.includes('instagram')||t.includes('red social'))
-    return `${intro}: Para el público de ${cliente} (${ctx?.publico||''}), recomiendo contenido con tono ${ctx?.tono||''}. ¿Qué red social querés trabajar primero?`
-  if(t.includes('propuesta')||t.includes('pitch'))
-    return `${intro}: Generando propuesta alineada con el estilo ${ctx?.estilo||''}. El diferenciador clave es la autenticidad de la marca. ¿Para qué industria es el lead?`
-  if(t.includes('diseño')||t.includes('imagen'))
-    return `${intro}: El diseño debe transmitir ${ctx?.estilo||''}. Verifico consistencia cromática, impacto emocional y alineación con el público ${ctx?.publico||''}.`
-  return `${intro}: Entendido. Basándome en la filosofía de ${cliente} — "${ctx?.descripcion||''}" — ¿en qué aspecto puntual necesitás que profundice?`
+    return `${intro}: Para el público de ${cliente}, recomiendo contenido con tono ${ctx?.tono||''}. ¿Qué red social querés trabajar primero?`
+  if(t.includes('propuesta')||t.includes('pitch')||t.includes('lead'))
+    return `${intro}: Generando propuesta alineada con el estilo ${ctx?.estilo||''}. ¿Para qué industria es el lead?`
+  if(t.includes('diseño')||t.includes('imagen')||t.includes('visual'))
+    return `${intro}: El diseño debe transmitir ${ctx?.estilo||''}. Verifico consistencia cromática y alineación con el público ${ctx?.publico||''}.`
+  return `${intro}: Entendido. Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual necesitás que profundice?`
 }
   const t=texto.toLowerCase()
   if(t.includes('contenido')||t.includes('post')||t.includes('reel')) return RESPUESTAS_IA.contenido
