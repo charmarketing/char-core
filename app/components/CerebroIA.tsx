@@ -66,14 +66,21 @@ const RESPUESTAS_IA: Record<string,string> = {
   diseño: 'Desde la filosofía CHAR, un buen diseño debe transmitir la esencia cinematográfica de la marca. Verifico: ¿el diseño tiene consistencia cromática con la identidad del cliente? ¿El copy acompaña la imagen? ¿Genera emoción en 3 segundos?',
 }
 
-function obtenerRespuesta(texto:string):string{
+function obtenerRespuesta(texto:string,cliente:string):string{
   const t=texto.toLowerCase()
-  if(t.includes('contenido')||t.includes('post')||t.includes('reel')) return RESPUESTAS_IA.contenido
-  if(t.includes('cliente')||t.includes('gestión')) return RESPUESTAS_IA.cliente
-  if(t.includes('instagram')||t.includes('red social')) return RESPUESTAS_IA.instagram
-  if(t.includes('propuesta')||t.includes('pitch')||t.includes('lead')) return RESPUESTAS_IA.propuesta
-  if(t.includes('diseño')||t.includes('imagen')||t.includes('visual')) return RESPUESTAS_IA.diseño
-  return RESPUESTAS_IA.default
+  const ctx=FILOSOFIAS_CLIENTES[cliente]
+  const intro=cliente==='CHAR'?'Desde la filosofía CHAR':`Pensando en ${cliente}`
+  if(t.includes('contenido')||t.includes('post')||t.includes('reel'))
+    return `${intro}: Recomiendo contenido con estilo ${ctx?.estilo||''}. Público: ${ctx?.publico||''}. ¿Genero ideas específicas?`
+  if(t.includes('cliente')||t.includes('gestión'))
+    return `${intro}: La estrategia debe alinearse con la filosofía de ${cliente}. ¿Arrancamos con una auditoría?`
+  if(t.includes('instagram')||t.includes('red social'))
+    return `${intro}: Para ${ctx?.publico||''} recomiendo tono ${ctx?.tono||''}. ¿Qué red trabajamos?`
+  if(t.includes('propuesta')||t.includes('pitch')||t.includes('lead'))
+    return `${intro}: Propuesta alineada con estilo ${ctx?.estilo||''}. ¿Para qué industria es el lead?`
+  if(t.includes('diseño')||t.includes('imagen')||t.includes('visual'))
+    return `${intro}: El diseño debe transmitir ${ctx?.estilo||''}. ¿Lo analizo en detalle?`
+  return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
 const SUGERENCIAS_INICIALES = [
