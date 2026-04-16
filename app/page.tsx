@@ -601,9 +601,20 @@ const META:Record<string,{label:string;icon:JSX.Element}>={
 }
 
 // ── APP ───────────────────────────────────────────────────────────────────
+type AlertaItem = {
+  id:number
+  tipo:'urgente'|'atencion'|'info'
+  titulo:string
+  descripcion:string
+  cliente:string
+  rol:string
+  tiempo:string
+  leida:boolean
+  origen:'automatica'|'manual'
+}
 export default function App(){
   const [alertasNoLeidas,setAlertasNoLeidas]=useState(3)
-const [alertasData,setAlertasData]=useState([
+const [alertasData,setAlertasData]=useState<AlertaItem[]>([
   {id:1,tipo:'urgente',titulo:'Cliente Beta sin actividad',descripcion:'Cliente Beta lleva más de 50hs sin actividad registrada. Requiere atención inmediata.',cliente:'Cliente Beta',rol:'CEO',tiempo:'hace 2h',leida:false,origen:'automatica'},
   {id:2,tipo:'atencion',titulo:'Calendario de Mayo sin planificar',descripcion:'Cliente Alfa no tiene contenido planificado para Mayo. Faltan 8 días para el inicio del mes.',cliente:'Cliente Alfa',rol:'CM',tiempo:'hace 5h',leida:false,origen:'automatica'},
   {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
