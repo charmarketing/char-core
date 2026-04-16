@@ -699,7 +699,7 @@ useEffect(()=>{
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
 
   if(!usuario) return <LoginScreen onSelect={setUsuario} t={theme}/>
- function ModalNuevoCliente({c,theme,clientes,setClientes,setModalNuevoCliente,COLORES_CLIENTE}:any){
+  function ModalNuevoCliente({c,theme,clientes,setClientes,setModalNuevoCliente,COLORES_CLIENTE,sb}:any){
   const [nombre,setNombre]=useState('')
   const [rubro,setRubro]=useState('')
   const [contacto,setContacto]=useState('')
@@ -719,7 +719,7 @@ useEffect(()=>{
     if(!nombre.trim()) return
     setGuardando(true)
     try {
-      const {data,error} = await supabase.from('clientes').insert([{
+      const {data,error} = await sb.from('clientes').insert([{
         nombre,rubro,contacto,email,telefono,presupuesto,
         fecha_inicio:fechaInicio||null,notas,
         url_instagram:urlInstagram,url_youtube:urlYoutube,
