@@ -548,9 +548,15 @@ export default function Calendario({ t }: { t: Theme }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <Btn
               t={t}
-              onClick={() =>
-                setFechaBase(new Date(fechaBase.getFullYear(), fechaBase.getMonth() - 1, 1))
-              }
+              onClick={() => {
+  if (vista === 'semanal') {
+    const d = new Date(fechaBase)
+    d.setDate(d.getDate() - 7)
+    setFechaBase(d)
+  } else {
+    setFechaBase(new Date(fechaBase.getFullYear(), fechaBase.getMonth() - 1, 1))
+  }
+}}
             >
               {I.left}
             </Btn>
@@ -561,9 +567,15 @@ export default function Calendario({ t }: { t: Theme }) {
             </div>
             <Btn
               t={t}
-              onClick={() =>
-                setFechaBase(new Date(fechaBase.getFullYear(), fechaBase.getMonth() + 1, 1))
-              }
+              onClick={() => {
+  if (vista === 'semanal') {
+    const d = new Date(fechaBase)
+    d.setDate(d.getDate() + 7)
+    setFechaBase(d)
+  } else {
+    setFechaBase(new Date(fechaBase.getFullYear(), fechaBase.getMonth() + 1, 1))
+  }
+}}
             >
               {I.right}
             </Btn>
