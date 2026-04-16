@@ -673,7 +673,10 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
         <div style={{padding:'26px 20px 22px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
             <div className="char-logo" style={{width:'32px',height:'32px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>
-              {I.bolt}
+              <svg width="14" height="18" viewBox="0 0 22 26" fill="none">
+  <circle cx="11" cy="9" r="9" fill="#ffcd38"/>
+  <path d="M11 16 L7 26 L13 26 Z" fill="#ffcd38"/>
+</svg>
             </div>
             <div>
               <div style={{fontWeight:800,fontSize:'15px',letterSpacing:'2px',color:c.text}}>CHAR CORE</div>
