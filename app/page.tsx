@@ -5,6 +5,7 @@ import Calendario from './components/Calendario'
 import Alertas from './components/Alertas'
 import Archivos from './components/Archivos'
 import CerebroIA from './components/CerebroIA'
+import VideoEditor from './components/VideoEditor'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
@@ -592,12 +593,13 @@ function Placeholder({ti,mod,t}:{ti:string;mod:string;t:Theme}){
 }
 
 // ── NAV META ──────────────────────────────────────────────────────────────
-const NAV=['dashboard','clientes','calendario','archivos','alertas','ia']
+const NAV=['dashboard','clientes','calendario','archivos','alertas','ia','video']
 const ROL=['ceo','cm','sem','seo']
 const META:Record<string,{label:string;icon:JSX.Element}>={
   dashboard:{label:'Dashboard',icon:I.grid},clientes:{label:'Clientes',icon:I.users},
   calendario:{label:'Calendario',icon:I.cal},archivos:{label:'Archivos',icon:I.folder},
   alertas:{label:'Alertas',icon:I.bell},ia:{label:'Cerebro IA',icon:I.cpu},
+  video:{label:'Video Editor IA',icon:I.film},
   ceo:{label:'CEO',icon:I.chart},cm:{label:'CM',icon:I.pen},
   sem:{label:'SEM',icon:I.target},seo:{label:'SEO',icon:I.search},
 }
@@ -644,6 +646,7 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
       case 'archivos': return <Archivos t={theme}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
+        case 'video': return <VideoEditor t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
