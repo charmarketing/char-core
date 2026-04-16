@@ -699,37 +699,148 @@ useEffect(()=>{
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
 
   if(!usuario) return <LoginScreen onSelect={setUsuario} t={theme}/>
-  const ModalNuevoCliente=()=>(
-  <div style={{position:'fixed',inset:0,background:'#00000090',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}}>
-    <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',padding:'32px',width:'100%',maxWidth:'420px'}}>
-      <h2 style={{margin:'0 0 24px',color:c.text,fontSize:'20px',fontWeight:800}}>Nuevo Cliente</h2>
-      <div style={{display:'grid',gap:'14px'}}>
-        <div>
-          <label style={{fontSize:'11px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>NOMBRE</label>
-          <input value={nuevoNombre} onChange={e=>setNuevoNombre(e.target.value)}
-            placeholder="Ej: DG Clean"
-            style={{width:'100%',marginTop:'6px',padding:'10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box'}}/>
+ const ModalNuevoCliente=()=>{
+  const [nombre,setNombre]=useState('')
+  const [rubro,setRubro]=useState('')
+  const [contacto,setContacto]=useState('')
+  const [email,setEmail]=useState('')
+  const [telefono,setTelefono]=useState('')
+  const [presupuesto,setPresupuesto]=useState('')
+  const [fechaInicio,setFechaInicio]=useState('')
+  const [notas,setNotas]=useState('')
+  const [urlInstagram,setUrlInstagram]=useState('')
+  const [urlYoutube,setUrlYoutube]=useState('')
+  const [urlLinkedin,setUrlLinkedin]=useState('')
+  const [urlTiktok,setUrlTiktok]=useState('')
+  const [urlFacebook,setUrlFacebook]=useState('')
+  const [guardando,setGuardando]=useState(false)
+
+  const guardar=async()=>{
+    if(!nombre.trim()) return
+    setGuardando(true)
+    try {
+      const {data,error} = await supabase.from('clientes').insert([{
+        nombre,rubro,contacto,email,telefono,presupuesto,
+        fecha_inicio: fechaInicio||null,
+        notas,
+        url_instagram: urlInstagram,
+        url_youtube: urlYoutube,
+        url_linkedin: urlLinkedin,
+        url_tiktok: urlTiktok,
+        url_facebook: urlFacebook,
+        red_social: urlInstagram?'Instagram':urlYoutube?'YouTube':urlLinkedin?'LinkedIn':urlTiktok?'TikTok':urlFacebook?'Facebook':'Instagram',
+        estado:'activo',tareas_count:0,campanas_count:0
+      }]).select()
+      if(error) throw error
+      if(data){
+        const nuevo={
+          id:data[0].id,nombre:data[0].nombre,
+          red:data[0].red_social,horas:0,tareas:0,campañas:0,
+          color:COLORES_CLIENTE[clientes.length%COLORES_CLIENTE.length]
+        }
+        setClientes(prev=>[...prev,nuevo])
+      }
+    } catch(e){console.log('Error:',e)}
+    setGuardando(false)
+    setModalNuevoCliente(false)
+  }
+
+  const inp=(label:string,val:string,set:(v:string)=>void,placeholder='',type='text')=>(
+    <div>
+      <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
+      <input type={type} value={val} onChange={e=>set(e.target.value)} placeholder={placeholder}
+        style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,
+        border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',
+        outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}/>
+    </div>
+  )
+
+  return(
+    <div style={{position:'fixed',inset:0,background:'#00000095',zIndex:200,
+      display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+      <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',
+        width:'100%',maxWidth:'620px',maxHeight:'90vh',overflowY:'auto'}}>
+        
+        {/* HEADER */}
+        <div style={{padding:'24px 28px 20px',borderBottom:`1px solid ${c.border}`,
+          display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>
+            <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>GESTIÓN</div>
+            <h2 style={{margin:'4px 0 0',color:c.text,fontSize:'22px',fontWeight:800}}>Nuevo Cliente</h2>
+          </div>
+          <button onClick={()=>setModalNuevoCliente(false)}
+            style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',
+            padding:'8px',cursor:'pointer',color:c.text3,display:'flex'}}>✕</button>
         </div>
-        <div>
-          <label style={{fontSize:'11px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>RED SOCIAL</label>
-          <select value={nuevoRed} onChange={e=>setNuevoRed(e.target.value)}
-            style={{width:'100%',marginTop:'6px',padding:'10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box'}}>
-            <option>Instagram</option>
-            <option>YouTube</option>
-            <option>LinkedIn</option>
-            <option>TikTok</option>
-            <option>Facebook</option>
-            <option>Twitter/X</option>
-          </select>
-        </div>
-        <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
-          <Btn v="outline" t={theme} onClick={()=>setModalNuevoCliente(false)}>Cancelar</Btn>
-          <Btn v="primary" t={theme} onClick={agregarCliente}>{I.plus} Agregar Cliente</Btn>
+
+        <div style={{padding:'24px 28px',display:'grid',gap:'20px'}}>
+          
+          {/* DATOS PRINCIPALES */}
+          <div>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'12px'}}>
+              DATOS PRINCIPALES
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              {inp('NOMBRE O MARCA *','nombre',setNombre,'Ej: DG Clean')}
+              {inp('RUBRO / INDUSTRIA','rubro',setRubro,'Ej: Limpieza industrial')}
+            </div>
+          </div>
+
+          {/* CONTACTO */}
+          <div>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'12px'}}>
+              CONTACTO
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              {inp('NOMBRE DE CONTACTO','contacto',setContacto,'Ej: Juan Pérez')}
+              {inp('EMAIL','email',setEmail,'Ej: juan@dgclean.com','email')}
+              {inp('TELÉFONO / WHATSAPP','telefono',setTelefono,'Ej: +54 9 11 1234-5678')}
+              {inp('PRESUPUESTO MENSUAL','presupuesto',setPresupuesto,'Ej: \$500 USD')}
+            </div>
+          </div>
+
+          {/* REDES SOCIALES */}
+          <div>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'12px'}}>
+              REDES SOCIALES
+            </div>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
+              {inp('INSTAGRAM URL','urlInstagram',setUrlInstagram,'instagram.com/marca')}
+              {inp('YOUTUBE URL','urlYoutube',setUrlYoutube,'youtube.com/@marca')}
+              {inp('LINKEDIN URL','urlLinkedin',setUrlLinkedin,'linkedin.com/company/marca')}
+              {inp('TIKTOK URL','urlTiktok',setUrlTiktok,'tiktok.com/@marca')}
+              {inp('FACEBOOK URL','urlFacebook',setUrlFacebook,'facebook.com/marca')}
+              {inp('FECHA DE INICIO','fechaInicio',setFechaInicio,'','date')}
+            </div>
+          </div>
+
+          {/* NOTAS */}
+          <div>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>
+              NOTAS IMPORTANTES
+            </div>
+            <textarea value={notas} onChange={e=>setNotas(e.target.value)}
+              placeholder="Información relevante del cliente, objetivos, acuerdos especiales..."
+              rows={3}
+              style={{width:'100%',padding:'9px 12px',background:c.s2,
+              border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',
+              outline:'none',boxSizing:'border-box' as any,resize:'vertical',
+              fontFamily:'Rajdhani,sans-serif'}}/>
+          </div>
+
+          {/* BOTONES */}
+          <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
+            <Btn v="outline" t={theme} onClick={()=>setModalNuevoCliente(false)}>Cancelar</Btn>
+            <Btn v="primary" t={theme} onClick={guardar}>
+              {guardando?'Guardando...':'+ Agregar Cliente'}
+            </Btn>
+          </div>
+
         </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
   const render=()=>{
     switch(vista){
