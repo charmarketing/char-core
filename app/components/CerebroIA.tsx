@@ -48,22 +48,14 @@ const I={
   user:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
 }
 
-type Mensaje = {
-  id:number
-  rol:'user'|'ia'
-  texto:string
-  tiempo:string
-}
-
+type Mensaje = {id:number;rol:'user'|'ia';texto:string;tiempo:string}
 type Tab = 'chat'|'shadow'|'autopitch'|'sugerencias'|'filosofia'|'blog'
 
-const RESPUESTAS_IA: Record<string,string> = {
-  default: 'Entendido. Como parte del equipo CHAR, te recomiendo enfocarte en el contenido cinematográfico que define la identidad de la agencia. ¿En qué aspecto puntual necesitás que profundice?',
-  contenido: 'Para maximizar el engagement en redes, recomiendo una estrategia de contenido que combine reels cortos de alto impacto (15-30s) con carruseles educativos. La clave está en el gancho de los primeros 3 segundos. ¿Querés que genere ideas específicas para algún cliente?',
-  cliente: 'Analizando el perfil del cliente, sugiero una estrategia en 3 fases: 1) Auditoría de presencia digital actual, 2) Rediseño de identidad visual en redes, 3) Calendario editorial con contenido de alto valor. ¿Arrancamos con la auditoría?',
-  instagram: 'Para Instagram en 2026, el algoritmo prioriza: Reels con más del 70% de retención, contenido guardado (saves), y respuestas a stories. Te recomiendo 4-5 posts semanales con al menos 2 Reels. ¿Qué cliente querés trabajar?',
-  propuesta: 'Generando propuesta de valor... Para una agencia de marketing cinematográfico como CHAR, los diferenciadores clave son: calidad visual premium, estrategia basada en datos, y automatización de procesos. ¿Para qué industria es el lead?',
-  diseño: 'Desde la filosofía CHAR, un buen diseño debe transmitir la esencia cinematográfica de la marca. Verifico: ¿el diseño tiene consistencia cromática con la identidad del cliente? ¿El copy acompaña la imagen? ¿Genera emoción en 3 segundos?',
+const FILOSOFIAS_CLIENTES:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
+  'CHAR':{tono:'Profesional + cercano',estilo:'Cinematográfico premium',publico:'Agencias y marcas premium',descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico y estrategia de alto impacto.'},
+  'Cliente Alfa':{tono:'Cálido + familiar',estilo:'Natural y artesanal',publico:'Familias y madres 25-40 años',descripcion:'Marca con valores naturales, auténtica y cercana. El contenido debe transmitir calidez, confianza y conexión emocional.'},
+  'Cliente Beta':{tono:'Directo + técnico',estilo:'Tecnológico e innovador',publico:'Empresas B2B y profesionales',descripcion:'Marca orientada a soluciones tecnológicas. El contenido debe transmitir innovación, eficiencia y liderazgo.'},
+  'Cliente Gamma':{tono:'Formal + aspiracional',estilo:'Corporativo premium',publico:'Profesionales y empresas LinkedIn',descripcion:'Marca B2B con foco en liderazgo. El contenido debe transmitir autoridad, experiencia y visión estratégica.'},
 }
 
 function obtenerRespuesta(texto:string,cliente:string):string{
@@ -71,11 +63,11 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   const ctx=FILOSOFIAS_CLIENTES[cliente]
   const intro=cliente==='CHAR'?'Desde la filosofía CHAR':`Pensando en ${cliente}`
   if(t.includes('contenido')||t.includes('post')||t.includes('reel'))
-    return `${intro}: Recomiendo contenido con estilo ${ctx?.estilo||''}. Público: ${ctx?.publico||''}. ¿Genero ideas específicas?`
+    return `${intro}: Recomiendo contenido con estilo ${ctx?.estilo||''}. Público objetivo: ${ctx?.publico||''}. ¿Genero ideas específicas?`
   if(t.includes('cliente')||t.includes('gestión'))
-    return `${intro}: La estrategia debe alinearse con la filosofía de ${cliente}. ¿Arrancamos con una auditoría?`
+    return `${intro}: La estrategia debe alinearse con la filosofía de ${cliente}. ¿Arrancamos con una auditoría digital?`
   if(t.includes('instagram')||t.includes('red social'))
-    return `${intro}: Para ${ctx?.publico||''} recomiendo tono ${ctx?.tono||''}. ¿Qué red trabajamos?`
+    return `${intro}: Para ${ctx?.publico||''} recomiendo tono ${ctx?.tono||''}. ¿Qué red trabajamos primero?`
   if(t.includes('propuesta')||t.includes('pitch')||t.includes('lead'))
     return `${intro}: Propuesta alineada con estilo ${ctx?.estilo||''}. ¿Para qué industria es el lead?`
   if(t.includes('diseño')||t.includes('imagen')||t.includes('visual'))
@@ -83,56 +75,31 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
-const FILOSOFIAS_CLIENTES:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
-  'CHAR':{
-    tono:'Profesional + cercano',
-    estilo:'Cinematográfico premium',
-    publico:'Agencias y marcas premium',
-    descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico.',
-  },
-  'Cliente Alfa':{
-    tono:'Cálido + familiar',
-    estilo:'Natural y artesanal',
-    publico:'Familias y madres 25-40 años',
-    descripcion:'Marca con valores naturales, auténtica y cercana. Transmite calidez y conexión emocional.',
-  },
-  'Cliente Beta':{
-    tono:'Directo + técnico',
-    estilo:'Tecnológico e innovador',
-    publico:'Empresas B2B y profesionales',
-    descripcion:'Marca orientada a soluciones tecnológicas. Transmite innovación y liderazgo.',
-  },
-  'Cliente Gamma':{
-    tono:'Formal + aspiracional',
-    estilo:'Corporativo premium',
-    publico:'Profesionales y empresas LinkedIn',
-    descripcion:'Marca B2B con foco en liderazgo. Transmite autoridad y visión estratégica.',
-  },
-}
 const SUGERENCIAS_INICIALES = [
-  {cliente:'Cliente Alfa',red:'Instagram',idea:'Reel "Detrás de cámara" mostrando el proceso de producción — alto potencial viral',tipo:'Reel',prioridad:'alta'},
+  {cliente:'Cliente Alfa',red:'Instagram',idea:'Reel detrás de cámara mostrando el proceso de producción — alto potencial viral',tipo:'Reel',prioridad:'alta'},
   {cliente:'Cliente Beta',red:'YouTube',idea:'Video tutorial largo explicando el producto — ideal para SEO y autoridad de marca',tipo:'Video',prioridad:'alta'},
   {cliente:'Cliente Gamma',red:'LinkedIn',idea:'Artículo de liderazgo sobre tendencias del sector — genera autoridad B2B',tipo:'Artículo',prioridad:'media'},
-  {cliente:'Cliente Alfa',red:'Instagram',idea:'Carrusel "5 razones para elegirnos" con diseño cinematográfico CHAR',tipo:'Carrusel',prioridad:'media'},
-  {cliente:'Cliente Gamma',red:'Instagram',idea:'Story encuesta: "¿Qué contenido querés ver?" — aumenta engagement orgánico',tipo:'Story',prioridad:'baja'},
+  {cliente:'Cliente Alfa',red:'Instagram',idea:'Carrusel 5 razones para elegirnos con diseño cinematográfico CHAR',tipo:'Carrusel',prioridad:'media'},
+  {cliente:'Cliente Gamma',red:'Instagram',idea:'Story encuesta qué contenido querés ver — aumenta engagement orgánico',tipo:'Story',prioridad:'baja'},
 ]
 
 const BLOG_NOTICIAS = [
-  {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels por encima de los likes. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
-  {titulo:'Google Ads lanza IA predictiva para optimización automática de campañas',fuente:'Search Engine Journal',tiempo:'hace 4h',resumen:'La nueva función permite que el sistema ajuste pujas en tiempo real basándose en señales de conversión. Los early adopters reportan un 40% de mejora en ROAS.'},
-  {titulo:'TikTok supera a YouTube en tiempo de visualización por sesión en Latinoamérica',fuente:'Marketing Dive',tiempo:'hace 6h',resumen:'El promedio de sesión en TikTok alcanzó los 52 minutos en Argentina y México. Las marcas que migraron contenido tienen un CTR 2.3x superior.'},
-  {titulo:'LinkedIn: El contenido de video crece 120% en publicaciones B2B',fuente:'LinkedIn Insights',tiempo:'hace 8h',resumen:'Los videos cortos de 60-90 segundos tienen un alcance 5x mayor que los posts de texto. Las empresas de servicios son las más beneficiadas.'},
+  {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
+  {titulo:'Google Ads lanza IA predictiva para optimización automática',fuente:'Search Engine Journal',tiempo:'hace 4h',resumen:'La nueva función permite que el sistema ajuste pujas en tiempo real. Los early adopters reportan un 40% de mejora en ROAS.'},
+  {titulo:'TikTok supera a YouTube en tiempo de visualización en Latinoamérica',fuente:'Marketing Dive',tiempo:'hace 6h',resumen:'El promedio de sesión en TikTok alcanzó los 52 minutos en Argentina. Las marcas que migraron contenido tienen un CTR 2.3x superior.'},
+  {titulo:'LinkedIn: El contenido de video crece 120% en publicaciones B2B',fuente:'LinkedIn Insights',tiempo:'hace 8h',resumen:'Los videos cortos de 60-90 segundos tienen un alcance 5x mayor que los posts de texto.'},
 ]
 
 export default function CerebroIA({t}:{t:Theme}){
   const c=th(t)
   const [tab,setTab]=useState<Tab>('chat')
+  const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
-    {id:1,rol:'ia',texto:'Hola! Soy el Cerebro IA de CHAR. Estoy entrenado con la filosofía y el estilo de la agencia. Puedo ayudarte con estrategia de contenido, gestión de clientes, ideas para campañas y mucho más. ¿En qué te puedo ayudar hoy?',tiempo:'ahora'},
+    {id:1,rol:'ia',texto:'Hola! Soy el Cerebro IA de CHAR. Podés seleccionar un cliente arriba y responderé siempre desde su filosofía. ¿En qué te ayudo?',tiempo:'ahora'},
   ])
   const [input,setInput]=useState('')
   const [escribiendo,setEscribiendo]=useState(false)
-  const [filosofia,setFilosofia]=useState('CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico y estrategia de alto impacto. Nuestra filosofía es que cada pieza de contenido debe contar una historia, generar emoción y convertir. Trabajamos con calidad de producción premium, siempre pensando en el impacto visual y la autenticidad de cada marca.')
+  const [filosofia,setFilosofia]=useState(FILOSOFIAS_CLIENTES['CHAR'].descripcion)
   const [editandoFilosofia,setEditandoFilosofia]=useState(false)
   const [shadowTexto,setShadowTexto]=useState('')
   const [shadowRespuesta,setShadowRespuesta]=useState('')
@@ -143,6 +110,12 @@ export default function CerebroIA({t}:{t:Theme}){
   useEffect(()=>{
     if(chatRef.current) chatRef.current.scrollTop=chatRef.current.scrollHeight
   },[mensajes])
+
+  useEffect(()=>{
+    setFilosofia(FILOSOFIAS_CLIENTES[clienteCtx]?.descripcion||'')
+    setShadowRespuesta('')
+    setPitchGenerado('')
+  },[clienteCtx])
 
   const enviarMensaje=()=>{
     if(!input.trim()) return
@@ -161,7 +134,8 @@ export default function CerebroIA({t}:{t:Theme}){
     if(!shadowTexto.trim()) return
     setEscribiendo(true)
     setTimeout(()=>{
-      setShadowRespuesta('Analizando desde la filosofía CHAR... Este contenido tiene potencial pero le falta el "factor cinematográfico" que nos define. Recomiendo: 1) Mejorar el gancho visual en los primeros 3 segundos, 2) Asegurarte que el copy transmita emoción antes que información, 3) Verificar que la identidad cromática del cliente sea consistente. En escala del 1 al 10: le doy un 7. Con los ajustes llegaría a un 9.')
+      const ctx=FILOSOFIAS_CLIENTES[clienteCtx]
+      setShadowRespuesta(`Analizando desde la filosofía de ${clienteCtx}... Tono esperado: ${ctx?.tono}. Estilo: ${ctx?.estilo}. Público: ${ctx?.publico}. Evaluación: 1) Verificar que el gancho visual sea consistente con la identidad de ${clienteCtx}, 2) Asegurar que el copy transmita emoción antes que información, 3) Confirmar que el tono sea ${ctx?.tono}. Puntuación: 7/10. Con los ajustes llegaría a un 9/10.`)
       setEscribiendo(false)
     },1500)
   }
@@ -170,26 +144,8 @@ export default function CerebroIA({t}:{t:Theme}){
     if(!pitchData.empresa.trim()) return
     setEscribiendo(true)
     setTimeout(()=>{
-      setPitchGenerado(`PROPUESTA CHAR PARA ${pitchData.empresa.toUpperCase()}
-
-DIAGNÓSTICO INICIAL
-Luego de analizar la presencia digital de ${pitchData.empresa} en el sector ${pitchData.rubro||'de su industria'}, identificamos una oportunidad clara de diferenciación a través de contenido cinematográfico de alto impacto.
-
-EL PROBLEMA QUE RESOLVEMOS
-${pitchData.problema||'Presencia digital genérica que no conecta emocionalmente con la audiencia objetivo.'}
-
-NUESTRA PROPUESTA DE VALOR
-• Rediseño completo de identidad visual en ${pitchData.red}
-• Calendario editorial de 30 días con contenido cinematográfico
-• 4 Reels de alto impacto mensuales con producción premium
-• Estrategia de crecimiento orgánico basada en datos
-• Reporte mensual con métricas de performance
-
-POR QUÉ CHAR
-Somos la única agencia argentina que combina calidad cinematográfica con estrategia de datos en tiempo real. Nuestros clientes promedian un crecimiento del 300% en engagement en los primeros 90 días.
-
-PRÓXIMO PASO
-Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industria.`)
+      const ctx=FILOSOFIAS_CLIENTES[clienteCtx]
+      setPitchGenerado(`PROPUESTA CHAR PARA ${pitchData.empresa.toUpperCase()}\n\nDIAGNÓSTICO INICIAL\nLuego de analizar la presencia digital de ${pitchData.empresa} en el sector ${pitchData.rubro||'su industria'}, identificamos una oportunidad clara de diferenciación.\n\nEL PROBLEMA QUE RESOLVEMOS\n${pitchData.problema||'Presencia digital genérica que no conecta emocionalmente con la audiencia objetivo.'}\n\nNUESTRA PROPUESTA DE VALOR\n• Rediseño completo de identidad visual en ${pitchData.red}\n• Calendario editorial de 30 días con contenido ${ctx?.estilo||'premium'}\n• 4 piezas de alto impacto mensuales\n• Estrategia de crecimiento orgánico basada en datos\n• Reporte mensual con métricas de performance\n\nPOR QUÉ CHAR\nSomos la única agencia argentina que combina calidad cinematográfica con estrategia de datos en tiempo real.\n\nPRÓXIMO PASO\nUna reunión de 30 minutos para mostrarte casos de éxito similares a tu industria.`)
       setEscribiendo(false)
     },2000)
   }
@@ -208,7 +164,6 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
   return(
     <div className="char-fade" style={{display:'grid',gap:'28px'}}>
 
-      {/* HEADER */}
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px'}}>
         <div>
           <Eb text="INTELIGENCIA ARTIFICIAL" t={t}/>
@@ -218,7 +173,32 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
         <Tag label="MODO DEMO — API REAL EN M8" color={AMBER}/>
       </div>
 
-      {/* TABS */}
+      <Card t={t} style={{padding:'16px 20px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap',justifyContent:'space-between'}}>
+          <div>
+            <Eb text="CONTEXTO ACTIVO" t={t}/>
+            <div style={{fontSize:'13px',color:c.text2,marginTop:'2px'}}>La IA responde desde la filosofía de:</div>
+          </div>
+          <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+            {['CHAR','Cliente Alfa','Cliente Beta','Cliente Gamma'].map(cl=>(
+              <button key={cl} onClick={()=>setClienteCtx(cl)} className="char-btn" style={{
+                background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+                color:clienteCtx===cl?'#050510':c.text2,
+                border:clienteCtx===cl?'none':`1px solid ${c.border}`,
+                borderRadius:'8px',padding:'8px 14px',cursor:'pointer',
+                fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',
+                transition:'all 0.15s',
+              }}>{cl}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{marginTop:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
+          <Tag label={`TONO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono?.toUpperCase()}`} color={GOLD}/>
+          <Tag label={`ESTILO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.estilo?.toUpperCase()}`} color={PURPLE}/>
+          <Tag label={`PÚBLICO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.publico?.toUpperCase()}`} color={BLUE}/>
+        </div>
+      </Card>
+
       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
         {tabs.map(tb=>(
           <button key={tb.id} onClick={()=>setTab(tb.id)} className="char-btn" style={{
@@ -227,130 +207,85 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
             border:tab===tb.id?'none':`1px solid ${c.border}`,
             borderRadius:'10px',padding:'10px 16px',cursor:'pointer',
             fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',
-            display:'flex',alignItems:'center',gap:'6px',
-            transition:'all 0.15s',
+            display:'flex',alignItems:'center',gap:'6px',transition:'all 0.15s',
           }}>
             {tb.icon}{tb.label}
           </button>
         ))}
       </div>
 
-      {/* CHAT */}
       {tab==='chat'&&(
         <Card t={t} style={{padding:'0',overflow:'hidden'}}>
           <div style={{padding:'18px 22px',borderBottom:`1px solid ${c.border}`,display:'flex',alignItems:'center',gap:'10px'}}>
             <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
             <div>
-              <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA</div>
+              <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteCtx}</div>
               <div style={{fontSize:'11px',color:GREEN,display:'flex',alignItems:'center',gap:'4px'}}>
                 <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
                 Activo · Modo demo
               </div>
             </div>
           </div>
-
           <div ref={chatRef} style={{height:'380px',overflowY:'auto',padding:'20px',display:'grid',gap:'16px',alignContent:'start'}}>
             {mensajes.map(m=>(
               <div key={m.id} style={{display:'flex',gap:'10px',justifyContent:m.rol==='user'?'flex-end':'flex-start'}}>
-                {m.rol==='ia'&&(
-                  <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
-                )}
-                <div style={{
-                  maxWidth:'75%',padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',
-                  background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
-                  color:m.rol==='user'?'#050510':c.text,
-                  fontSize:'13px',lineHeight:'1.6',
-                  border:m.rol==='ia'?`1px solid ${c.border}`:'none',
-                }}>
+                {m.rol==='ia'&&<div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>}
+                <div style={{maxWidth:'75%',padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:m.rol==='user'?'#050510':c.text,fontSize:'13px',lineHeight:'1.6',border:m.rol==='ia'?`1px solid ${c.border}`:'none'}}>
                   {m.texto}
                 </div>
-                {m.rol==='user'&&(
-                  <div style={{width:'30px',height:'30px',background:c.s2,borderRadius:'8px',border:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:c.text3,flexShrink:0}}>{I.user}</div>
-                )}
+                {m.rol==='user'&&<div style={{width:'30px',height:'30px',background:c.s2,borderRadius:'8px',border:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:c.text3,flexShrink:0}}>{I.user}</div>}
               </div>
             ))}
             {escribiendo&&tab==='chat'&&(
               <div style={{display:'flex',gap:'10px'}}>
                 <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
                 <div style={{padding:'12px 16px',borderRadius:'14px 14px 14px 4px',background:c.s2,border:`1px solid ${c.border}`,display:'flex',gap:'4px',alignItems:'center'}}>
-                  {[0,1,2].map(i=>(
-                    <div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>
-                  ))}
+                  {[0,1,2].map(i=><div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
                 </div>
               </div>
             )}
           </div>
-
           <div style={{padding:'16px 22px',borderTop:`1px solid ${c.border}`,display:'flex',gap:'10px'}}>
-            <input
-              value={input}
-              onChange={e=>setInput(e.target.value)}
-              onKeyDown={e=>e.key==='Enter'&&enviarMensaje()}
-              placeholder="Preguntale algo al Cerebro IA..."
-              style={{...inputSt,flex:1}}
-            />
+            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&enviarMensaje()} placeholder={`Preguntale algo al Cerebro IA sobre ${clienteCtx}...`} style={{...inputSt,flex:1}}/>
             <Btn v="primary" t={t} onClick={enviarMensaje} disabled={escribiendo}>{I.send} Enviar</Btn>
           </div>
         </Card>
       )}
 
-      {/* SHADOW MANAGEMENT */}
       {tab==='shadow'&&(
         <div style={{display:'grid',gap:'16px'}}>
           <Card t={t}>
-            <Eb text="SHADOW MANAGEMENT" t={t}/>
-            <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>¿La agencia aprobaría esto?</h3>
-            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>
-              Describí un diseño, copy, idea o estrategia y el Cerebro IA lo analiza desde la filosofía y estilo de CHAR.
-            </div>
-            <textarea
-              value={shadowTexto}
-              onChange={e=>setShadowTexto(e.target.value)}
-              placeholder="Ej: Quiero publicar un carrusel con fondo blanco y texto negro sobre los beneficios del producto, sin imágenes..."
-              style={{...inputSt,height:'120px',resize:'none',marginBottom:'14px'}}
-            />
-            <Btn v="primary" t={t} onClick={analizarShadow} disabled={escribiendo||!shadowTexto.trim()}>{I.eye} Analizar desde la filosofía CHAR</Btn>
+            <Eb text={`SHADOW — ${clienteCtx.toUpperCase()}`} t={t}/>
+            <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>¿Esto representa a {clienteCtx}?</h3>
+            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>Describí un diseño, copy o idea y la IA lo analiza desde la filosofía de {clienteCtx}.</div>
+            <textarea value={shadowTexto} onChange={e=>setShadowTexto(e.target.value)} placeholder={`Ej: Quiero publicar un carrusel para ${clienteCtx} con fondo blanco...`} style={{...inputSt,height:'120px',resize:'none',marginBottom:'14px'}}/>
+            <Btn v="primary" t={t} onClick={analizarShadow} disabled={escribiendo||!shadowTexto.trim()}>{I.eye} Analizar desde filosofía de {clienteCtx}</Btn>
           </Card>
-
           {shadowRespuesta&&(
             <Card t={t} style={{borderLeft:`3px solid ${GOLD}`}}>
               <Eb text="ANÁLISIS CHAR IA" t={t}/>
               <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.8',marginTop:'8px'}}>{shadowRespuesta}</div>
             </Card>
           )}
-
-          <Card t={t} style={{padding:'16px 20px'}}>
-            <div style={{display:'flex',gap:'12px',flexWrap:'wrap'}}>
-              {['¿Adri aprobaría este diseño?','¿Esto representa la filosofía CHAR?','¿El copy tiene impacto emocional?','¿La identidad visual es consistente?'].map((s,i)=>(
-                <button key={i} onClick={()=>setShadowTexto(s)} className="char-btn" style={{background:c.s2,color:c.text2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'8px 14px',cursor:'pointer',fontSize:'12px',fontFamily:'Rajdhani,sans-serif'}}>
-                  {s}
-                </button>
-              ))}
-            </div>
-          </Card>
         </div>
       )}
 
-      {/* AUTO-PITCH */}
       {tab==='autopitch'&&(
         <div style={{display:'grid',gap:'16px'}}>
           <Card t={t}>
             <Eb text="AUTO-PITCH" t={t}/>
             <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>Generá una propuesta en segundos</h3>
-            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>
-              Completá los datos del lead y el Cerebro IA genera una propuesta profesional lista para enviar.
-            </div>
+            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>Completá los datos del lead y el Cerebro IA genera una propuesta profesional lista para enviar.</div>
             <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
               <input value={pitchData.empresa} onChange={e=>setPitchData({...pitchData,empresa:e.target.value})} placeholder="Nombre de la empresa / lead" style={inputSt}/>
               <input value={pitchData.rubro} onChange={e=>setPitchData({...pitchData,rubro:e.target.value})} placeholder="Rubro o industria" style={inputSt}/>
               <select value={pitchData.red} onChange={e=>setPitchData({...pitchData,red:e.target.value})} style={inputSt}>
                 {['Instagram','YouTube','LinkedIn','TikTok','Meta Ads','Google Ads'].map(r=><option key={r}>{r}</option>)}
               </select>
-              <textarea value={pitchData.problema} onChange={e=>setPitchData({...pitchData,problema:e.target.value})} placeholder="¿Cuál es el problema principal del lead? (opcional)" style={{...inputSt,resize:'none',height:'48px'}}/>
+              <textarea value={pitchData.problema} onChange={e=>setPitchData({...pitchData,problema:e.target.value})} placeholder="¿Cuál es el problema principal del lead?" style={{...inputSt,resize:'none',height:'48px'}}/>
             </div>
             <Btn v="primary" t={t} onClick={generarPitch} disabled={escribiendo||!pitchData.empresa.trim()}>{I.target} Generar propuesta ahora</Btn>
           </Card>
-
           {pitchGenerado&&(
             <Card t={t} style={{borderLeft:`3px solid ${GOLD}`}}>
               <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
@@ -363,7 +298,6 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
         </div>
       )}
 
-      {/* SUGERENCIAS */}
       {tab==='sugerencias'&&(
         <div style={{display:'grid',gap:'14px'}}>
           <Card t={t} style={{padding:'16px 20px'}}>
@@ -387,40 +321,29 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
         </div>
       )}
 
-      {/* FILOSOFÍA */}
       {tab==='filosofia'&&(
         <Card t={t}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px'}}>
             <div>
-              <Eb text="ADN DE CHAR" t={t}/>
-              <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de la Agencia</h3>
+              <Eb text={`ADN DE ${clienteCtx.toUpperCase()}`} t={t}/>
+              <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de {clienteCtx}</h3>
             </div>
             <Btn v="outline" t={t} onClick={()=>setEditandoFilosofia(!editandoFilosofia)}>{editandoFilosofia?I.save:I.pen} {editandoFilosofia?'Guardar':'Editar'}</Btn>
           </div>
-          <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>
-            El Cerebro IA aprende de este texto para responder siempre alineado con la identidad y valores de CHAR.
-          </div>
+          <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>El Cerebro IA aprende de este texto para responder siempre alineado con la identidad de {clienteCtx}.</div>
           {editandoFilosofia?(
-            <textarea
-              value={filosofia}
-              onChange={e=>setFilosofia(e.target.value)}
-              style={{...inputSt,height:'200px',resize:'none'}}
-            />
+            <textarea value={filosofia} onChange={e=>setFilosofia(e.target.value)} style={{...inputSt,height:'200px',resize:'none'}}/>
           ):(
-            <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'12px',padding:'18px',fontSize:'13px',color:c.text2,lineHeight:'1.8'}}>
-              {filosofia}
-            </div>
+            <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'12px',padding:'18px',fontSize:'13px',color:c.text2,lineHeight:'1.8'}}>{filosofia}</div>
           )}
           <div style={{marginTop:'16px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-            <Tag label="TONO: PROFESIONAL + CERCANO" color={GOLD}/>
-            <Tag label="ESTILO: CINEMATOGRÁFICO" color={PURPLE}/>
-            <Tag label="ENFOQUE: ALTO IMPACTO" color={BLUE}/>
-            <Tag label="MERCADO: ARGENTINA" color={GREEN}/>
+            <Tag label={`TONO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono?.toUpperCase()}`} color={GOLD}/>
+            <Tag label={`ESTILO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.estilo?.toUpperCase()}`} color={PURPLE}/>
+            <Tag label={`PÚBLICO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.publico?.toUpperCase()}`} color={BLUE}/>
           </div>
         </Card>
       )}
 
-      {/* DAILY BLOG */}
       {tab==='blog'&&(
         <div style={{display:'grid',gap:'14px'}}>
           <Card t={t} style={{padding:'16px 20px'}}>
