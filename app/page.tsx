@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import './globals.css'
 import Calendario from './components/Calendario'
+import Alertas from './components/Alertas'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
@@ -621,7 +622,7 @@ export default function App(){
       case 'seo':        return <VSEO t={theme}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
-      case 'alertas':    return <Placeholder ti="Alertas" mod="MÓDULO 4" t={theme}/>
+      case 'alertas': return <Alertas t={theme}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
