@@ -928,7 +928,7 @@ useEffect(()=>{
           {render()}
         </main>
       </div>
-          {modalNuevoCliente && <ModalNuevoCliente/>}
+      {modalNuevoCliente && <ModalNuevoCliente c={c} theme={theme} clientes={clientes} setClientes={setClientes} setModalNuevoCliente={setModalNuevoCliente} COLORES_CLIENTE={COLORES_CLIENTE}/>}
     </div>
   )
 }
