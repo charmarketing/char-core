@@ -151,7 +151,7 @@ export default function CerebroIA({t}:{t:Theme}){
     setInput('')
     setEscribiendo(true)
     setTimeout(()=>{
-      const respuesta=obtenerRespuesta(input)
+      const respuesta=obtenerRespuesta(input,clienteCtx)
       setMensajes(prev=>[...prev,{id:Date.now()+1,rol:'ia',texto:respuesta,tiempo:'ahora'}])
       setEscribiendo(false)
     },1200)
