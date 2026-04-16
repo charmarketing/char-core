@@ -626,6 +626,32 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
   {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
   {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
 ])
+  const [clientes,setClientes]=useState(CLIENTES)
+
+useEffect(()=>{
+  async function cargarClientes(){
+    try {
+      const {data,error} = await supabase.from('clientes').select('*')
+      if(error) throw error
+      if(data && data.length>0){
+        const mapped = data.map((cl:any,i:number)=>({
+          id: cl.id,
+          nombre: cl.nombre,
+          red: cl.red_social,
+          horas: cl.ultima_actividad ? 
+            Math.floor((Date.now()-new Date(cl.ultima_actividad).getTime())/3600000) : 0,
+          tareas: cl.tareas_count||0,
+          campañas: cl.campanas_count||0,
+          color: COLORES_CLIENTE[i % COLORES_CLIENTE.length]
+        }))
+        setClientes(mapped)
+      }
+    } catch(e){
+      console.log('Supabase no disponible, usando datos locales')
+    }
+  }
+  cargarClientes()
+},[])
   const [vista,setVista]=useState('dashboard')
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
