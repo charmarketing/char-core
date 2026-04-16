@@ -83,6 +83,32 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
+const FILOSOFIAS_CLIENTES:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
+  'CHAR':{
+    tono:'Profesional + cercano',
+    estilo:'Cinematográfico premium',
+    publico:'Agencias y marcas premium',
+    descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico.',
+  },
+  'Cliente Alfa':{
+    tono:'Cálido + familiar',
+    estilo:'Natural y artesanal',
+    publico:'Familias y madres 25-40 años',
+    descripcion:'Marca con valores naturales, auténtica y cercana. Transmite calidez y conexión emocional.',
+  },
+  'Cliente Beta':{
+    tono:'Directo + técnico',
+    estilo:'Tecnológico e innovador',
+    publico:'Empresas B2B y profesionales',
+    descripcion:'Marca orientada a soluciones tecnológicas. Transmite innovación y liderazgo.',
+  },
+  'Cliente Gamma':{
+    tono:'Formal + aspiracional',
+    estilo:'Corporativo premium',
+    publico:'Profesionales y empresas LinkedIn',
+    descripcion:'Marca B2B con foco en liderazgo. Transmite autoridad y visión estratégica.',
+  },
+}
 const SUGERENCIAS_INICIALES = [
   {cliente:'Cliente Alfa',red:'Instagram',idea:'Reel "Detrás de cámara" mostrando el proceso de producción — alto potencial viral',tipo:'Reel',prioridad:'alta'},
   {cliente:'Cliente Beta',red:'YouTube',idea:'Video tutorial largo explicando el producto — ideal para SEO y autoridad de marca',tipo:'Video',prioridad:'alta'},
