@@ -757,7 +757,7 @@ useEffect(()=>{
       display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
       <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',
         width:'100%',maxWidth:'620px',maxHeight:'90vh',overflowY:'auto'}}>
-        <div style={{padding:'24px 28px 20px',borderBottom:`1px solid ${c.border}`,
+                <div style={{padding:'24px 28px 20px',borderBottom:`1px solid ${c.border}`,
           display:'flex',justifyContent:'space-between',alignItems:'center'}}>
           <div>
             <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>GESTIÓN</div>
@@ -787,12 +787,35 @@ useEffect(()=>{
           <div>
             <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'12px'}}>REDES SOCIALES</div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
-              {inp('INSTAGRAM URL',urlInstagram,setUrlInstagram,'instagram.com/marca')}
-              {inp('YOUTUBE URL',urlYoutube,setUrlYoutube,'youtube.com/@marca')}
-              {inp('LINKEDIN URL',urlLinkedin,setUrlLinkedin,'linkedin.com/company/marca')}
-              {inp('TIKTOK URL',urlTiktok,setUrlTiktok,'tiktok.com/@marca')}
-              {inp('FACEBOOK URL',urlFacebook,setUrlFacebook,'facebook.com/marca')}
-              {inp('FECHA DE INICIO',fechaInicio,setFechaInicio
+              {inp('INSTAGRAM',urlInstagram,setUrlInstagram,'instagram.com/marca')}
+              {inp('YOUTUBE',urlYoutube,setUrlYoutube,'youtube.com/@marca')}
+              {inp('LINKEDIN',urlLinkedin,setUrlLinkedin,'linkedin.com/company/marca')}
+              {inp('TIKTOK',urlTiktok,setUrlTiktok,'tiktok.com/@marca')}
+              {inp('FACEBOOK',urlFacebook,setUrlFacebook,'facebook.com/marca')}
+              {inp('FECHA INICIO',fechaInicio,setFechaInicio,'','date')}
+            </div>
+          </div>
+          <div>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>NOTAS</div>
+            <textarea value={notas} onChange={e=>setNotas(e.target.value)}
+              placeholder="Objetivos, acuerdos especiales, información relevante..."
+              rows={3}
+              style={{width:'100%',padding:'9px 12px',background:c.s2,
+              border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,
+              fontSize:'13px',outline:'none',boxSizing:'border-box' as any,
+              resize:'vertical',fontFamily:'Rajdhani,sans-serif'}}/>
+          </div>
+          <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
+            <Btn v="outline" t={theme} onClick={()=>setModalNuevoCliente(false)}>Cancelar</Btn>
+            <Btn v="primary" t={theme} onClick={guardar}>
+              {guardando?'Guardando...':'+ Agregar Cliente'}
+            </Btn>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
 
   const render=()=>{
     switch(vista){
