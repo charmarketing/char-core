@@ -4,6 +4,7 @@ import './globals.css'
 import Calendario from './components/Calendario'
 import Alertas from './components/Alertas'
 import Archivos from './components/Archivos'
+import CerebroIA from './components/CerebroIA'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
@@ -642,7 +643,7 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos': return <Archivos t={theme}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
-      case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
+      case 'ia': return <CerebroIA t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
