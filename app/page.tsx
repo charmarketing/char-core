@@ -240,7 +240,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
           </h1>
           <p style={{color:c.text3,fontSize:'12px',margin:0,textTransform:'capitalize'}}>{fecha}</p>
         </div>
-        <Btn v="primary" t={t} onClick={()=>{irA('clientes');setModalNuevoCliente(true)}}>{I.plus} Nuevo Cliente</Btn>
+        <Btn v="primary" t={t} onClick={()=>irA('clientes')}>{I.plus} Nuevo Cliente</Btn>
       </div>
 
       <div>
