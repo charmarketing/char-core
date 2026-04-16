@@ -411,11 +411,11 @@ function ArchivoRow({archivo,t,onEliminar}:{archivo:Archivo;t:Theme;onEliminar:(
   const c=th(t)
   const color=tipoColor(archivo.tipo)
   return(
-    <div className="char-row" style={{
-      background:c.s2,border:`1px solid ${c.border}`,borderRadius:'10px',
-      padding:'14px 16px',display:'flex',alignItems:'center',gap:'14px',
-      borderLeft:`3px solid ${color}`,transition:'all 0.15s',
-    }}>
+    <div className="char-row archivo-row-lista" style={{
+  background:c.s2,border:`1px solid ${c.border}`,borderRadius:'10px',
+  padding:'14px 16px',display:'flex',alignItems:'center',gap:'14px',
+  borderLeft:`3px solid ${color}`,transition:'all 0.15s',
+}}>
       <div style={{color,flexShrink:0}}>{tipoIcon(archivo.tipo)}</div>
       <div style={{flex:1,minWidth:0}}>
         <div style={{fontSize:'13px',fontWeight:700,color:c.text,marginBottom:'2px'}}>{archivo.nombre}.{archivo.extension}</div>
