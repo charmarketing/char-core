@@ -240,7 +240,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
           </h1>
           <p style={{color:c.text3,fontSize:'12px',margin:0,textTransform:'capitalize'}}>{fecha}</p>
         </div>
-        <Btn v="primary" t={t} onClick={()=>irA('clientes')}>{I.plus} Nuevo Cliente</Btn>
+        <Btn v="primary" t={t} onClick={()=>{irA('clientes');setModalNuevoCliente(true)}}>{I.plus} Nuevo Cliente</Btn>
       </div>
 
       <div>
@@ -368,7 +368,7 @@ function VClientes({t}:{t:Theme}){
         <div><Eb text="GESTIÓN" t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Clientes</h1></div>
         <div style={{display:'flex',gap:'10px'}}>
           <Btn v="outline" t={t} onClick={exp}>{I.dl} Exportar CSV</Btn>
-          <Btn v="primary" t={t}>{I.plus} Nuevo Cliente</Btn>
+          <Btn v="primary" t={t} onClick={()=>setModalNuevoCliente(true)}>{I.plus} Nuevo Cliente</Btn>
         </div>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
@@ -695,6 +695,37 @@ useEffect(()=>{
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
 
   if(!usuario) return <LoginScreen onSelect={setUsuario} t={theme}/>
+  const ModalNuevoCliente=()=>(
+  <div style={{position:'fixed',inset:0,background:'#00000090',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center'}}>
+    <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',padding:'32px',width:'100%',maxWidth:'420px'}}>
+      <h2 style={{margin:'0 0 24px',color:c.text,fontSize:'20px',fontWeight:800}}>Nuevo Cliente</h2>
+      <div style={{display:'grid',gap:'14px'}}>
+        <div>
+          <label style={{fontSize:'11px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>NOMBRE</label>
+          <input value={nuevoNombre} onChange={e=>setNuevoNombre(e.target.value)}
+            placeholder="Ej: DG Clean"
+            style={{width:'100%',marginTop:'6px',padding:'10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box'}}/>
+        </div>
+        <div>
+          <label style={{fontSize:'11px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>RED SOCIAL</label>
+          <select value={nuevoRed} onChange={e=>setNuevoRed(e.target.value)}
+            style={{width:'100%',marginTop:'6px',padding:'10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box'}}>
+            <option>Instagram</option>
+            <option>YouTube</option>
+            <option>LinkedIn</option>
+            <option>TikTok</option>
+            <option>Facebook</option>
+            <option>Twitter/X</option>
+          </select>
+        </div>
+        <div style={{display:'flex',gap:'10px',marginTop:'8px'}}>
+          <Btn v="outline" t={theme} onClick={()=>setModalNuevoCliente(false)}>Cancelar</Btn>
+          <Btn v="primary" t={theme} onClick={agregarCliente}>{I.plus} Agregar Cliente</Btn>
+        </div>
+      </div>
+    </div>
+  </div>
+)
 
   const render=()=>{
     switch(vista){
@@ -807,6 +838,7 @@ useEffect(()=>{
           {render()}
         </main>
       </div>
+          {modalNuevoCliente && <ModalNuevoCliente/>}
     </div>
   )
 }
