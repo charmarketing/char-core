@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react'
 import './globals.css'
 import Calendario from './components/Calendario'
 import Alertas from './components/Alertas'
+import Archivos from './components/Archivos'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
@@ -639,7 +640,7 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
       case 'sem':        return <VSEM t={theme}/>
       case 'seo':        return <VSEO t={theme}/>
       case 'calendario': return <Calendario t={theme}/>
-      case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
+      case 'archivos': return <Archivos t={theme}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
