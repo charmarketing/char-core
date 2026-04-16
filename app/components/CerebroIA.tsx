@@ -66,7 +66,23 @@ const RESPUESTAS_IA: Record<string,string> = {
   diseño: 'Desde la filosofía CHAR, un buen diseño debe transmitir la esencia cinematográfica de la marca. Verifico: ¿el diseño tiene consistencia cromática con la identidad del cliente? ¿El copy acompaña la imagen? ¿Genera emoción en 3 segundos?',
 }
 
-function obtenerRespuesta(texto:string):string{
+function obtenerRespuesta(texto:string,cliente:string):string{
+  const t=texto.toLowerCase()
+  const ctx=FILOSOFIAS_CLIENTES[cliente]
+  const intro=cliente==='CHAR'?'Desde la filosofía CHAR':
+    `Pensando en ${cliente} (${ctx?.tono||''})`
+  if(t.includes('contenido')||t.includes('post')||t.includes('reel'))
+    return `${intro}: Para maximizar el engagement recomiendo contenido que refleje el estilo ${ctx?.estilo||''}. El público objetivo es ${ctx?.publico||''}. ¿Querés que genere ideas específicas?`
+  if(t.includes('cliente')||t.includes('gestión'))
+    return `${intro}: La estrategia debe estar alineada con la filosofía "${ctx?.descripcion||''}". ¿Arrancamos con una auditoría de presencia digital?`
+  if(t.includes('instagram')||t.includes('red social'))
+    return `${intro}: Para el público de ${cliente} (${ctx?.publico||''}), recomiendo contenido con tono ${ctx?.tono||''}. ¿Qué red social querés trabajar primero?`
+  if(t.includes('propuesta')||t.includes('pitch'))
+    return `${intro}: Generando propuesta alineada con el estilo ${ctx?.estilo||''}. El diferenciador clave es la autenticidad de la marca. ¿Para qué industria es el lead?`
+  if(t.includes('diseño')||t.includes('imagen'))
+    return `${intro}: El diseño debe transmitir ${ctx?.estilo||''}. Verifico consistencia cromática, impacto emocional y alineación con el público ${ctx?.publico||''}.`
+  return `${intro}: Entendido. Basándome en la filosofía de ${cliente} — "${ctx?.descripcion||''}" — ¿en qué aspecto puntual necesitás que profundice?`
+}
   const t=texto.toLowerCase()
   if(t.includes('contenido')||t.includes('post')||t.includes('reel')) return RESPUESTAS_IA.contenido
   if(t.includes('cliente')||t.includes('gestión')) return RESPUESTAS_IA.cliente
@@ -84,6 +100,32 @@ const SUGERENCIAS_INICIALES = [
   {cliente:'Cliente Gamma',red:'Instagram',idea:'Story encuesta: "¿Qué contenido querés ver?" — aumenta engagement orgánico',tipo:'Story',prioridad:'baja'},
 ]
 
+const FILOSOFIAS_CLIENTES:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
+  'CHAR':{
+    tono:'Profesional + cercano',
+    estilo:'Cinematográfico premium',
+    publico:'Agencias y marcas premium',
+    descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico y estrategia de alto impacto.',
+  },
+  'Cliente Alfa':{
+    tono:'Cálido + familiar',
+    estilo:'Natural y artesanal',
+    publico:'Familias y madres 25-40 años',
+    descripcion:'Marca con valores naturales, auténtica y cercana. El contenido debe transmitir calidez, confianza y conexión emocional.',
+  },
+  'Cliente Beta':{
+    tono:'Directo + técnico',
+    estilo:'Tecnológico e innovador',
+    publico:'Empresas B2B y profesionales',
+    descripcion:'Marca orientada a soluciones tecnológicas. El contenido debe transmitir innovación, eficiencia y liderazgo en el sector.',
+  },
+  'Cliente Gamma':{
+    tono:'Formal + aspiracional',
+    estilo:'Corporativo premium',
+    publico:'Profesionales y empresas LinkedIn',
+    descripcion:'Marca B2B con foco en liderazgo y posicionamiento. El contenido debe transmitir autoridad, experiencia y visión estratégica.',
+  },
+}
 const BLOG_NOTICIAS = [
   {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels por encima de los likes. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
   {titulo:'Google Ads lanza IA predictiva para optimización automática de campañas',fuente:'Search Engine Journal',tiempo:'hace 4h',resumen:'La nueva función permite que el sistema ajuste pujas en tiempo real basándose en señales de conversión. Los early adopters reportan un 40% de mejora en ROAS.'},
@@ -94,6 +136,7 @@ const BLOG_NOTICIAS = [
 export default function CerebroIA({t}:{t:Theme}){
   const c=th(t)
   const [tab,setTab]=useState<Tab>('chat')
+  const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
     {id:1,rol:'ia',texto:'Hola! Soy el Cerebro IA de CHAR. Estoy entrenado con la filosofía y el estilo de la agencia. Puedo ayudarte con estrategia de contenido, gestión de clientes, ideas para campañas y mucho más. ¿En qué te puedo ayudar hoy?',tiempo:'ahora'},
   ])
@@ -118,7 +161,7 @@ export default function CerebroIA({t}:{t:Theme}){
     setInput('')
     setEscribiendo(true)
     setTimeout(()=>{
-      const respuesta=obtenerRespuesta(input)
+      const respuesta=obtenerRespuesta(input,clienteCtx)
       setMensajes(prev=>[...prev,{id:Date.now()+1,rol:'ia',texto:respuesta,tiempo:'ahora'}])
       setEscribiendo(false)
     },1200)
@@ -128,7 +171,7 @@ export default function CerebroIA({t}:{t:Theme}){
     if(!shadowTexto.trim()) return
     setEscribiendo(true)
     setTimeout(()=>{
-      setShadowRespuesta('Analizando desde la filosofía CHAR... Este contenido tiene potencial pero le falta el "factor cinematográfico" que nos define. Recomiendo: 1) Mejorar el gancho visual en los primeros 3 segundos, 2) Asegurarte que el copy transmita emoción antes que información, 3) Verificar que la identidad cromática del cliente sea consistente. En escala del 1 al 10: le doy un 7. Con los ajustes llegaría a un 9.')
+      setShadowRespuesta(`Analizando desde la filosofía de ${clienteCtx}... El contenido fue evaluado considerando: tono ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono}, estilo ${FILOSOFIAS_CLIENTES[clienteCtx]?.estilo}, y público objetivo ${FILOSOFIAS_CLIENTES[clienteCtx]?.publico}. Recomendaciones: 1) Verificar que el gancho visual sea consistente con la identidad de ${clienteCtx}, 2) Asegurar que el copy transmita emoción antes que información, 3) Confirmar que el tono sea ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono}. Puntuación: 7/10. Con los ajustes llegaría a un 9/10.`)
       setEscribiendo(false)
     },1500)
   }
@@ -185,6 +228,36 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
         <Tag label="MODO DEMO — API REAL EN M8" color={AMBER}/>
       </div>
 
+      {/* SELECTOR DE CONTEXTO */}
+<Card t={t} style={{padding:'16px 20px'}}>
+  <div style={{display:'flex',alignItems:'center',gap:'16px',flexWrap:'wrap',justifyContent:'space-between'}}>
+    <div>
+      <Eb text="CONTEXTO ACTIVO" t={t}/>
+      <div style={{fontSize:'13px',color:c.text2,marginTop:'2px'}}>La IA responde desde la filosofía de:</div>
+    </div>
+    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+      {['CHAR','Cliente Alfa','Cliente Beta','Cliente Gamma'].map(cl=>(
+        <button key={cl} onClick={()=>setClienteCtx(cl)} className="char-btn" style={{
+          background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+          color:clienteCtx===cl?'#050510':c.text2,
+          border:clienteCtx===cl?'none':`1px solid ${c.border}`,
+          borderRadius:'8px',padding:'8px 14px',cursor:'pointer',
+          fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',
+          transition:'all 0.15s',
+        }}>
+          {cl}
+        </button>
+      ))}
+    </div>
+  </div>
+  {FILOSOFIAS_CLIENTES[clienteCtx]&&(
+    <div style={{marginTop:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
+      <Tag label={`TONO: ${FILOSOFIAS_CLIENTES[clienteCtx].tono.toUpperCase()}`} color={GOLD}/>
+      <Tag label={`ESTILO: ${FILOSOFIAS_CLIENTES[clienteCtx].estilo.toUpperCase()}`} color={PURPLE}/>
+      <Tag label={`PÚBLICO: ${FILOSOFIAS_CLIENTES[clienteCtx].publico.toUpperCase()}`} color={BLUE}/>
+    </div>
+  )}
+</Card>
       {/* TABS */}
       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
         {tabs.map(tb=>(
@@ -355,13 +428,13 @@ Una reunión de 30 minutos para mostrarte casos de éxito similares a tu industr
       )}
 
       {/* FILOSOFÍA */}
-      {tab==='filosofia'&&(
-        <Card t={t}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px'}}>
-            <div>
-              <Eb text="ADN DE CHAR" t={t}/>
-              <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de la Agencia</h3>
-            </div>
+     {tab==='filosofia'&&(
+  <Card t={t}>
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px'}}>
+      <div>
+        <Eb text={`ADN DE ${clienteCtx.toUpperCase()}`} t={t}/>
+        <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de {clienteCtx}</h3>
+      </div>
             <Btn v="outline" t={t} onClick={()=>setEditandoFilosofia(!editandoFilosofia)}>{editandoFilosofia?I.save:I.pen} {editandoFilosofia?'Guardar':'Editar'}</Btn>
           </div>
           <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>
