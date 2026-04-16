@@ -603,6 +603,12 @@ const META:Record<string,{label:string;icon:JSX.Element}>={
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App(){
   const [alertasNoLeidas,setAlertasNoLeidas]=useState(3)
+const [alertasData,setAlertasData]=useState([
+  {id:1,tipo:'urgente',titulo:'Cliente Beta sin actividad',descripcion:'Cliente Beta lleva más de 50hs sin actividad registrada. Requiere atención inmediata.',cliente:'Cliente Beta',rol:'CEO',tiempo:'hace 2h',leida:false,origen:'automatica'},
+  {id:2,tipo:'atencion',titulo:'Calendario de Mayo sin planificar',descripcion:'Cliente Alfa no tiene contenido planificado para Mayo. Faltan 8 días para el inicio del mes.',cliente:'Cliente Alfa',rol:'CM',tiempo:'hace 5h',leida:false,origen:'automatica'},
+  {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
+  {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
+])
   const [vista,setVista]=useState('dashboard')
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
@@ -623,7 +629,7 @@ export default function App(){
       case 'seo':        return <VSEO t={theme}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos':   return <Placeholder ti="Archivos" mod="MÓDULO 5" t={theme}/>
-      case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)}/>
+      case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia':         return <Placeholder ti="Cerebro IA" mod="MÓDULO 6" t={theme}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
