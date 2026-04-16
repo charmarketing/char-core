@@ -368,7 +368,7 @@ function VClientes({t}:{t:Theme}){
         <div><Eb text="GESTIÓN" t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Clientes</h1></div>
         <div style={{display:'flex',gap:'10px'}}>
           <Btn v="outline" t={t} onClick={exp}>{I.dl} Exportar CSV</Btn>
-          <Btn v="primary" t={t} onClick={()=>setModalNuevoCliente(true)}>{I.plus} Nuevo Cliente</Btn>
+          <Btn v="primary" t={t} onClick={()=>(window as any).__abrirModalCliente?.()}>{I.plus} Nuevo Cliente</Btn>
         </div>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
@@ -661,6 +661,10 @@ const agregarCliente=async()=>{
   setNuevoRed('Instagram')
   setModalNuevoCliente(false)
 }
+  
+  useEffect(()=>{
+  (window as any).__abrirModalCliente = ()=>setModalNuevoCliente(true)
+},[])
 
 useEffect(()=>{
   async function cargarClientes(){
