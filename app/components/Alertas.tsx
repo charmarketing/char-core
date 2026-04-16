@@ -94,17 +94,29 @@ function tipoIcon(tipo:Alerta['tipo']){
   return I.info
 }
 
-export default function Alertas({t,onActualizar}:{t:Theme;onActualizar?:(n:number)=>void}){
+export default function Alertas({t,onActualizar,alertasIniciales,onCambio}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:any[];onCambio?:(a:any[])=>void}){
   const c=th(t)
-  const [alertas,setAlertas]=useState<Alerta[]>(ALERTAS_INICIALES)
+  const [alertas,setAlertas]=useState<Alerta[]>(alertasIniciales as Alerta[]||ALERTAS_INICIALES)
   const [filtro,setFiltro]=useState<'todas'|'urgente'|'atencion'|'info'>('todas')
   const [soloNoLeidas,setSoloNoLeidas]=useState(false)
   const [mostrarForm,setMostrarForm]=useState(false)
   const [nueva,setNueva]=useState({titulo:'',descripcion:'',tipo:'info' as Alerta['tipo'],cliente:'Cliente Alfa',rol:'CEO'})
 
-  const marcarLeida=(id:number)=>setAlertas(prev=>prev.map(a=>a.id===id?{...a,leida:true}:a))
-  const marcarTodasLeidas=()=>setAlertas(prev=>prev.map(a=>({...a,leida:true})))
-  const eliminar=(id:number)=>setAlertas(prev=>prev.filter(a=>a.id!==id))
+const marcarLeida=(id:number)=>{
+  const nueva=alertas.map(a=>a.id===id?{...a,leida:true}:a)
+  setAlertas(nueva)
+  onCambio?.(nueva)
+}
+const marcarTodasLeidas=()=>{
+  const nueva=alertas.map(a=>({...a,leida:true}))
+  setAlertas(nueva)
+  onCambio?.(nueva)
+}
+const eliminar=(id:number)=>{
+  const nueva=alertas.filter(a=>a.id!==id)
+  setAlertas(nueva)
+  onCambio?.(nueva)
+}
 
   const crearAlerta=()=>{
     if(!nueva.titulo.trim()) return
