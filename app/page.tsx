@@ -361,6 +361,29 @@ function VClientes({t,clientes,setClientes}:any){
   const c=th(t)
   const [clienteVer,setClienteVer]=useState<any>(null)
   const [clienteEditar,setClienteEditar]=useState<any>(null)
+  const [editData,setEditData]=useState<any>({})
+
+const guardarEdicion=async()=>{
+  try{
+    const {error}=await supabase.from('clientes').update({
+      nombre:editData.nombre,
+      rubro:editData.rubro,
+      email:editData.email,
+      telefono:editData.telefono,
+      contacto:editData.contacto,
+      presupuesto:editData.presupuesto,
+      notas:editData.notas,
+      url_instagram:editData.url_instagram,
+      url_youtube:editData.url_youtube,
+      url_linkedin:editData.url_linkedin,
+      url_tiktok:editData.url_tiktok,
+      url_facebook:editData.url_facebook,
+    }).eq('id',editData.id)
+    if(error) throw error
+    setClientes((prev:any)=>prev.map((cl:any)=>cl.id===editData.id?{...cl,...editData}:cl))
+  }catch(e){console.log('Error:',e)}
+  setClienteEditar(null)
+}
   const exp=()=>exportCSV('CHAR_Clientes',
     ['Cliente','Red Social','Horas sin actividad','Tareas activas','Campañas activas','Estado'],
     clientes.map((cl:any)=>[cl.nombre,cl.red,cl.horas,cl.tareas,cl.campañas,est(cl.horas).l]))
@@ -399,7 +422,7 @@ function VClientes({t,clientes,setClientes}:any){
                 ['TIKTOK',clienteVer.url_tiktok],
                 ['FACEBOOK',clienteVer.url_facebook],
                 ['NOTAS',clienteVer.notas],
-              ].filter(([,v])=>v).map(([label,val])=>(
+              ].filter(([,v]:any)=>v&&v!=='').map(([label,val]:any)=>(
                 <div key={label} style={{display:'flex',gap:'12px',alignItems:'flex-start',padding:'8px 0',borderBottom:`1px solid ${c.border}`}}>
                   <span style={{fontSize:'10px',color:c.muted,letterSpacing:'1.5px',fontWeight:700,minWidth:'110px',paddingTop:'2px'}}>{label}</span>
                   <span style={{fontSize:'13px',color:c.text,flex:1}}>{val}</span>
@@ -410,6 +433,49 @@ function VClientes({t,clientes,setClientes}:any){
           </div>
         </div>
       )}
+      {clienteEditar&&(
+  <div style={{position:'fixed',inset:0,background:'#00000095',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+    <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',width:'100%',maxWidth:'620px',maxHeight:'90vh',overflowY:'auto'}}>
+      <div style={{padding:'24px 28px',borderBottom:`1px solid ${c.border}`,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div>
+          <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>EDITAR</div>
+          <h2 style={{margin:'4px 0 0',color:c.text,fontSize:'22px',fontWeight:800}}>{clienteEditar.nombre}</h2>
+        </div>
+        <button onClick={()=>setClienteEditar(null)} style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',color:c.text3}}>✕</button>
+      </div>
+      <div style={{padding:'24px 28px',display:'grid',gap:'14px'}}>
+        {[
+          ['NOMBRE O MARCA','nombre'],
+          ['RUBRO','rubro'],
+          ['EMAIL','email'],
+          ['TELÉFONO','telefono'],
+          ['CONTACTO','contacto'],
+          ['PRESUPUESTO','presupuesto'],
+          ['INSTAGRAM','url_instagram'],
+          ['YOUTUBE','url_youtube'],
+          ['LINKEDIN','url_linkedin'],
+          ['TIKTOK','url_tiktok'],
+          ['FACEBOOK','url_facebook'],
+        ].map(([label,key])=>(
+          <div key={key}>
+            <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
+            <input value={editData[key]||''} onChange={e=>setEditData((prev:any)=>({...prev,[key]:e.target.value}))}
+              style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}/>
+          </div>
+        ))}
+        <div>
+          <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>NOTAS</label>
+          <textarea value={editData.notas||''} onChange={e=>setEditData((prev:any)=>({...prev,notas:e.target.value}))}
+            rows={3} style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',outline:'none',boxSizing:'border-box' as any,resize:'vertical',fontFamily:'Rajdhani,sans-serif'}}/>
+        </div>
+        <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
+          <Btn v="outline" t={t} onClick={()=>setClienteEditar(null)}>Cancelar</Btn>
+          <Btn v="primary" t={t} onClick={guardarEdicion}>Guardar Cambios</Btn>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
         <div><Eb text="GESTIÓN" t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Clientes</h1></div>
         <div style={{display:'flex',gap:'10px'}}>
@@ -445,7 +511,7 @@ function VClientes({t,clientes,setClientes}:any){
               </div>
               <div style={{display:'flex',gap:'8px'}}>
                 <Btn t={t} onClick={()=>setClienteVer(cl)}>{I.eye} Ver</Btn>
-                <Btn t={t} onClick={()=>setClienteEditar(cl)}>{I.pen} Editar</Btn>
+                <Btn t={t} onClick={()=>{setClienteEditar(cl);setEditData(cl)}}>{I.pen} Editar</Btn>
                 <Btn t={t}>{I.bell} Alertas</Btn>
               </div>
             </Card>
