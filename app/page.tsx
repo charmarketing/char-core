@@ -458,17 +458,6 @@ const guardarEdicion=async()=>{
       </div>
       <div style={{padding:'24px 28px',display:'grid',gap:'14px'}}>
         {[
-    <div>
-  <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>LOGO DEL CLIENTE</label>
-  <div style={{marginTop:'6px',display:'flex',gap:'12px',alignItems:'center'}}>
-    {editData.url_logo && <img src={editData.url_logo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
-    <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
-      {subiendoLogoEdit?'Subiendo...':'📁 Subir Logo'}
-      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
-    </label>
-    {editData.url_logo && <span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
-  </div>
-</div>
           ['NOMBRE O MARCA','nombre'],
           ['RUBRO','rubro'],
           ['EMAIL','email'],
@@ -487,6 +476,17 @@ const guardarEdicion=async()=>{
               style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}/>
           </div>
         ))}
+        <div>
+  <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>LOGO DEL CLIENTE</label>
+  <div style={{marginTop:'6px',display:'flex',gap:'12px',alignItems:'center'}}>
+    {editData.url_logo && <img src={editData.url_logo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
+    <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
+      {subiendoLogoEdit?'Subiendo...':'📁 Subir Logo'}
+      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
+    </label>
+    {editData.url_logo&&<span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
+  </div>
+</div>
         <div>
           <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>NOTAS</label>
           <textarea value={editData.notas||''} onChange={e=>setEditData((prev:any)=>({...prev,notas:e.target.value}))}
