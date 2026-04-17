@@ -428,7 +428,6 @@ const guardarEdicion=async()=>{
                   <span style={{fontSize:'13px',color:c.text,flex:1}}>{val}</span>
                 </div>
               ))}   
-  )
             </div>
           </div>
         </div>
