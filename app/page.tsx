@@ -380,19 +380,20 @@ const subirLogoEdit=async(file:File)=>{
 const guardarEdicion=async()=>{
   try{
     const {error}=await supabase.from('clientes').update({
-      nombre:editData.nombre,
-      rubro:editData.rubro,
-      email:editData.email,
-      telefono:editData.telefono,
-      contacto:editData.contacto,
-      presupuesto:editData.presupuesto,
-      notas:editData.notas,
-      url_instagram:editData.url_instagram,
-      url_youtube:editData.url_youtube,
-      url_linkedin:editData.url_linkedin,
-      url_tiktok:editData.url_tiktok,
-      url_facebook:editData.url_facebook,
-    }).eq('id',editData.id)
+  nombre:editData.nombre,
+  rubro:editData.rubro,
+  email:editData.email,
+  telefono:editData.telefono,
+  contacto:editData.contacto,
+  presupuesto:editData.presupuesto,
+  notas:editData.notas,
+  url_instagram:editData.url_instagram,
+  url_youtube:editData.url_youtube,
+  url_linkedin:editData.url_linkedin,
+  url_tiktok:editData.url_tiktok,
+  url_facebook:editData.url_facebook,
+  url_logo:editData.url_logo,
+}).eq('id',editData.id)
     if(error) throw error
     setClientes((prev:any)=>prev.map((cl:any)=>cl.id===editData.id?{...cl,...editData}:cl))
   }catch(e){console.log('Error:',e)}
