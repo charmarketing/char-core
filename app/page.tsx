@@ -444,6 +444,7 @@ const guardarEdicion=async()=>{
       </div>
       <div style={{padding:'24px 28px',display:'grid',gap:'14px'}}>
         {[
+    ['URL LOGO','url_logo'],
           ['NOMBRE O MARCA','nombre'],
           ['RUBRO','rubro'],
           ['EMAIL','email'],
@@ -496,7 +497,10 @@ const guardarEdicion=async()=>{
               <div style={{display:'flex',justifyContent:'space-between',marginBottom:'18px'}}>
                 <div style={{display:'flex',gap:'12px',alignItems:'center'}}>
                   <div style={{width:'42px',height:'42px',background:cl.color+'20',border:`1px solid ${cl.color}55`,borderRadius:'11px',display:'flex',alignItems:'center',justifyContent:'center',color:cl.color,fontWeight:800,fontSize:'15px',boxShadow:`0 0 14px ${cl.color}20`}}>
-                    {cl.nombre.charAt(0)}
+                    {cl.url_logo 
+  ? <img src={cl.url_logo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'11px'}}/> 
+  : cl.nombre.charAt(0)
+}
                   </div>
                   <div>
                     <div style={{fontWeight:700,color:c.text,fontSize:'15px'}}>{cl.nombre}</div>
@@ -811,6 +815,7 @@ useEffect(()=>{
   url_tiktok: cl.url_tiktok||'',
   url_facebook: cl.url_facebook||'',
   notas: cl.notas||'',
+          url_logo: cl.url_logo||'',
 }))
         setClientes(mapped)
       }
