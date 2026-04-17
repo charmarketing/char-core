@@ -482,7 +482,7 @@ const guardarEdicion=async()=>{
     {editData.url_logo && <img src={editData.url_logo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
     <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
       {subiendoLogoEdit?'Subiendo...':'📁 Subir Logo'}
-      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
+      <input type="file" accept="image/*" style={{display:'none'}} onClick={e=>(e.target as any).value=''} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
     </label>
     {editData.url_logo&&(
   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
@@ -960,7 +960,7 @@ const subirLogo=async(file:File)=>{
     {urlLogo && <img src={urlLogo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
     <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
       {subiendoLogo?'Subiendo...':'📁 Subir Logo'}
-      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogo(e.target.files[0])}/>
+      <input type="file" accept="image/*" style={{display:'none'}} onClick={e=>(e.target as any).value=''} onChange={e=>e.target.files&&subirLogo(e.target.files[0])}/>
     </label>
     {urlLogo && <span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
   </div>
