@@ -484,7 +484,13 @@ const guardarEdicion=async()=>{
       {subiendoLogoEdit?'Subiendo...':'📁 Subir Logo'}
       <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
     </label>
-    {editData.url_logo&&<span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
+    {editData.url_logo&&(
+  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+    <span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>
+    <button onClick={()=>setEditData((prev:any)=>({...prev,url_logo:''}))}
+      style={{background:'none',border:'none',cursor:'pointer',color:RED,fontSize:'16px',fontWeight:800}}>✕</button>
+  </div>
+)}
   </div>
 </div>
         <div>
