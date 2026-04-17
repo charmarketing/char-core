@@ -473,7 +473,7 @@ const guardarEdicion=async()=>{
   await supabase.from('clientes').delete().eq('id',editData.id)
   setClientes((prev:any)=>prev.filter((cl:any)=>cl.id!==editData.id))
   setClienteEditar(null)
-}} style={{color:'#f87171',borderColor:'#f87171'}}>Eliminar</Btn>
+}}>🗑 Eliminar</Btn>
 <Btn v="outline" t={t} onClick={()=>setClienteEditar(null)}>Cancelar</Btn>
           <Btn v="primary" t={t} onClick={guardarEdicion}>Guardar Cambios</Btn>
         </div>
