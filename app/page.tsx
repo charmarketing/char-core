@@ -373,10 +373,19 @@ function VClientes({t,clientes,setClientes}:any){
               <div>
                 <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>FICHA DE CLIENTE</div>
                 <h2 style={{margin:'4px 0 0',color:c.text,fontSize:'22px',fontWeight:800}}>{clienteVer.nombre}</h2>
+                <div style={{fontSize:'12px',color:c.muted,marginTop:'4px'}}>{clienteVer.red} · {clienteVer.estado}</div>
               </div>
               <button onClick={()=>setClienteVer(null)} style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',color:c.text3}}>✕</button>
             </div>
             <div style={{padding:'24px 28px',display:'grid',gap:'12px'}}>
+              <div style={{padding:'12px 0',borderBottom:`1px solid ${c.border}`,display:'flex',gap:'12px'}}>
+  <span style={{fontSize:'10px',color:c.muted,fontWeight:700,minWidth:'110px'}}>RED SOCIAL</span>
+  <span style={{fontSize:'13px',color:c.text}}>{clienteVer.red}</span>
+</div>
+<div style={{padding:'12px 0',borderBottom:`1px solid ${c.border}`,display:'flex',gap:'12px'}}>
+  <span style={{fontSize:'10px',color:c.muted,fontWeight:700,minWidth:'110px'}}>ESTADO</span>
+  <span style={{fontSize:'13px',color:c.text}}>{clienteVer.estado}</span>
+</div>
               {[
                 ['RUBRO',clienteVer.rubro],
                 ['EMAIL',clienteVer.email],
@@ -390,8 +399,7 @@ function VClientes({t,clientes,setClientes}:any){
                 ['TIKTOK',clienteVer.url_tiktok],
                 ['FACEBOOK',clienteVer.url_facebook],
                 ['NOTAS',clienteVer.notas],
-              ].map(([label,val])=>(
-  val ? (
+              ].filter(([,v])=>v).map(([label,val])=>(
                 <div key={label} style={{display:'flex',gap:'12px',alignItems:'flex-start',padding:'8px 0',borderBottom:`1px solid ${c.border}`}}>
                   <span style={{fontSize:'10px',color:c.muted,letterSpacing:'1.5px',fontWeight:700,minWidth:'110px',paddingTop:'2px'}}>{label}</span>
                   <span style={{fontSize:'13px',color:c.text,flex:1}}>{val}</span>
