@@ -719,15 +719,28 @@ useEffect(()=>{
       if(error) throw error
       if(data && data.length>0){
         const mapped = data.map((cl:any,i:number)=>({
-          id: cl.id,
-          nombre: cl.nombre,
-          red: cl.red_social,
-          horas: cl.ultima_actividad ? 
-            Math.floor((Date.now()-new Date(cl.ultima_actividad).getTime())/3600000) : 0,
-          tareas: cl.tareas_count||0,
-          campañas: cl.campanas_count||0,
-          color: COLORES_CLIENTE[i % COLORES_CLIENTE.length]
-        }))
+  id: cl.id,
+  nombre: cl.nombre,
+  red: cl.red_social,
+  estado: cl.estado||'activo',
+  horas: cl.ultima_actividad ? 
+    Math.floor((Date.now()-new Date(cl.ultima_actividad).getTime())/3600000) : 0,
+  tareas: cl.tareas_count||0,
+  campañas: cl.campanas_count||0,
+  color: COLORES_CLIENTE[i % COLORES_CLIENTE.length],
+  rubro: cl.rubro||'',
+  email: cl.email||'',
+  telefono: cl.telefono||'',
+  contacto: cl.contacto||'',
+  presupuesto: cl.presupuesto||'',
+  fecha_inicio: cl.fecha_inicio||'',
+  url_instagram: cl.url_instagram||'',
+  url_youtube: cl.url_youtube||'',
+  url_linkedin: cl.url_linkedin||'',
+  url_tiktok: cl.url_tiktok||'',
+  url_facebook: cl.url_facebook||'',
+  notas: cl.notas||'',
+}))
         setClientes(mapped)
       }
     } catch(e){
