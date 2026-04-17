@@ -359,6 +359,9 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
 // ── VISTA CLIENTES ────────────────────────────────────────────────────────
 function VClientes({t,clientes,setClientes}:any){
   const c=th(t)
+  const [clienteVer,setClienteVer]=useState<any>(null)
+  const [clienteEditar,setClienteEditar]=useState<any>(null)
+  const c=th(t)
   const exp=()=>exportCSV('CHAR_Clientes',
     ['Cliente','Red Social','Horas sin actividad','Tareas activas','Campañas activas','Estado'],
     clientes.map(cl=>[cl.nombre,cl.red,cl.horas,cl.tareas,cl.campañas,est(cl.horas).l]))
@@ -398,9 +401,9 @@ function VClientes({t,clientes,setClientes}:any){
                 ))}
               </div>
               <div style={{display:'flex',gap:'8px'}}>
-                <Btn t={t}>{I.eye} Ver</Btn>
-                <Btn t={t}>{I.pen} Editar</Btn>
-                <Btn t={t}>{I.bell} Alertas</Btn>
+               <Btn t={t} onClick={()=>setClienteVer(cl)}>{I.eye} Ver</Btn>
+<Btn t={t} onClick={()=>setClienteEditar(cl)}>{I.pen} Editar</Btn>
+<Btn t={t} onClick={()=>irA('alertas')}>{I.bell} Alertas</Btn>
               </div>
             </Card>
           )
@@ -412,6 +415,42 @@ function VClientes({t,clientes,setClientes}:any){
       </div>
     </div>
   )
+  return(
+    <div>
+      {clienteVer&&(
+        <div style={{position:'fixed',inset:0,background:'#00000095',zIndex:200,display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+          <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',width:'100%',maxWidth:'560px',maxHeight:'90vh',overflowY:'auto'}}>
+            <div style={{padding:'24px 28px',borderBottom:`1px solid ${c.border}`,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>FICHA DE CLIENTE</div>
+                <h2 style={{margin:'4px 0 0',color:c.text,fontSize:'22px',fontWeight:800}}>{clienteVer.nombre}</h2>
+              </div>
+              <button onClick={()=>setClienteVer(null)} style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',color:c.text3}}>✕</button>
+            </div>
+            <div style={{padding:'24px 28px',display:'grid',gap:'16px'}}>
+              {[
+                ['RUBRO',clienteVer.rubro],
+                ['EMAIL',clienteVer.email],
+                ['TELÉFONO',clienteVer.telefono],
+                ['CONTACTO',clienteVer.contacto],
+                ['PRESUPUESTO',clienteVer.presupuesto],
+                ['FECHA INICIO',clienteVer.fecha_inicio],
+                ['INSTAGRAM',clienteVer.url_instagram],
+                ['YOUTUBE',clienteVer.url_youtube],
+                ['LINKEDIN',clienteVer.url_linkedin],
+                ['TIKTOK',clienteVer.url_tiktok],
+                ['FACEBOOK',clienteVer.url_facebook],
+                ['NOTAS',clienteVer.notas],
+              ].filter(([,v])=>v).map(([label,val])=>(
+                <div key={label} style={{display:'flex',gap:'12px',alignItems:'flex-start'}}>
+                  <span style={{fontSize:'10px',color:c.muted,letterSpacing:'1.5px',fontWeight:700,minWidth:'100px',paddingTop:'2px'}}>{label}</span>
+                  <span style={{fontSize:'13px',color:c.text,flex:1}}>{val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 }
 
 // ── SHELL PARA PANELES ────────────────────────────────────────────────────
