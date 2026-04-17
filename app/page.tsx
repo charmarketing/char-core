@@ -848,6 +848,21 @@ useEffect(()=>{
   const [urlLinkedin,setUrlLinkedin]=useState('')
   const [urlTiktok,setUrlTiktok]=useState('')
   const [urlFacebook,setUrlFacebook]=useState('')
+    const [urlLogo,setUrlLogo]=useState('')
+const [subiendoLogo,setSubiendoLogo]=useState(false)
+
+const subirLogo=async(file:File)=>{
+  setSubiendoLogo(true)
+  try{
+    const ext=file.name.split('.').pop()
+    const path=`logos/${Date.now()}.${ext}`
+    const {error}=await sb.storage.from('logos').upload(path,file)
+    if(error) throw error
+    const {data}=sb.storage.from('logos').getPublicUrl(path)
+    setUrlLogo(data.publicUrl)
+  }catch(e){console.log('Error:',e)}
+  setSubiendoLogo(false)
+}
   const [guardando,setGuardando]=useState(false)
 
   const guardar=async()=>{
@@ -860,6 +875,7 @@ useEffect(()=>{
         url_instagram:urlInstagram,url_youtube:urlYoutube,
         url_linkedin:urlLinkedin,url_tiktok:urlTiktok,
         url_facebook:urlFacebook,
+        url_logo:urlLogo,
         red_social:urlInstagram?'Instagram':urlYoutube?'YouTube':urlLinkedin?'LinkedIn':urlTiktok?'TikTok':urlFacebook?'Facebook':'Instagram',
         estado:'activo',tareas_count:0,campanas_count:0
       }]).select()
@@ -908,6 +924,17 @@ useEffect(()=>{
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px'}}>
               {inp('NOMBRE O MARCA *',nombre,setNombre,'Ej: DG Clean')}
               {inp('RUBRO / INDUSTRIA',rubro,setRubro,'Ej: Limpieza industrial')}
+              <div style={{gridColumn:'1/-1'}}>
+  <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>LOGO DEL CLIENTE</label>
+  <div style={{marginTop:'6px',display:'flex',gap:'12px',alignItems:'center'}}>
+    {urlLogo && <img src={urlLogo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
+    <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
+      {subiendoLogo?'Subiendo...':'📁 Subir Logo'}
+      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogo(e.target.files[0])}/>
+    </label>
+    {urlLogo && <span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
+  </div>
+</div>
             </div>
           </div>
           <div>
