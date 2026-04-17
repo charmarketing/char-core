@@ -390,12 +390,19 @@ function VClientes({t,clientes,setClientes}:any){
                 ['TIKTOK',clienteVer.url_tiktok],
                 ['FACEBOOK',clienteVer.url_facebook],
                 ['NOTAS',clienteVer.notas],
-              ].filter(([,v])=>v).map(([label,val])=>(
+              ].map(([label,val])=>(
+  val ? (
                 <div key={label} style={{display:'flex',gap:'12px',alignItems:'flex-start',padding:'8px 0',borderBottom:`1px solid ${c.border}`}}>
                   <span style={{fontSize:'10px',color:c.muted,letterSpacing:'1.5px',fontWeight:700,minWidth:'110px',paddingTop:'2px'}}>{label}</span>
                   <span style={{fontSize:'13px',color:c.text,flex:1}}>{val}</span>
                 </div>
-              ))}
+              ))}   
+              ) : (
+    <div key={label} style={{display:'flex',gap:'12px',alignItems:'center',padding:'8px 0',borderBottom:`1px solid ${c.border}`}}>
+      <span style={{fontSize:'10px',color:c.muted,letterSpacing:'1.5px',fontWeight:700,minWidth:'110px'}}>{label}</span>
+      <span style={{fontSize:'13px',color:c.text3,fontStyle:'italic'}}>Sin datos</span>
+    </div>
+  )
             </div>
           </div>
         </div>
