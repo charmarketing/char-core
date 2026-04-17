@@ -386,7 +386,7 @@ function VClientes({t,clientes,setClientes}:any){
                     <div style={{fontSize:'11px',color:c.text3}}>{cl.red}</div>
                   </div>
                 </div>
-                <Tag label={e.l} color={e.c}/>
+                <span style={{fontSize:'10px',fontWeight:700,color:e.c,letterSpacing:'1.5px',border:`1px solid ${e.c}`,padding:'2px 8px',borderRadius:'4px'}}>{e.l}</span>
               </div>
               <Div t={t}/>
               <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'16px'}}>
