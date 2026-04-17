@@ -362,6 +362,20 @@ function VClientes({t,clientes,setClientes}:any){
   const [clienteVer,setClienteVer]=useState<any>(null)
   const [clienteEditar,setClienteEditar]=useState<any>(null)
   const [editData,setEditData]=useState<any>({})
+  const [subiendoLogoEdit,setSubiendoLogoEdit]=useState(false)
+
+const subirLogoEdit=async(file:File)=>{
+  setSubiendoLogoEdit(true)
+  try{
+    const ext=file.name.split('.').pop()
+    const path=`logos/${Date.now()}.${ext}`
+    const {error}=await supabase.storage.from('logos').upload(path,file)
+    if(error) throw error
+    const {data}=supabase.storage.from('logos').getPublicUrl(path)
+    setEditData((prev:any)=>({...prev,url_logo:data.publicUrl}))
+  }catch(e){console.log('Error:',e)}
+  setSubiendoLogoEdit(false)
+}
 
 const guardarEdicion=async()=>{
   try{
@@ -444,7 +458,17 @@ const guardarEdicion=async()=>{
       </div>
       <div style={{padding:'24px 28px',display:'grid',gap:'14px'}}>
         {[
-    ['URL LOGO','url_logo'],
+    <div>
+  <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>LOGO DEL CLIENTE</label>
+  <div style={{marginTop:'6px',display:'flex',gap:'12px',alignItems:'center'}}>
+    {editData.url_logo && <img src={editData.url_logo} style={{width:'48px',height:'48px',objectFit:'cover',borderRadius:'8px',border:`1px solid ${c.border}`}}/>}
+    <label style={{cursor:'pointer',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 16px',color:c.text2,fontSize:'13px',fontWeight:600}}>
+      {subiendoLogoEdit?'Subiendo...':'📁 Subir Logo'}
+      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>e.target.files&&subirLogoEdit(e.target.files[0])}/>
+    </label>
+    {editData.url_logo && <span style={{fontSize:'11px',color:GREEN}}>✓ Logo cargado</span>}
+  </div>
+</div>
           ['NOMBRE O MARCA','nombre'],
           ['RUBRO','rubro'],
           ['EMAIL','email'],
