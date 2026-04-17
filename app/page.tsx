@@ -468,7 +468,13 @@ const guardarEdicion=async()=>{
             rows={3} style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',outline:'none',boxSizing:'border-box' as any,resize:'vertical',fontFamily:'Rajdhani,sans-serif'}}/>
         </div>
         <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
-          <Btn v="outline" t={t} onClick={()=>setClienteEditar(null)}>Cancelar</Btn>
+          <Btn v="outline" t={t} onClick={async()=>{
+  if(!confirm('¿Seguro que querés eliminar este cliente?')) return
+  await supabase.from('clientes').delete().eq('id',editData.id)
+  setClientes((prev:any)=>prev.filter((cl:any)=>cl.id!==editData.id))
+  setClienteEditar(null)
+}} style={{color:'#f87171',borderColor:'#f87171'}}>Eliminar</Btn>
+<Btn v="outline" t={t} onClick={()=>setClienteEditar(null)}>Cancelar</Btn>
           <Btn v="primary" t={t} onClick={guardarEdicion}>Guardar Cambios</Btn>
         </div>
       </div>
