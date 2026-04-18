@@ -464,6 +464,7 @@ function VPerfil({t,usuario,onLogout}:any){
     setLoadingInvite(false)
   }
 
+  const inp=(label:string,val:string,set:(v:string)=>void,placeholder='',type='text')=>(
     <div>
       <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
       <input type={type} value={val} onChange={e=>set(e.target.value)} placeholder={placeholder}
@@ -1123,7 +1124,6 @@ const subirLogo=async(file:File)=>{
     setModalNuevoCliente(false)
   }
 
-  const inp=(label:string,val:string,set:(v:string)=>void,placeholder='',type='text')=>(
     <div>
       <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
       <input type={type} value={val} onChange={e=>set(e.target.value)} placeholder={placeholder}
