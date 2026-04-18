@@ -1090,6 +1090,7 @@ const subirLogo=async(file:File)=>{
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
         case 'video': return <VideoEditor t={theme}/>
+        case 'perfil': return <VPerfil t={theme} usuario={usuario} onLogout={async()=>{await supabase.auth.signOut();setUsuario(null)}}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
@@ -1162,7 +1163,17 @@ const subirLogo=async(file:File)=>{
               <button onClick={()=>setTheme(theme==='dark'?'light':'dark')} style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text2,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
                 {theme==='dark'?I.sun:I.moon}
               </button>
-              <button onClick={()=>setUsuario(null)} title="Cambiar usuario" style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
+              <button onClick={()=>setVista('perfil')} title="Mi perfil"
+  style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
+  {I.user||'👤'}
+</button>
+<button onClick={async()=>{
+  await supabase.auth.signOut()
+  setUsuario(null)
+}} title="Cerrar sesión"
+  style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
+  {I.logout}
+</button> style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
                 {I.logout}
               </button>
             </div>
