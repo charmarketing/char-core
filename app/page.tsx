@@ -205,7 +205,7 @@ function LoginScreen({onSelect,t}:{onSelect:(u:string)=>void;t:Theme}){
       const {data,error:err}=await supabase.auth.signInWithPassword({email,password})
       if(err) throw err
       const emailUser=data.user?.email||''
-const nombre=emailUser.includes('gabriel')?'Gabriel':emailUser.includes('adri')?'Adri'
+const nombre=emailUser.includes('gabriel')?'Gabriel':emailUser.includes('adri')?'Adri':'Adrian'
 onSelect(nombre)
     }catch(e:any){
       setError('Email o contraseña incorrectos')
