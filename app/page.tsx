@@ -204,9 +204,9 @@ function LoginScreen({onSelect,t}:{onSelect:(u:string)=>void;t:Theme}){
     try{
       const {data,error:err}=await supabase.auth.signInWithPassword({email,password})
       if(err) throw err
-      const nombre=data.user?.email?.split('@')[0]||'Usuario'
-      const nombreCapital=nombre.charAt(0).toUpperCase()+nombre.slice(1)
-      onSelect(nombreCapital)
+      const emailUser=data.user?.email||''
+const nombre=emailUser.includes('gabriel')?'Gabriel':emailUser.includes('adri')?'Adri':'Usuario'
+onSelect(nombre)
     }catch(e:any){
       setError('Email o contraseña incorrectos')
     }
@@ -252,7 +252,7 @@ function LoginScreen({onSelect,t}:{onSelect:(u:string)=>void;t:Theme}){
               />
               <button onClick={()=>setShowPass(!showPass)}
                 style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:c.text3,fontSize:'16px'}}>
-                {showPass?'🙈':'👁'}
+                {showPass?'●●':'●'}
               </button>
             </div>
           </div>
