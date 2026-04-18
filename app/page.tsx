@@ -268,7 +268,7 @@ onSelect(nombre)
     if(!email){setError('Escribí tu email primero');return}
     setLoading(true)
     await supabase.auth.resetPasswordForEmail(email,{
-      redirectTo:'https://project-gpu0d.vercel.app'
+      redirectTo:'https://project-gpu0d.vercel.app/reset-password'
     })
     setError('')
     alert('✅ Te enviamos un email para resetear tu contraseña')
