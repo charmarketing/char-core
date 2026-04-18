@@ -191,35 +191,88 @@ function MCard({label,val,note,icon,color,t}:{label:string;val:string;note:strin
 // ── LOGIN SCREEN ──────────────────────────────────────────────────────────
 function LoginScreen({onSelect,t}:{onSelect:(u:string)=>void;t:Theme}){
   const c=th(t)
+  const [email,setEmail]=useState('')
+  const [password,setPassword]=useState('')
+  const [error,setError]=useState('')
+  const [loading,setLoading]=useState(false)
+  const [showPass,setShowPass]=useState(false)
+
+  const login=async()=>{
+    if(!email||!password){setError('Completá todos los campos');return}
+    setLoading(true)
+    setError('')
+    try{
+      const {data,error:err}=await supabase.auth.signInWithPassword({email,password})
+      if(err) throw err
+      const nombre=data.user?.email?.split('@')[0]||'Usuario'
+      const nombreCapital=nombre.charAt(0).toUpperCase()+nombre.slice(1)
+      onSelect(nombreCapital)
+    }catch(e:any){
+      setError('Email o contraseña incorrectos')
+    }
+    setLoading(false)
+  }
+
   return(
-    <div className="char-slide" style={{minHeight:'100vh',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',gap:'32px'}}>
-      <div style={{textAlign:'center'}}>
-        <div style={{width:'52px',height:'52px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',margin:'0 auto 16px',boxShadow:`0 8px 28px ${GOLD}50`,animation:'glow 3s ease-in-out infinite'}}>
+    <div className="char-slide" style={{minHeight:'100vh',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
+      <div style={{textAlign:'center',marginBottom:'32px'}}>
+        <div style={{width:'52px',height:'52px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
           {I.bolt}
         </div>
         <div style={{fontWeight:800,fontSize:'22px',letterSpacing:'3px',color:c.text}}>CHAR CORE</div>
         <div style={{fontSize:'11px',color:c.muted,letterSpacing:'2.5px',marginTop:'4px'}}>SISTEMA OPERATIVO</div>
       </div>
-      <Card t={t} style={{padding:'32px 40px',textAlign:'center',minWidth:'320px'}}>
-        <div style={{fontSize:'13px',color:c.text2,marginBottom:'24px',fontWeight:600,letterSpacing:'1px'}}>¿QUIÉN ERES?</div>
-        <div style={{display:'flex',flexDirection:'column',gap:'12px'}}>
-          {USUARIOS.map(u=>(
-            <button key={u} onClick={()=>onSelect(u)} className="char-btn" style={{
-              background:`linear-gradient(135deg,${GOLD}20,${GOLD}10)`,
-              border:`1px solid ${GOLD}50`,
-              borderRadius:'10px',padding:'14px 24px',
-              cursor:'pointer',fontSize:'16px',fontWeight:700,
-              color:c.text,letterSpacing:'1px',
-              fontFamily:'Rajdhani,sans-serif',
-              transition:'all 0.15s',
-              boxShadow:`0 2px 12px ${GOLD}15`,
-            }}>
-              {u}
-            </button>
-          ))}
+
+      <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',padding:'36px 40px',width:'100%',maxWidth:'380px'}}>
+        <div style={{fontSize:'13px',color:c.text2,fontWeight:600,letterSpacing:'1px',marginBottom:'24px',textAlign:'center'}}>ACCESO AL SISTEMA</div>
+
+        <div style={{display:'grid',gap:'14px'}}>
+          <div>
+            <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>EMAIL</label>
+            <input
+              type="email"
+              value={email}
+              onChange={e=>setEmail(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&login()}
+              placeholder="tu@email.com"
+              style={{width:'100%',marginTop:'6px',padding:'10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}
+            />
+          </div>
+
+          <div>
+            <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>CONTRASEÑA</label>
+            <div style={{position:'relative',marginTop:'6px'}}>
+              <input
+                type={showPass?'text':'password'}
+                value={password}
+                onChange={e=>setPassword(e.target.value)}
+                onKeyDown={e=>e.key==='Enter'&&login()}
+                placeholder="••••••••"
+                style={{width:'100%',padding:'10px 40px 10px 14px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'14px',outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}
+              />
+              <button onClick={()=>setShowPass(!showPass)}
+                style={{position:'absolute',right:'10px',top:'50%',transform:'translateY(-50%)',background:'none',border:'none',cursor:'pointer',color:c.text3,fontSize:'16px'}}>
+                {showPass?'🙈':'👁'}
+              </button>
+            </div>
+          </div>
+
+          {error&&(
+            <div style={{background:'#f8717120',border:'1px solid #f87171',borderRadius:'8px',padding:'10px 14px',fontSize:'12px',color:'#f87171',textAlign:'center'}}>
+              {error}
+            </div>
+          )}
+
+          <button onClick={login} disabled={loading}
+            style={{width:'100%',padding:'12px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,border:'none',borderRadius:'8px',color:'#fff',fontSize:'14px',fontWeight:700,cursor:'pointer',letterSpacing:'1px',marginTop:'4px',fontFamily:'Rajdhani,sans-serif',opacity:loading?0.7:1}}>
+            {loading?'VERIFICANDO...':'INGRESAR'}
+          </button>
         </div>
-      </Card>
-      <div style={{fontSize:'10px',color:c.muted,letterSpacing:'1px'}}>v1.0 · CHAR Agency · 2026</div>
+      </div>
+
+      <div style={{fontSize:'11px',color:c.muted,marginTop:'24px',letterSpacing:'1px'}}>
+        CHAR CORE © 2026 — AGENCIA CHAR
+      </div>
     </div>
   )
 }
