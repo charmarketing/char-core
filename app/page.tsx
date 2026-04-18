@@ -424,138 +424,6 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
 }
 
 // ── VISTA CLIENTES ────────────────────────────────────────────────────────
-function VPerfil({t,usuario,onLogout}:any){
-  const c=th(t)
-  const [passActual,setPassActual]=useState('')
-  const [passNueva,setPassNueva]=useState('')
-  const [passConfirm,setPassConfirm]=useState('')
-  const [emailInvite,setEmailInvite]=useState('')
-  const [nombreInvite,setNombreInvite]=useState('')
-  const [msgPass,setMsgPass]=useState('')
-  const [msgInvite,setMsgInvite]=useState('')
-  const [loadingPass,setLoadingPass]=useState(false)
-  const [loadingInvite,setLoadingInvite]=useState(false)
-  const [showPass,setShowPass]=useState(false)
-
-  const cambiarPassword=async()=>{
-    if(!passNueva||!passConfirm){setMsgPass('❌ Completá todos los campos');return}
-    if(passNueva!==passConfirm){setMsgPass('❌ Las contraseñas no coinciden');return}
-    if(passNueva.length<6){setMsgPass('❌ Mínimo 6 caracteres');return}
-    setLoadingPass(true)
-    const {error}=await supabase.auth.updateUser({password:passNueva})
-    if(error){setMsgPass('❌ Error: '+error.message);setLoadingPass(false);return}
-    setMsgPass('✅ Contraseña actualizada correctamente')
-    setPassNueva('');setPassConfirm('');setPassActual('')
-    setLoadingPass(false)
-  }
-
-  const invitarMiembro=async()=>{
-    if(!emailInvite){setMsgInvite('❌ Ingresá un email');return}
-    setLoadingInvite(true)
-    const {error}=await supabase.auth.admin.inviteUserByEmail(emailInvite)
-    if(error){
-      setMsgInvite('❌ Error: '+error.message)
-      setLoadingInvite(false)
-      return
-    }
-    setMsgInvite('✅ Invitación enviada a '+emailInvite)
-    setEmailInvite('')
-    setNombreInvite('')
-    setLoadingInvite(false)
-  }
-
-  const inp=(label:string,val:string,set:(v:string)=>void,placeholder='',type='text')=>(
-    <div>
-      <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
-      <input type={type} value={val} onChange={e=>set(e.target.value)} placeholder={placeholder}
-        style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,
-        border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',
-        outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}/>
-    </div>
-  )
-
-  return(
-    <div className="char-fade" style={{display:'grid',gap:'28px',maxWidth:'600px'}}>
-      <div>
-        <Eb text="CONFIGURACIÓN" t={t}/>
-        <h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Mi Perfil</h1>
-      </div>
-
-      {/* INFO USUARIO */}
-      <Card t={t} style={{padding:'24px'}}>
-        <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
-          <div style={{width:'56px',height:'56px',background:GOLD+'20',borderRadius:'50%',
-            border:`2px solid ${GOLD}55`,display:'flex',alignItems:'center',
-            justifyContent:'center',color:GOLD,fontWeight:800,fontSize:'22px',
-            boxShadow:`0 0 20px ${GOLD}20`}}>
-            {usuario?.[0]?.toUpperCase()}
-          </div>
-          <div>
-            <div style={{fontWeight:800,fontSize:'18px',color:c.text}}>{usuario}</div>
-            <div style={{fontSize:'12px',color:c.text3,marginTop:'2px'}}>Agencia CHAR — Miembro del equipo</div>
-          </div>
-        </div>
-      </Card>
-
-      {/* CAMBIAR CONTRASEÑA */}
-      <Card t={t} style={{padding:'24px'}}>
-        <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'16px'}}>CAMBIAR CONTRASEÑA</div>
-        <div style={{display:'grid',gap:'12px'}}>
-          {inp('NUEVA CONTRASEÑA',passNueva,setPassNueva,'Mínimo 6 caracteres',showPass?'text':'password')}
-          {inp('CONFIRMAR CONTRASEÑA',passConfirm,setPassConfirm,'Repetí la contraseña',showPass?'text':'password')}
-          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-            <input type="checkbox" id="showpass" checked={showPass} onChange={e=>setShowPass(e.target.checked)}/>
-            <label htmlFor="showpass" style={{fontSize:'12px',color:c.text3,cursor:'pointer'}}>Mostrar contraseñas</label>
-          </div>
-          {msgPass&&(
-            <div style={{padding:'10px 14px',borderRadius:'8px',fontSize:'12px',textAlign:'center',
-              background:msgPass.includes('✅')?'#3dd68c20':'#f8717120',
-              border:`1px solid ${msgPass.includes('✅')?'#3dd68c':'#f87171'}`,
-              color:msgPass.includes('✅')?'#3dd68c':'#f87171'}}>
-              {msgPass}
-            </div>
-          )}
-          <Btn v="primary" t={t} onClick={cambiarPassword}>
-            {loadingPass?'Guardando...':'Actualizar Contraseña'}
-          </Btn>
-        </div>
-      </Card>
-
-      {/* INVITAR MIEMBRO */}
-      <Card t={t} style={{padding:'24px'}}>
-        <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'16px'}}>INVITAR NUEVO MIEMBRO</div>
-        <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px'}}>
-          Invitá a un nuevo integrante del equipo. Recibirá un email para crear su contraseña.
-        </div>
-        <div style={{display:'grid',gap:'12px'}}>
-          {inp('NOMBRE DEL MIEMBRO',nombreInvite,setNombreInvite,'Ej: Carlos')}
-          {inp('EMAIL',emailInvite,setEmailInvite,'Ej: carlos@agenciachar.com','email')}
-          {msgInvite&&(
-            <div style={{padding:'10px 14px',borderRadius:'8px',fontSize:'12px',textAlign:'center',
-              background:msgInvite.includes('✅')?'#3dd68c20':'#f8717120',
-              border:`1px solid ${msgInvite.includes('✅')?'#3dd68c':'#f87171'}`,
-              color:msgInvite.includes('✅')?'#3dd68c':'#f87171'}}>
-              {msgInvite}
-            </div>
-          )}
-          <Btn v="primary" t={t} onClick={invitarMiembro}>
-            {loadingInvite?'Enviando...':'Enviar Invitación'}
-          </Btn>
-        </div>
-      </Card>
-
-      {/* CERRAR SESIÓN */}
-      <Card t={t} style={{padding:'24px'}}>
-        <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'16px'}}>SESIÓN</div>
-        <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px'}}>
-          Cerrá tu sesión actual de CHAR CORE.
-        </div>
-        <Btn v="outline" t={t} onClick={onLogout}>Cerrar Sesión</Btn>
-      </Card>
-
-    </div>
-  )
-}
 function VClientes({t,clientes,setClientes}:any){
   const c=th(t)
   const [clienteVer,setClienteVer]=useState<any>(null)
@@ -955,7 +823,6 @@ const META:Record<string,{label:string;icon:JSX.Element}>={
   video:{label:'Video Editor IA',icon:I.film},
   ceo:{label:'CEO',icon:I.chart},cm:{label:'CM',icon:I.pen},
   sem:{label:'SEM',icon:I.target},seo:{label:'SEO',icon:I.search},
-perfil:{label:'Mi Perfil',icon:I.user||I.logout},
 }
 
 // ── APP ───────────────────────────────────────────────────────────────────
@@ -1124,6 +991,7 @@ const subirLogo=async(file:File)=>{
     setModalNuevoCliente(false)
   }
 
+  const inp=(label:string,val:string,set:(v:string)=>void,placeholder='',type='text')=>(
     <div>
       <label style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
       <input type={type} value={val} onChange={e=>set(e.target.value)} placeholder={placeholder}
@@ -1222,7 +1090,6 @@ const subirLogo=async(file:File)=>{
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
         case 'video': return <VideoEditor t={theme}/>
-        case 'perfil': return <VPerfil t={theme} usuario={usuario} onLogout={async()=>{await supabase.auth.signOut();setUsuario(null)}}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
@@ -1295,10 +1162,7 @@ const subirLogo=async(file:File)=>{
               <button onClick={()=>setTheme(theme==='dark'?'light':'dark')} style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text2,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
                 {theme==='dark'?I.sun:I.moon}
               </button>
-              <button onClick={()=>setVista('perfil')} title="Mi perfil"
-  style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
-  {I.logout}
-</button>
+              <button onClick={()=>setUsuario(null)} title="Cambiar usuario" style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'7px',padding:'6px',cursor:'pointer',color:c.text3,display:'flex',alignItems:'center',justifyContent:'center',transition:'all 0.15s'}}>
                 {I.logout}
               </button>
             </div>
