@@ -263,6 +263,20 @@ onSelect(nombre)
             </div>
           )}
 
+          <div style={{textAlign:'right',marginTop:'-8px'}}>
+  <button onClick={async()=>{
+    if(!email){setError('Escribí tu email primero');return}
+    setLoading(true)
+    await supabase.auth.resetPasswordForEmail(email,{
+      redirectTo:'https://project-gpu0d.vercel.app'
+    })
+    setError('')
+    alert('✅ Te enviamos un email para resetear tu contraseña')
+    setLoading(false)
+  }} style={{background:'none',border:'none',cursor:'pointer',color:GOLD,fontSize:'11px',fontWeight:600,letterSpacing:'1px',fontFamily:'Rajdhani,sans-serif'}}>
+    ¿Olvidaste tu contraseña?
+  </button>
+</div>
           <button onClick={login} disabled={loading}
             style={{width:'100%',padding:'12px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,border:'none',borderRadius:'8px',color:'#fff',fontSize:'14px',fontWeight:700,cursor:'pointer',letterSpacing:'1px',marginTop:'4px',fontFamily:'Rajdhani,sans-serif',opacity:loading?0.7:1}}>
             {loading?'VERIFICANDO...':'INGRESAR'}
