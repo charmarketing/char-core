@@ -20,11 +20,7 @@ function Campo({label,value,onChange,placeholder='',type='text',colors}:any){
   return(
     <div>
       <label style={{fontSize:'10px',color:colors.muted,letterSpacing:'2px',fontWeight:700}}>{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={e=>onChange(e.target.value)}
-        placeholder={placeholder}
+      <input type={type} value={value} onChange={e=>onChange(e.target.value)} placeholder={placeholder}
         style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:colors.s2,
         border:`1px solid ${colors.border}`,borderRadius:'8px',color:colors.text,fontSize:'13px',
         outline:'none',boxSizing:'border-box' as any,fontFamily:'Rajdhani,sans-serif'}}/>
@@ -53,14 +49,14 @@ function CardBox({children,c,style}:any){
   )
 }
 
-function BtnBox({onClick,children,outline,loading,c}:any){
+function BtnBox({onClick,children,outline,loading,c,small}:any){
   return(
     <button onClick={onClick} disabled={loading}
-      style={{padding:'10px 20px',
+      style={{padding:small?'6px 12px':'10px 20px',
       background:outline?'transparent':`linear-gradient(135deg,${GOLD},#7a5010)`,
       border:`1px solid ${outline?c.border:GOLD}`,
       borderRadius:'8px',color:outline?c.text2:'#fff',
-      fontSize:'13px',fontWeight:700,cursor:'pointer',
+      fontSize:small?'11px':'13px',fontWeight:700,cursor:'pointer',
       letterSpacing:'0.5px',fontFamily:'Rajdhani,sans-serif',
       opacity:loading?0.7:1,transition:'all 0.15s'}}>
       {children}
@@ -68,21 +64,27 @@ function BtnBox({onClick,children,outline,loading,c}:any){
   )
 }
 
+function TogglePermiso({label,value,onChange,c}:any){
+  return(
+    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+      padding:'10px 0',borderBottom:`1px solid ${c.border}`}}>
+      <span style={{fontSize:'13px',color:c.text2}}>{label}</span>
+      <div onClick={()=>onChange(!value)}
+        style={{width:'44px',height:'24px',borderRadius:'12px',cursor:'pointer',
+        background:value?GREEN:c.s2,border:`1px solid ${value?GREEN:c.border}`,
+        position:'relative',transition:'all 0.2s'}}>
+        <div style={{position:'absolute',top:'3px',left:value?'22px':'3px',
+          width:'18px',height:'18px',borderRadius:'50%',
+          background:value?'#fff':c.text3,transition:'all 0.2s'}}/>
+      </div>
+    </div>
+  )
+}
+
 export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onLogout:()=>void}){
   const c=th(t)
   const [rolUsuario,setRolUsuario]=useState<string>('miembro')
   const [passNueva,setPassNueva]=useState('')
-
-  useEffect(()=>{
-    async function cargarRol(){
-      const {data:sessionData}=await supabase.auth.getSession()
-      const email=sessionData?.session?.user?.email
-      if(!email) return
-      const {data}=await supabase.from('user_roles').select('rol').eq('email',email).single()
-      if(data) setRolUsuario(data.rol)
-    }
-    cargarRol()
-  },[])
   const [passConfirm,setPassConfirm]=useState('')
   const [emailInvite,setEmailInvite]=useState('')
   const [nombreInvite,setNombreInvite]=useState('')
@@ -91,6 +93,22 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
   const [loadingPass,setLoadingPass]=useState(false)
   const [loadingInvite,setLoadingInvite]=useState(false)
   const [showPass,setShowPass]=useState(false)
+  const [equipo,setEquipo]=useState<any[]>([])
+  const [miembroEditando,setMiembroEditando]=useState<any>(null)
+  const [permisos,setPermisos]=useState<any>({})
+
+  useEffect(()=>{
+    async function cargarDatos(){
+      const {data:sessionData}=await supabase.auth.getSession()
+      const email=sessionData?.session?.user?.email
+      if(!email) return
+      const {data}=await supabase.from('user_roles').select('*').eq('email',email).single()
+      if(data) setRolUsuario(data.rol)
+      const {data:equipoData}=await supabase.from('user_roles').select('*').eq('rol','miembro')
+      if(equipoData) setEquipo(equipoData)
+    }
+    cargarDatos()
+  },[])
 
   const cambiarPassword=useCallback(async()=>{
     if(!passNueva||!passConfirm){setMsgPass('❌ Completá todos los campos');return}
@@ -125,6 +143,23 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
     setLoadingInvite(false)
   },[emailInvite,nombreInvite])
 
+  const abrirPermisos=(miembro:any)=>{
+    setMiembroEditando(miembro)
+    setPermisos({
+      puede_agregar_clientes: miembro.puede_agregar_clientes||false,
+      puede_editar_clientes: miembro.puede_editar_clientes||false,
+      puede_eliminar_clientes: miembro.puede_eliminar_clientes||false,
+      puede_invitar: miembro.puede_invitar||false,
+    })
+  }
+
+  const guardarPermisos=async()=>{
+    if(!miembroEditando) return
+    await supabase.from('user_roles').update(permisos).eq('id',miembroEditando.id)
+    setEquipo(prev=>prev.map(m=>m.id===miembroEditando.id?{...m,...permisos}:m))
+    setMiembroEditando(null)
+  }
+
   return(
     <div style={{display:'grid',gap:'24px',maxWidth:'600px'}}>
 
@@ -133,6 +168,7 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
         <h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Mi Perfil</h1>
       </div>
 
+      {/* INFO USUARIO */}
       <CardBox c={c} style={{padding:'24px'}}>
         <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
           <div style={{width:'56px',height:'56px',background:GOLD+'20',borderRadius:'50%',
@@ -143,11 +179,14 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
           </div>
           <div>
             <div style={{fontWeight:800,fontSize:'18px',color:c.text}}>{usuario}</div>
-            <div style={{fontSize:'12px',color:c.text3,marginTop:'2px'}}>Agencia CHAR — Miembro del equipo</div>
+            <div style={{fontSize:'12px',color:c.text3,marginTop:'2px'}}>
+              Agencia CHAR — <span style={{color:rolUsuario==='admin'?GOLD:GREEN,fontWeight:700,textTransform:'uppercase'}}>{rolUsuario}</span>
+            </div>
           </div>
         </div>
       </CardBox>
 
+      {/* CAMBIAR CONTRASEÑA */}
       <CardBox c={c} style={{padding:'24px'}}>
         <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'16px'}}>CAMBIAR CONTRASEÑA</div>
         <div style={{display:'grid',gap:'12px'}}>
@@ -164,23 +203,78 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
         </div>
       </CardBox>
 
+      {/* GESTIÓN DE EQUIPO — SOLO ADMINS */}
       {rolUsuario==='admin'&&(
-      <CardBox c={c} style={{padding:'24px'}}>
-        <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>INVITAR NUEVO MIEMBRO</div>
-        <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px',lineHeight:'1.6'}}>
-          Invitá a un nuevo integrante del equipo. Recibirá un email para crear su contraseña.
-        </div>
-        <div style={{display:'grid',gap:'12px'}}>
-          <Campo label='NOMBRE DEL MIEMBRO' value={nombreInvite} onChange={setNombreInvite} placeholder='Ej: Carlos' colors={c}/>
-          <Campo label='EMAIL' value={emailInvite} onChange={setEmailInvite} placeholder='Ej: carlos@agenciachar.com' type='email' colors={c}/>
-          <MsgBox msg={msgInvite}/>
-          <BtnBox onClick={invitarMiembro} loading={loadingInvite} c={c}>
-            {loadingInvite?'Enviando...':'Enviar Invitación'}
-          </BtnBox>
-        </div>
-      </CardBox>
+        <>
+          {/* INVITAR MIEMBRO */}
+          <CardBox c={c} style={{padding:'24px'}}>
+            <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>INVITAR NUEVO MIEMBRO</div>
+            <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px',lineHeight:'1.6'}}>
+              Invitá a un nuevo integrante. Recibirá un email para crear su contraseña.
+            </div>
+            <div style={{display:'grid',gap:'12px'}}>
+              <Campo label='NOMBRE DEL MIEMBRO' value={nombreInvite} onChange={setNombreInvite} placeholder='Ej: Carlos' colors={c}/>
+              <Campo label='EMAIL' value={emailInvite} onChange={setEmailInvite} placeholder='Ej: carlos@agenciachar.com' type='email' colors={c}/>
+              <MsgBox msg={msgInvite}/>
+              <BtnBox onClick={invitarMiembro} loading={loadingInvite} c={c}>
+                {loadingInvite?'Enviando...':'Enviar Invitación'}
+              </BtnBox>
+            </div>
+          </CardBox>
+
+          {/* GESTIÓN DE PERMISOS */}
+          {equipo.length>0&&(
+            <CardBox c={c} style={{padding:'24px'}}>
+              <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'16px'}}>GESTIÓN DE EQUIPO</div>
+              <div style={{display:'grid',gap:'10px'}}>
+                {equipo.map(m=>(
+                  <div key={m.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',
+                    padding:'12px 16px',background:c.s2,borderRadius:'10px',border:`1px solid ${c.border}`}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:'14px',color:c.text}}>{m.nombre}</div>
+                      <div style={{fontSize:'11px',color:c.text3}}>{m.email}</div>
+                    </div>
+                    <BtnBox small onClick={()=>abrirPermisos(m)} c={c}>
+                      Permisos
+                    </BtnBox>
+                  </div>
+                ))}
+              </div>
+            </CardBox>
+          )}
+        </>
       )}
 
+      {/* MODAL PERMISOS */}
+      {miembroEditando&&(
+        <div style={{position:'fixed',inset:0,background:'#00000095',zIndex:200,
+          display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+          <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'16px',
+            width:'100%',maxWidth:'420px',padding:'28px'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+              <div>
+                <div style={{fontSize:'10px',color:c.muted,letterSpacing:'2px',fontWeight:700}}>PERMISOS</div>
+                <h3 style={{margin:'4px 0 0',color:c.text,fontSize:'18px',fontWeight:800}}>{miembroEditando.nombre}</h3>
+              </div>
+              <button onClick={()=>setMiembroEditando(null)}
+                style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',
+                padding:'8px',cursor:'pointer',color:c.text3}}>✕</button>
+            </div>
+            <div style={{marginBottom:'20px'}}>
+              <TogglePermiso label="Agregar clientes" value={permisos.puede_agregar_clientes} onChange={(v:boolean)=>setPermisos((p:any)=>({...p,puede_agregar_clientes:v}))} c={c}/>
+              <TogglePermiso label="Editar clientes" value={permisos.puede_editar_clientes} onChange={(v:boolean)=>setPermisos((p:any)=>({...p,puede_editar_clientes:v}))} c={c}/>
+              <TogglePermiso label="Eliminar clientes" value={permisos.puede_eliminar_clientes} onChange={(v:boolean)=>setPermisos((p:any)=>({...p,puede_eliminar_clientes:v}))} c={c}/>
+              <TogglePermiso label="Invitar miembros" value={permisos.puede_invitar} onChange={(v:boolean)=>setPermisos((p:any)=>({...p,puede_invitar:v}))} c={c}/>
+            </div>
+            <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
+              <BtnBox outline onClick={()=>setMiembroEditando(null)} c={c}>Cancelar</BtnBox>
+              <BtnBox onClick={guardarPermisos} c={c}>Guardar Permisos</BtnBox>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CERRAR SESIÓN */}
       <CardBox c={c} style={{padding:'24px'}}>
         <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>SESIÓN ACTIVA</div>
         <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px'}}>
