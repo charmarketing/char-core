@@ -933,6 +933,7 @@ useEffect(()=>{
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
   const handleLogout=useCallback(async()=>{
   await supabase.auth.signOut()
+  setVista('dashboard')
   setUsuario(null)
 },[])
 
