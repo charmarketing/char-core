@@ -1091,7 +1091,7 @@ const subirLogo=async(file:File)=>{
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
         case 'video': return <VideoEditor t={theme}/>
-        case 'perfil': return <VPerfil t={theme} usuario={usuario||''} onLogout={async()=>{await supabase.auth.signOut();setUsuario(null)}}/>
+        case 'perfil': return <VPerfil key="perfil" t={theme} usuario={usuario||''} onLogout={async()=>{await supabase.auth.signOut();setUsuario(null)}}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
