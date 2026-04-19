@@ -425,7 +425,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
 }
 
 // ── VISTA CLIENTES ────────────────────────────────────────────────────────
-function VClientes({t,clientes,setClientes}:any){
+function VClientes({t,clientes,setClientes,rol}:any){
   const c=th(t)
   const [clienteVer,setClienteVer]=useState<any>(null)
   const [clienteEditar,setClienteEditar]=useState<any>(null)
@@ -585,7 +585,7 @@ const guardarEdicion=async()=>{
         <div><Eb text="GESTIÓN" t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Clientes</h1></div>
         <div style={{display:'flex',gap:'10px'}}>
           <Btn v="outline" t={t} onClick={exp}>{I.dl} Exportar CSV</Btn>
-          <Btn v="primary" t={t} onClick={()=>(window as any).__abrirModalCliente?.()}>{I.plus} Nuevo Cliente</Btn>
+          {rol==='admin'&&<Btn v="primary" t={t} onClick={()=>(window as any).__abrirModalCliente?.()}>{I.plus} Nuevo Cliente</Btn>}
         </div>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
@@ -618,14 +618,14 @@ const guardarEdicion=async()=>{
                 ))}
               </div>
               <div style={{display:'flex',gap:'8px'}}>
-                <Btn t={t} onClick={()=>setClienteVer(cl)}>{I.eye} Ver</Btn>
-                <Btn t={t} onClick={()=>{setClienteEditar(cl);setEditData(cl)}}>{I.pen} Editar</Btn>
-                <Btn t={t}>{I.bell} Alertas</Btn>
+               <Btn t={t} onClick={()=>setClienteVer(cl)}>{I.eye} Ver</Btn>
+{rol==='admin'&&<Btn t={t} onClick={()=>{setClienteEditar(cl);setEditData(cl)}}>{I.pen} Editar</Btn>}
+<Btn t={t}>{I.bell} Alertas</Btn>
               </div>
             </Card>
           )
         })}
-        <div onClick={()=>(window as any).__abrirModalCliente?.()} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`2px dashed ${c.border}`,borderRadius:'12px',background:c.surface}}>
+        <div onClick={()=>rol==='admin'&&(window as any).__abrirModalCliente?.()} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`2px dashed ${c.border}`,borderRadius:'12px',background:c.surface}}>
           <div style={{width:'40px',height:'40px',borderRadius:'50%',background:c.s2,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontSize:'24px',marginBottom:'10px'}}>+</div>
           <div style={{color:c.text3,fontSize:'13px',fontWeight:600}}>Agregar cliente</div>
         </div>
