@@ -928,6 +928,18 @@ useEffect(()=>{
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
   const [usuario,setUsuario]=useState<string|null>(null)
+  const [rolUsuario,setRolUsuario]=useState<string>('miembro')
+
+useEffect(()=>{
+  async function cargarRol(){
+    const {data:sessionData}=await supabase.auth.getSession()
+    const email=sessionData?.session?.user?.email
+    if(!email) return
+    const {data}=await supabase.from('user_roles').select('rol').eq('email',email).single()
+    if(data) setRolUsuario(data.rol)
+  }
+  cargarRol()
+},[usuario])
   const mobile=useMobile()
   const c=th(theme)
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
@@ -1086,7 +1098,7 @@ const subirLogo=async(file:File)=>{
   const render=()=>{
     switch(vista){
       case 'dashboard':  return <VDash t={theme} usuario={usuario} irA={irA}/>
-      case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes}/>
+      case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario}/>
       case 'ceo':        return <VCEO t={theme}/>
       case 'cm':         return <VCM t={theme}/>
       case 'sem':        return <VSEM t={theme}/>
