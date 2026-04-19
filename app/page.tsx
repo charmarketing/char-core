@@ -928,15 +928,38 @@ useEffect(()=>{
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
   const [usuario,setUsuario]=useState<string|null>(null)
-  const [rolUsuario,setRolUsuario]=useState<string>('miembro')
+ const [rolUsuario,setRolUsuario]=useState<string>('miembro')
+const [permisos,setPermisos]=useState<any>({
+  puede_agregar_clientes:false,
+  puede_editar_clientes:false,
+  puede_eliminar_clientes:false,
+  puede_invitar:false,
+})
 
 useEffect(()=>{
   async function cargarRol(){
     const {data:sessionData}=await supabase.auth.getSession()
     const email=sessionData?.session?.user?.email
     if(!email) return
-    const {data}=await supabase.from('user_roles').select('rol').eq('email',email).single()
-    if(data) setRolUsuario(data.rol)
+    const {data}=await supabase.from('user_roles').select('*').eq('email',email).single()
+    if(data){
+      setRolUsuario(data.rol)
+      if(data.rol==='admin'){
+        setPermisos({
+          puede_agregar_clientes:true,
+          puede_editar_clientes:true,
+          puede_eliminar_clientes:true,
+          puede_invitar:true,
+        })
+      } else {
+        setPermisos({
+          puede_agregar_clientes:data.puede_agregar_clientes||false,
+          puede_editar_clientes:data.puede_editar_clientes||false,
+          puede_eliminar_clientes:data.puede_eliminar_clientes||false,
+          puede_invitar:data.puede_invitar||false,
+        })
+      }
+    }
   }
   cargarRol()
 },[usuario])
@@ -1098,7 +1121,7 @@ const subirLogo=async(file:File)=>{
   const render=()=>{
     switch(vista){
       case 'dashboard':  return <VDash t={theme} usuario={usuario} irA={irA}/>
-      case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario}/>
+      case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario} permisos={permisos}/>
       case 'ceo':        return <VCEO t={theme}/>
       case 'cm':         return <VCM t={theme}/>
       case 'sem':        return <VSEM t={theme}/>
