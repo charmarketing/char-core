@@ -931,6 +931,10 @@ useEffect(()=>{
   const mobile=useMobile()
   const c=th(theme)
   const irA=useCallback((v:string)=>{setVista(v);setMenu(false)},[])
+  const handleLogout=useCallback(async()=>{
+  await supabase.auth.signOut()
+  setUsuario(null)
+},[])
 
   if(!usuario) return <LoginScreen onSelect={setUsuario} t={theme}/>
   function ModalNuevoCliente({c,theme,clientes,setClientes,setModalNuevoCliente,COLORES_CLIENTE,sb}:any){
@@ -1091,7 +1095,7 @@ const subirLogo=async(file:File)=>{
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
         case 'video': return <VideoEditor t={theme}/>
-        case 'perfil': return <VPerfil key="perfil" t={theme} usuario={usuario||''} onLogout={async()=>{await supabase.auth.signOut();setUsuario(null)}}/>
+        case 'perfil': return <VPerfil key="perfil" t={theme} usuario={usuario||''} onLogout={handleLogout}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
   }
