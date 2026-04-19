@@ -425,7 +425,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
 }
 
 // ── VISTA CLIENTES ────────────────────────────────────────────────────────
-function VClientes({t,clientes,setClientes,rol}:any){
+function VClientes({t,clientes,setClientes,rol,permisos}:any){
   const c=th(t)
   const [clienteVer,setClienteVer]=useState<any>(null)
   const [clienteEditar,setClienteEditar]=useState<any>(null)
@@ -568,12 +568,12 @@ const guardarEdicion=async()=>{
             rows={3} style={{width:'100%',marginTop:'5px',padding:'9px 12px',background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',color:c.text,fontSize:'13px',outline:'none',boxSizing:'border-box' as any,resize:'vertical',fontFamily:'Rajdhani,sans-serif'}}/>
         </div>
         <div style={{display:'flex',gap:'10px',justifyContent:'flex-end'}}>
-          <Btn v="outline" t={t} onClick={async()=>{
+          {(rol==='admin'||permisos?.puede_eliminar_clientes)&&<Btn v="outline" t={t} onClick={async()=>{
   if(!confirm('¿Seguro que querés eliminar este cliente?')) return
   await supabase.from('clientes').delete().eq('id',editData.id)
   setClientes((prev:any)=>prev.filter((cl:any)=>cl.id!==editData.id))
   setClienteEditar(null)
-}}>🗑 Eliminar</Btn>
+}}>🗑 Eliminar</Btn>}
 <Btn v="outline" t={t} onClick={()=>setClienteEditar(null)}>Cancelar</Btn>
           <Btn v="primary" t={t} onClick={guardarEdicion}>Guardar Cambios</Btn>
         </div>
@@ -585,7 +585,7 @@ const guardarEdicion=async()=>{
         <div><Eb text="GESTIÓN" t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Clientes</h1></div>
         <div style={{display:'flex',gap:'10px'}}>
           <Btn v="outline" t={t} onClick={exp}>{I.dl} Exportar CSV</Btn>
-          {rol==='admin'&&<Btn v="primary" t={t} onClick={()=>(window as any).__abrirModalCliente?.()}>{I.plus} Nuevo Cliente</Btn>}
+          {(rol==='admin'||permisos?.puede_agregar_clientes)&&<Btn v="primary" t={t} onClick={()=>(window as any).__abrirModalCliente?.()}>{I.plus} Nuevo Cliente</Btn>}
         </div>
       </div>
       <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'16px'}}>
@@ -619,13 +619,13 @@ const guardarEdicion=async()=>{
               </div>
               <div style={{display:'flex',gap:'8px'}}>
                <Btn t={t} onClick={()=>setClienteVer(cl)}>{I.eye} Ver</Btn>
-{rol==='admin'&&<Btn t={t} onClick={()=>{setClienteEditar(cl);setEditData(cl)}}>{I.pen} Editar</Btn>}
+{(rol==='admin'||permisos?.puede_editar_clientes)&&<Btn t={t} onClick={()=>{setClienteEditar(cl);setEditData(cl)}}>{I.pen} Editar</Btn>}
 <Btn t={t}>{I.bell} Alertas</Btn>
               </div>
             </Card>
           )
         })}
-        <div onClick={()=>rol==='admin'&&(window as any).__abrirModalCliente?.()} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`2px dashed ${c.border}`,borderRadius:'12px',background:c.surface}}>
+        <div onClick={()=>(rol==='admin'||permisos?.puede_agregar_clientes)&&(window as any).__abrirModalCliente?.()} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'200px',cursor:'pointer',border:`2px dashed ${c.border}`,borderRadius:'12px',background:c.surface}}>
           <div style={{width:'40px',height:'40px',borderRadius:'50%',background:c.s2,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontSize:'24px',marginBottom:'10px'}}>+</div>
           <div style={{color:c.text3,fontSize:'13px',fontWeight:600}}>Agregar cliente</div>
         </div>
