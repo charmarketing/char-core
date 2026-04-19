@@ -1151,7 +1151,7 @@ const subirLogo=async(file:File)=>{
 
         <div style={{padding:'16px 20px',borderTop:`1px solid ${c.border}`}}>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px',cursor:'pointer'}} onClick={()=>setVista('perfil')}>
               <div style={{width:'30px',height:'30px',background:GOLD+'20',borderRadius:'50%',border:`1px solid ${GOLD}55`,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontWeight:800,fontSize:'12px',boxShadow:`0 0 10px ${GOLD}20`}}>
                 {usuario[0]}
               </div>
