@@ -1,5 +1,5 @@
 'use client'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { createClient } from '@supabase/supabase-js'
 
 const supabase = createClient(
@@ -70,7 +70,19 @@ function BtnBox({onClick,children,outline,loading,c}:any){
 
 export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onLogout:()=>void}){
   const c=th(t)
+  const [rolUsuario,setRolUsuario]=useState<string>('miembro')
   const [passNueva,setPassNueva]=useState('')
+
+  useEffect(()=>{
+    async function cargarRol(){
+      const {data:sessionData}=await supabase.auth.getSession()
+      const email=sessionData?.session?.user?.email
+      if(!email) return
+      const {data}=await supabase.from('user_roles').select('rol').eq('email',email).single()
+      if(data) setRolUsuario(data.rol)
+    }
+    cargarRol()
+  },[])
   const [passConfirm,setPassConfirm]=useState('')
   const [emailInvite,setEmailInvite]=useState('')
   const [nombreInvite,setNombreInvite]=useState('')
@@ -152,6 +164,7 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
         </div>
       </CardBox>
 
+      {rolUsuario==='admin'&&(
       <CardBox c={c} style={{padding:'24px'}}>
         <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>INVITAR NUEVO MIEMBRO</div>
         <div style={{fontSize:'12px',color:c.text3,marginBottom:'16px',lineHeight:'1.6'}}>
@@ -166,6 +179,7 @@ export default function VPerfil({t,usuario,onLogout}:{t:Theme,usuario:string,onL
           </BtnBox>
         </div>
       </CardBox>
+      )}
 
       <CardBox c={c} style={{padding:'24px'}}>
         <div style={{fontSize:'10px',color:GOLD,letterSpacing:'2px',fontWeight:700,marginBottom:'8px'}}>SESIÓN ACTIVA</div>
