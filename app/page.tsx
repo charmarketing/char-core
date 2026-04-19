@@ -926,13 +926,12 @@ useEffect(()=>{
   cargarClientes()
 },[])
   const [vista,setVista]=useState('dashboard')
-
-useEffect(()=>{
-  setVista('dashboard')
-},[usuario])
   const [theme,setTheme]=useState<Theme>('dark')
   const [menu,setMenu]=useState(false)
   const [usuario,setUsuario]=useState<string|null>(null)
+  useEffect(()=>{
+  if(usuario) setVista('dashboard')
+},[usuario])
  const [rolUsuario,setRolUsuario]=useState<string>('miembro')
 const [permisos,setPermisos]=useState<any>({
   puede_agregar_clientes:false,
