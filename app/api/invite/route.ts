@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req:Request){
   try{
-    const {email}=await req.json()
+    const {email,nombre}=await req.json()
     if(!email) return NextResponse.json({error:'Email requerido'},{status:400})
 
     const supabase=createClient(
@@ -11,8 +11,15 @@ export async function POST(req:Request){
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const {error}=await supabase.auth.admin.inviteUserByEmail(email)
+    const {data,error}=await supabase.auth.admin.inviteUserByEmail(email)
     if(error) return NextResponse.json({error:error.message},{status:400})
+
+    await supabase.from('user_roles').insert([{
+      user_id: data.user.id,
+      email: email,
+      nombre: nombre||email.split('@')[0],
+      rol: 'miembro'
+    }])
 
     return NextResponse.json({ok:true})
   }catch(e:any){
