@@ -206,7 +206,8 @@ function LoginScreen({onSelect,t}:{onSelect:(u:string)=>void;t:Theme}){
       const {data,error:err}=await supabase.auth.signInWithPassword({email,password})
       if(err) throw err
       const emailUser=data.user?.email||''
-const nombre=emailUser.includes('gabriel')?'Gabriel':emailUser.includes('adri')?'Adri':'Adrian'
+const {data:roleData}=await supabase.from('user_roles').select('nombre').eq('email',emailUser).single()
+const nombre=roleData?.nombre||emailUser.split('@')[0]
 onSelect(nombre)
     }catch(e:any){
       setError('Email o contraseña incorrectos')
@@ -293,7 +294,7 @@ onSelect(nombre)
 }
 
 // ── VISTA DASHBOARD ───────────────────────────────────────────────────────
-function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
+function VDash({t,usuario,irA,permisos}:any){
   const c=th(t)
   const h=new Date().getHours()
   const sal=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'
@@ -308,7 +309,7 @@ function VDash({t,usuario,irA}:{t:Theme;usuario:string;irA:(v:string)=>void}){
           </h1>
           <p style={{color:c.text3,fontSize:'12px',margin:0,textTransform:'capitalize'}}>{fecha}</p>
         </div>
-        <Btn v="primary" t={t} onClick={()=>{irA('clientes');setTimeout(()=>(window as any).__abrirModalCliente?.(),300)}}>{I.plus} Nuevo Cliente</Btn>
+        {(permisos?.puede_agregar_clientes)&&<Btn v="primary" t={t} onClick={()=>{irA('clientes');setTimeout(()=>(window as any).__abrirModalCliente?.(),300)}}>{I.plus} Nuevo Cliente</Btn>}
       </div>
 
       <div>
@@ -1120,7 +1121,7 @@ const subirLogo=async(file:File)=>{
 
   const render=()=>{
     switch(vista){
-      case 'dashboard':  return <VDash t={theme} usuario={usuario} irA={irA}/>
+      case 'dashboard': return <VDash t={theme} usuario={usuario} irA={irA} permisos={permisos}/>
       case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario} permisos={permisos}/>
       case 'ceo':        return <VCEO t={theme}/>
       case 'cm':         return <VCM t={theme}/>
