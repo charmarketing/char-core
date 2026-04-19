@@ -1191,7 +1191,10 @@ const subirLogo=async(file:File)=>{
           </div>
         )}
         <main className="char-main" style={{flex:1,padding:'44px 52px',overflowY:'auto'}}>
-          {render()}
+          {vista==='perfil' 
+  ? <VPerfil t={theme} usuario={usuario||''} onLogout={handleLogout}/>
+  : render()
+}
         </main>
       </div>
      {modalNuevoCliente && <ModalNuevoCliente c={c} theme={theme} clientes={clientes} setClientes={setClientes} setModalNuevoCliente={setModalNuevoCliente} COLORES_CLIENTE={COLORES_CLIENTE} sb={supabase}/>}
