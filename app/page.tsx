@@ -696,7 +696,6 @@ function VCEO({t,clientes}:any){
 function VSEM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_SEM',
     ['Campaña','Estado','Presupuesto mensual','Impresiones','Clics','CTR','CPC','Conversiones','ROAS'],
-    [['Google Ads — Alfa','Activa','$0','—','—','—','—','—','—'],['Meta Ads — Beta','Pausada','$0','—','—','—','—','—','—'],['Google Ads — Gamma','Sin iniciar','—','—','—','—','—','—','—']])
   return(
     <PShell ey="SEARCH ENGINE MARKETING" ti="Panel SEM" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
