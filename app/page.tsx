@@ -29,18 +29,33 @@ function exportCSV(name:string, headers:string[], rows:(string|number)[][]) {
 
 // ── DATOS ─────────────────────────────────────────────────────────────────
 const COLORES_CLIENTE = [GOLD, BLUE, PURPLE, GREEN, AMBER]
-const TAREAS_HOY:any[] = []
-const ALERTAS_D:any[] = []
+const CLIENTES = [
+  {id:1,nombre:'Cliente Alfa', red:'Instagram',horas:2, tareas:3,campañas:1,color:GOLD},
+  {id:2,nombre:'Cliente Beta', red:'YouTube',  horas:50,tareas:5,campañas:0,color:BLUE},
+  {id:3,nombre:'Cliente Gamma',red:'LinkedIn', horas:20,tareas:2,campañas:1,color:PURPLE},
+]
+const TAREAS_HOY = [
+  {texto:'Calendario de contenido Mayo — Alfa',rol:'CM', p:'alta'},
+  {texto:'Configurar campaña Google Ads',      rol:'SEM',p:'alta'},
+  {texto:'Revisar propuesta Cliente Beta',     rol:'CEO',p:'alta'},
+  {texto:'Auditoría SEO inicial — Alfa',       rol:'SEO',p:'media'},
+  {texto:'CHAR Session para Cliente Beta',     rol:'CM', p:'media'},
+]
+const ALERTAS_D = [
+  {tipo:'urgente',texto:'Cliente Beta sin actividad hace 50hs',  tiempo:'hace 2h'},
+  {tipo:'info',   texto:'Calendario de Mayo sin planificar — Alfa',tiempo:'hace 5h'},
+  {tipo:'info',   texto:'Campaña SEM de Gamma sin iniciar',      tiempo:'hace 1d'},
+]
 const NOTICIAS = [
-  {titulo:'Instagram actualiza algoritmo de Reels: más peso al tiempo de visualización',fuente:'Social Media Today',tiempo:'hace 3h'},
-  {titulo:'Google Ads lanza métricas de conversión con IA predictiva',fuente:'Search Engine Journal',tiempo:'hace 5h'},
-  {titulo:'LinkedIn supera 1B usuarios: oportunidades para marcas B2B en 2026',fuente:'Marketing Dive',tiempo:'hace 8h'},
+  {titulo:'Instagram actualiza algoritmo de Reels: más peso al tiempo de visualización',fuente:'Social Media Today',   tiempo:'hace 3h'},
+  {titulo:'Google Ads lanza métricas de conversión con IA predictiva',                 fuente:'Search Engine Journal',tiempo:'hace 5h'},
+  {titulo:'LinkedIn supera 1B usuarios: oportunidades para marcas B2B en 2026',        fuente:'Marketing Dive',        tiempo:'hace 8h'},
 ]
 const ROLES_R = [
-  {rol:'CEO',tareas:0,hechas:0,color:GOLD},
-  {rol:'CM', tareas:0,hechas:0,color:GREEN},
-  {rol:'SEM',tareas:0,hechas:0,color:BLUE},
-  {rol:'SEO',tareas:0,hechas:0,color:PURPLE},
+  {rol:'CEO',tareas:5,hechas:1,color:GOLD},
+  {rol:'CM', tareas:7,hechas:1,color:GREEN},
+  {rol:'SEM',tareas:5,hechas:0,color:BLUE},
+  {rol:'SEO',tareas:5,hechas:0,color:PURPLE},
 ]
 const RC:Record<string,string> = {CEO:GOLD,CM:GREEN,SEM:BLUE,SEO:PURPLE}
 const USUARIOS = ['Gabriel','Adri']
