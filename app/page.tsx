@@ -651,12 +651,9 @@ function PShell({ey,ti,expFn,t,children}:{ey:string;ti:string;expFn:()=>void;t:T
 
 // ── PANEL CEO ─────────────────────────────────────────────────────────────
 function VCEO({t,clientes}:any){
-  const exp=()=>{
-  const filas=[['Clientes activos',String(clientes.length)+' de 10'],['Ingresos estimados','—'],['Tareas completadas','—'],['Clips generados','0'],['Alertas críticas','—']]
-  exportCSV('CHAR_Panel_CEO',['KPI','Valor','Observación'],filas)
-}
+  const exp=()=>exportCSV('CHAR_Panel_CEO',
     ['KPI','Valor','Observación'],
-    [['Clientes activos',clientes.length+' de 10',GOLD],['Ingresos estimados','—',GREEN],['Tareas completadas','—',BLUE],['Clips generados','0',PURPLE],['Alertas críticas','—',RED]]
+    [['Clientes activos','3 de 10','Capacidad al 30%'],['Ingresos estimados','—','Sin datos aún'],['Tareas completadas','12 de 22','55% de avance'],['Clips generados','0','Módulo próximo'],['Alertas críticas','1','Requiere atención']])
   return(
     <PShell ey="DIRECCIÓN EJECUTIVA" ti="Panel CEO" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
@@ -695,14 +692,14 @@ function VCEO({t,clientes}:any){
 // ── PANEL SEM ─────────────────────────────────────────────────────────────
 function VSEM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_SEM',
-  ['Campaña','Estado','Presupuesto'],
-  clientes.map((cl:any)=>['Google Ads — '+cl.nombre,'Sin iniciar','—']))
+    ['Campaña','Estado','Presupuesto mensual','Impresiones','Clics','CTR','CPC','Conversiones','ROAS'],
+    [['Google Ads — Alfa','Activa','$0','—','—','—','—','—','—'],['Meta Ads — Beta','Pausada','$0','—','—','—','—','—','—'],['Google Ads — Gamma','Sin iniciar','—','—','—','—','—','—','—']])
   return(
     <PShell ey="SEARCH ENGINE MARKETING" ti="Panel SEM" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
         <Card t={t}>
           <Eb text="CAMPAÑAS ACTIVAS" t={t}/><Div t={t}/>
-          clientes.map((cl:any)=>({n:`Google Ads — ${cl.nombre}`,e:'SIN INICIAR',c:th(t).text3,p:'—'}))
+          {[{n:'Google Ads — Alfa',e:'ACTIVA',c:GREEN,p:'$0/mes'},{n:'Meta Ads — Beta',e:'PAUSADA',c:AMBER,p:'$0/mes'},{n:'Google Ads — Gamma',e:'SIN INICIAR',c:th(t).text3,p:'—'}].map((x,i)=>(
             <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
               <div>
                 <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{x.n}</div>
@@ -733,7 +730,7 @@ function VSEM({t,clientes}:any){
 function VCM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_CM',
     ['Cliente','Red social','Publicaciones semana','Estado','Alcance','Engagement','Seguidores nuevos'],
-    clientes.map((cl:any)=>[cl.nombre,'—','—','—','—','—','—'])
+    [['Cliente Alfa','Instagram','3','Planificado','—','—','—'],['Cliente Beta','YouTube','1','Pendiente','—','—','—'],['Cliente Gamma','LinkedIn','2','Publicado','—','—','—']])
   return(
     <PShell ey="COMMUNITY MANAGEMENT" ti="Panel CM" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
