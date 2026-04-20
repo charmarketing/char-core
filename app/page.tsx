@@ -653,7 +653,7 @@ function PShell({ey,ti,expFn,t,children}:{ey:string;ti:string;expFn:()=>void;t:T
 function VCEO({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_CEO',
     ['KPI','Valor','Observación'],
-    [['Clientes activos','3 de 10','Capacidad al 30%'],['Ingresos estimados','—','Sin datos aún'],['Tareas completadas','12 de 22','55% de avance'],['Clips generados','0','Módulo próximo'],['Alertas críticas','1','Requiere atención']])
+    [[`Clientes activos`,`${clientes.length} de 10`,GOLD],['Ingresos estimados','—',GREEN],['Tareas completadas','—',BLUE],['Clips generados','0',PURPLE],['Alertas críticas','—',RED]]
   return(
     <PShell ey="DIRECCIÓN EJECUTIVA" ti="Panel CEO" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
@@ -699,7 +699,7 @@ function VSEM({t,clientes}:any){
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
         <Card t={t}>
           <Eb text="CAMPAÑAS ACTIVAS" t={t}/><Div t={t}/>
-          {[{n:'Google Ads — Alfa',e:'ACTIVA',c:GREEN,p:'$0/mes'},{n:'Meta Ads — Beta',e:'PAUSADA',c:AMBER,p:'$0/mes'},{n:'Google Ads — Gamma',e:'SIN INICIAR',c:th(t).text3,p:'—'}].map((x,i)=>(
+          clientes.map((cl:any)=>({n:`Google Ads — ${cl.nombre}`,e:'SIN INICIAR',c:th(t).text3,p:'—'}))
             <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
               <div>
                 <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{x.n}</div>
@@ -730,7 +730,7 @@ function VSEM({t,clientes}:any){
 function VCM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_CM',
     ['Cliente','Red social','Publicaciones semana','Estado','Alcance','Engagement','Seguidores nuevos'],
-    [['Cliente Alfa','Instagram','3','Planificado','—','—','—'],['Cliente Beta','YouTube','1','Pendiente','—','—','—'],['Cliente Gamma','LinkedIn','2','Publicado','—','—','—']])
+    clientes.map((cl:any)=>[cl.nombre,'—','—','—','—','—','—'])
   return(
     <PShell ey="COMMUNITY MANAGEMENT" ti="Panel CM" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
