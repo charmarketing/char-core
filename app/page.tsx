@@ -651,7 +651,10 @@ function PShell({ey,ti,expFn,t,children}:{ey:string;ti:string;expFn:()=>void;t:T
 
 // ── PANEL CEO ─────────────────────────────────────────────────────────────
 function VCEO({t,clientes}:any){
-  const exp=()=>exportCSV('CHAR_Panel_CEO',
+  const exp=()=>{
+  const filas=[['Clientes activos',String(clientes.length)+' de 10'],['Ingresos estimados','—'],['Tareas completadas','—'],['Clips generados','0'],['Alertas críticas','—']]
+  exportCSV('CHAR_Panel_CEO',['KPI','Valor','Observación'],filas)
+}
     ['KPI','Valor','Observación'],
     [['Clientes activos',clientes.length+' de 10',GOLD],['Ingresos estimados','—',GREEN],['Tareas completadas','—',BLUE],['Clips generados','0',PURPLE],['Alertas críticas','—',RED]]
   return(
