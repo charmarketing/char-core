@@ -294,7 +294,7 @@ onSelect(nombre)
 }
 
 // ── VISTA DASHBOARD ───────────────────────────────────────────────────────
-function VDash({t,usuario,irA,permisos}:any){
+function VDash({t,usuario,irA,permisos,clientes}:any){
   const c=th(t)
   const h=new Date().getHours()
   const sal=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'
@@ -325,7 +325,7 @@ function VDash({t,usuario,irA,permisos}:any){
       <div>
         <SHead ey="ESTADO EN TIEMPO REAL" ti="Semáforo de Clientes" t={t} action={<span style={{fontSize:'11px',color:c.text3}}>3 / 10 slots</span>}/>
         <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
-          {CLIENTES.map(cl=>{
+          {clientes.map(cl=>{
             const e=est(cl.horas)
             return(
               <Card key={cl.id} t={t} style={{padding:'18px',cursor:'pointer',borderTop:`2px solid ${e.c}`}}>
@@ -1124,7 +1124,7 @@ const subirLogo=async(file:File)=>{
 
   const render=()=>{
     switch(vista){
-      case 'dashboard': return <VDash t={theme} usuario={usuario} irA={irA} permisos={permisos}/>
+      case 'dashboard': return <VDash t={theme} usuario={usuario} irA={irA} permisos={permisos} clientes={clientes}/>
       case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario} permisos={permisos}/>
       case 'ceo':        return <VCEO t={theme}/>
       case 'cm':         return <VCM t={theme}/>
