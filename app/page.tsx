@@ -363,26 +363,32 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
         <Card t={t}>
           <SHead ey="PRIORIDAD HOY" ti="Tareas Urgentes" t={t} action={<Btn t={t} onClick={()=>irA('ceo')}>Ver todas</Btn>}/>
           <Div t={t}/>
-          {TAREAS_HOY.map((x,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px'}}>
-              <div style={{width:'6px',height:'6px',borderRadius:'50%',background:x.p==='alta'?RED:AMBER,flexShrink:0,boxShadow:`0 0 6px ${x.p==='alta'?RED:AMBER}`}}/>
-              <span style={{fontSize:'13px',color:c.text2,flex:1,lineHeight:'1.4'}}>{x.texto}</span>
-              <Tag label={x.rol} color={RC[x.rol]}/>
-            </div>
-          ))}
+          {clientes.length===0
+  ?<div style={{fontSize:'13px',color:c.text3,padding:'10px 8px'}}>Sin tareas pendientes</div>
+  :clientes.slice(0,5).map((cl:any,i:number)=>(
+    <div key={i} className="char-row" style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px'}}>
+      <div style={{width:'6px',height:'6px',borderRadius:'50%',background:i<2?RED:AMBER,flexShrink:0,boxShadow:`0 0 6px ${i<2?RED:AMBER}`}}/>
+      <span style={{fontSize:'13px',color:c.text2,flex:1,lineHeight:'1.4'}}>Revisar contenido y métricas — {cl.nombre}</span>
+      <Tag label="CM" color={GREEN}/>
+    </div>
+  ))
+}
         </Card>
         <Card t={t}>
           <SHead ey="NOTIFICACIONES" ti="Alertas Activas" t={t}/>
           <Div t={t}/>
-          {ALERTAS_D.map((a,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',gap:'10px',padding:'10px 8px',borderRadius:'6px'}}>
-              <div style={{color:a.tipo==='urgente'?RED:AMBER,marginTop:'1px',flexShrink:0}}>{a.tipo==='urgente'?I.warn:I.info}</div>
-              <div style={{flex:1}}>
-                <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.4'}}>{a.texto}</div>
-                <div style={{fontSize:'10px',color:c.text3,marginTop:'4px'}}>{a.tiempo}</div>
-              </div>
-            </div>
-          ))}
+          {clientes.filter((cl:any)=>cl.horas>=24).length===0
+  ?<div style={{fontSize:'13px',color:c.text3,padding:'10px 8px'}}>Sin alertas activas ✓</div>
+  :clientes.filter((cl:any)=>cl.horas>=24).slice(0,3).map((cl:any,i:number)=>(
+    <div key={i} className="char-row" style={{display:'flex',gap:'10px',padding:'10px 8px',borderRadius:'6px'}}>
+      <div style={{color:cl.horas>=48?RED:AMBER,marginTop:'1px',flexShrink:0}}>{cl.horas>=48?I.warn:I.info}</div>
+      <div style={{flex:1}}>
+        <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.4'}}>{cl.nombre} sin actividad hace {cl.horas}hs</div>
+        <div style={{fontSize:'10px',color:c.text3,marginTop:'4px'}}>{cl.horas>=48?'Urgente — requiere acción inmediata':'Atención recomendada'}</div>
+      </div>
+    </div>
+  ))
+}
         </Card>
       </div>
 
@@ -680,12 +686,7 @@ type AlertaItem = {
 }
 export default function App(){
   const [alertasNoLeidas,setAlertasNoLeidas]=useState(3)
-const [alertasData,setAlertasData]=useState<AlertaItem[]>([
-  {id:1,tipo:'urgente',titulo:'Cliente Beta sin actividad',descripcion:'Cliente Beta lleva más de 50hs sin actividad registrada. Requiere atención inmediata.',cliente:'Cliente Beta',rol:'CEO',tiempo:'hace 2h',leida:false,origen:'automatica'},
-  {id:2,tipo:'atencion',titulo:'Calendario de Mayo sin planificar',descripcion:'Cliente Alfa no tiene contenido planificado para Mayo. Faltan 8 días para el inicio del mes.',cliente:'Cliente Alfa',rol:'CM',tiempo:'hace 5h',leida:false,origen:'automatica'},
-  {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
-  {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
-])
+const [alertasData,setAlertasData]=useState<AlertaItem[]>([])
   const [clientes,setClientes]=useState<any[]>([])
 const [modalNuevoCliente,setModalNuevoCliente]=useState(false)
 const [nuevoNombre,setNuevoNombre]=useState('')
