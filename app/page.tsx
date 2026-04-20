@@ -319,10 +319,10 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
       <div>
         <SHead ey="RESUMEN EJECUTIVO" ti="Métricas del Día" t={t}/>
         <div className="g4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
-          <MCard label="Clientes Activos"  val="3"  note="+1 este mes"     icon={I.trend}  color={GOLD}   t={t}/>
-          <MCard label="Tareas Pendientes" val="7"  note="2 vencen hoy"    icon={I.task}   color={BLUE}   t={t}/>
-          <MCard label="Alertas Críticas"  val="1"  note="Requiere acción" icon={I.alert2} color={RED}    t={t}/>
-          <MCard label="Clips Generados"   val="—"  note="Próximo módulo"  icon={I.film}   color={PURPLE} t={t}/>
+<MCard label="Clientes Activos"  val={String(clientes.length)}  note={`${clientes.length} de 10 slots`} icon={I.trend}  color={GOLD}   t={t}/>
+<MCard label="Tareas Pendientes" val="—"  note="Conectando..."    icon={I.task}   color={BLUE}   t={t}/>
+<MCard label="Alertas Críticas"  val={String(clientes.filter((cl:any)=>cl.horas>=48).length)}  note={clientes.filter((cl:any)=>cl.horas>=48).length>0?'Requiere acción':'Todo en orden'} icon={I.alert2} color={RED}    t={t}/>
+<MCard label="Clips Generados"   val="—"  note="Próximo módulo"  icon={I.film}   color={PURPLE} t={t}/>
         </div>
       </div>
 
@@ -686,7 +686,7 @@ const [alertasData,setAlertasData]=useState<AlertaItem[]>([
   {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
   {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
 ])
-  const [clientes,setClientes]=useState(CLIENTES)
+  const [clientes,setClientes]=useState<any[]>([])
 const [modalNuevoCliente,setModalNuevoCliente]=useState(false)
 const [nuevoNombre,setNuevoNombre]=useState('')
 const [nuevoRed,setNuevoRed]=useState('Instagram')
