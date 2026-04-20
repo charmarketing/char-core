@@ -292,12 +292,12 @@ export default function Calendario({ t }: { t: Theme }) {
                   </div>
                   <div style={{ display: 'grid', gap: '6px' }}>
                     {items.slice(0, 3).map(ev => (
-                      <div key={ev.id} className="char-row" style={{ padding: '8px', borderRadius: '10px', background: clienteColor(ev.cliente, clientes) + '12', border: `1px solid ${clienteColor(ev.cliente, clientes)}35`, display: 'grid', gap: '4px', position: 'relative' }}>
+                      <div key={ev.id} className="char-row" style={{ padding: '10px', borderRadius: '10px', background: clienteColor(ev.cliente, clientes) + '12', border: `1px solid ${clienteColor(ev.cliente, clientes)}35`, display: 'grid', gap: '6px', position: 'relative' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '4px', alignItems: 'flex-start' }}>
-                          <div style={{ fontSize: '11px', color: c.text, fontWeight: 700, lineHeight: 1.3, flex: 1 }}>{ev.titulo}</div>
+                          <div style={{ fontSize: '13px', color: c.text, fontWeight: 700, lineHeight: 1.3, flex: 1 }}>{ev.titulo}</div>
                           <button onClick={() => eliminarEvento(ev.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: RED, fontSize: '12px', padding: '0', lineHeight: 1, flexShrink: 0 }}>✕</button>
                         </div>
-                        <div style={{ fontSize: '10px', color: c.text3 }}>{ev.cliente} · {ev.hora}</div>
+                        <div style={{ fontSize: '12px', color: c.text3 }}>{ev.cliente} · {ev.hora}</div>
                         <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                           <Tag label={ev.tipo.toUpperCase()} color={clienteColor(ev.cliente, clientes)} />
                           <Tag label={ev.estado.toUpperCase()} color={estadoColor(ev.estado)} />
