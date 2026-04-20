@@ -650,7 +650,7 @@ function PShell({ey,ti,expFn,t,children}:{ey:string;ti:string;expFn:()=>void;t:T
 }
 
 // ── PANEL CEO ─────────────────────────────────────────────────────────────
-function VCEO({t}:{t:Theme}){
+function VCEO({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_CEO',
     ['KPI','Valor','Observación'],
     [['Clientes activos','3 de 10','Capacidad al 30%'],['Ingresos estimados','—','Sin datos aún'],['Tareas completadas','12 de 22','55% de avance'],['Clips generados','0','Módulo próximo'],['Alertas críticas','1','Requiere atención']])
@@ -690,7 +690,7 @@ function VCEO({t}:{t:Theme}){
 }
 
 // ── PANEL SEM ─────────────────────────────────────────────────────────────
-function VSEM({t}:{t:Theme}){
+function VSEM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_SEM',
     ['Campaña','Estado','Presupuesto mensual','Impresiones','Clics','CTR','CPC','Conversiones','ROAS'],
     [['Google Ads — Alfa','Activa','$0','—','—','—','—','—','—'],['Meta Ads — Beta','Pausada','$0','—','—','—','—','—','—'],['Google Ads — Gamma','Sin iniciar','—','—','—','—','—','—','—']])
@@ -727,7 +727,7 @@ function VSEM({t}:{t:Theme}){
 }
 
 // ── PANEL CM ──────────────────────────────────────────────────────────────
-function VCM({t}:{t:Theme}){
+function VCM({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_CM',
     ['Cliente','Red social','Publicaciones semana','Estado','Alcance','Engagement','Seguidores nuevos'],
     [['Cliente Alfa','Instagram','3','Planificado','—','—','—'],['Cliente Beta','YouTube','1','Pendiente','—','—','—'],['Cliente Gamma','LinkedIn','2','Publicado','—','—','—']])
@@ -764,16 +764,16 @@ function VCM({t}:{t:Theme}){
 }
 
 // ── PANEL SEO ─────────────────────────────────────────────────────────────
-function VSEO({t}:{t:Theme}){
+function VSEO({t,clientes}:any){
   const exp=()=>exportCSV('CHAR_Panel_SEO',
     ['Cliente','Keyword principal','Posición actual','Domain Authority','Backlinks','Tráfico orgánico','Páginas indexadas'],
-    CLIENTES.map(cl=>[cl.nombre,'Sin asignar','—','—','—','—','—']))
+    clientes.map(cl=>[cl.nombre,'Sin asignar','—','—','—','—','—']))
   return(
     <PShell ey="SEARCH ENGINE OPTIMIZATION" ti="Panel SEO" expFn={exp} t={t}>
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
         <Card t={t}>
           <Eb text="POSICIONAMIENTO" t={t}/><Div t={t}/>
-          {CLIENTES.map((cl,i)=>(
+          {clientes.map((cl,i)=>(
             <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
               <div>
                 <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{cl.nombre}</div>
@@ -1126,10 +1126,10 @@ const subirLogo=async(file:File)=>{
     switch(vista){
       case 'dashboard': return <VDash t={theme} usuario={usuario} irA={irA} permisos={permisos} clientes={clientes}/>
       case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario} permisos={permisos}/>
-      case 'ceo':        return <VCEO t={theme}/>
-      case 'cm':         return <VCM t={theme}/>
-      case 'sem':        return <VSEM t={theme}/>
-      case 'seo':        return <VSEO t={theme}/>
+case 'ceo': return <VCEO t={theme} clientes={clientes}/>
+case 'cm': return <VCM t={theme} clientes={clientes}/>
+case 'sem': return <VSEM t={theme} clientes={clientes}/>
+case 'seo': return <VSEO t={theme} clientes={clientes}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos': return <Archivos t={theme}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
