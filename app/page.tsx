@@ -7,6 +7,10 @@ import Archivos from './components/Archivos'
 import CerebroIA from './components/CerebroIA'
 import VideoEditor from './components/VideoEditor'
 import VPerfil from './components/VPerfil'
+import PanelCEO from './components/PanelCEO'
+import PanelCM from './components/PanelCM'
+import PanelSEM from './components/PanelSEM'
+import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
 
 // ── THEME ─────────────────────────────────────────────────────────────────
@@ -635,171 +639,6 @@ const guardarEdicion=async()=>{
   )
 }
 
-// ── SHELL PARA PANELES ────────────────────────────────────────────────────
-function PShell({ey,ti,expFn,t,children}:{ey:string;ti:string;expFn:()=>void;t:Theme;children:React.ReactNode}){
-  const c=th(t)
-  return(
-    <div className="char-fade" style={{display:'grid',gap:'24px'}}>
-      <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
-        <div><Eb text={ey} t={t}/><h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>{ti}</h1></div>
-        <Btn v="outline" t={t} onClick={expFn}>{I.dl} Exportar CSV</Btn>
-      </div>
-      {children}
-    </div>
-  )
-}
-
-// ── PANEL CEO ─────────────────────────────────────────────────────────────
-function VCEO({t,clientes}:any){
-  const exp=()=>exportCSV('CHAR_Panel_CEO',
-    ['KPI','Valor','Observación'],
-    [['Clientes activos','3 de 10','Capacidad al 30%'],['Ingresos estimados','—','Sin datos aún'],['Tareas completadas','12 de 22','55% de avance'],['Clips generados','0','Módulo próximo'],['Alertas críticas','1','Requiere atención']])
-  return(
-    <PShell ey="DIRECCIÓN EJECUTIVA" ti="Panel CEO" expFn={exp} t={t}>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-        <Card t={t}>
-          <Eb text="KPIs GLOBALES" t={t}/><Div t={t}/>
-          {[['Clientes activos','3 / 10',GOLD],['Ingresos estimados','—',GREEN],['Tareas completadas','12 / 22',BLUE],['Clips generados','0',PURPLE],['Alertas críticas','1',RED]].map(([l,v,c2],i)=>(
-            <SRow key={i} label={l} val={v} color={c2} t={t}/>
-          ))}
-        </Card>
-        <Card t={t}>
-          <Eb text="EQUIPO CHAR" t={t}/><Div t={t}/>
-          {[{n:'Gabriel',r:'Dev / Ops'},{n:'Adri',r:'Gestor de Proyectos'}].map((m,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
-              <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
-                <div style={{width:'30px',height:'30px',background:GOLD+'20',borderRadius:'50%',border:`1px solid ${GOLD}55`,display:'flex',alignItems:'center',justifyContent:'center',color:GOLD,fontWeight:800,fontSize:'12px',boxShadow:`0 0 10px ${GOLD}20`}}>{m.n[0]}</div>
-                <div>
-                  <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{m.n}</div>
-                  <div style={{fontSize:'11px',color:th(t).text3}}>{m.r}</div>
-                </div>
-              </div>
-              <Tag label="ACTIVO" color={GREEN}/>
-            </div>
-          ))}
-        </Card>
-      </div>
-      <Card t={t}>
-        <Eb text="TAREAS EJECUTIVAS" t={t}/><Div t={t}/>
-        {[{tx:'Revisar propuesta para Cliente Beta',p:'alta'},{tx:'Definir estrategia Q2 con Adri',p:'media'},{tx:'Configurar módulo de facturación',p:'normal'},{tx:'Revisar métricas semanales',p:'done'},{tx:'Actualizar filosofía CHAR en Cerebro IA',p:'normal'}].map((x,i)=>(
-          <TItem key={i} text={x.tx} p={x.p} done={x.p==='done'} t={t}/>
-        ))}
-      </Card>
-    </PShell>
-  )
-}
-
-// ── PANEL SEM ─────────────────────────────────────────────────────────────
-function VSEM({t,clientes}:any){
-  const exp=()=>exportCSV('CHAR_Panel_SEM',
-    ['Campaña','Estado','Presupuesto mensual','Impresiones','Clics','CTR','CPC','Conversiones','ROAS'],
-    [['Google Ads — Alfa','Activa','$0','—','—','—','—','—','—'],['Meta Ads — Beta','Pausada','$0','—','—','—','—','—','—'],['Google Ads — Gamma','Sin iniciar','—','—','—','—','—','—','—']])
-  return(
-    <PShell ey="SEARCH ENGINE MARKETING" ti="Panel SEM" expFn={exp} t={t}>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-        <Card t={t}>
-          <Eb text="CAMPAÑAS ACTIVAS" t={t}/><Div t={t}/>
-          {[{n:'Google Ads — Alfa',e:'ACTIVA',c:GREEN,p:'$0/mes'},{n:'Meta Ads — Beta',e:'PAUSADA',c:AMBER,p:'$0/mes'},{n:'Google Ads — Gamma',e:'SIN INICIAR',c:th(t).text3,p:'—'}].map((x,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
-              <div>
-                <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{x.n}</div>
-                <div style={{fontSize:'11px',color:th(t).text3}}>Presupuesto: {x.p}</div>
-              </div>
-              <Tag label={x.e} color={x.c}/>
-            </div>
-          ))}
-        </Card>
-        <Card t={t}>
-          <Eb text="MÉTRICAS SEM" t={t}/><Div t={t}/>
-          {[['Impresiones','—'],['Clics totales','—'],['CTR promedio','—'],['Costo por clic','—'],['Conversiones','—'],['ROAS promedio','—']].map(([l,v],i)=>(
-            <SRow key={i} label={l} val={v} color={BLUE} t={t}/>
-          ))}
-        </Card>
-      </div>
-      <Card t={t}>
-        <Eb text="TAREAS SEM" t={t}/><Div t={t}/>
-        {['Configurar primera campaña Google Ads','Definir keywords para Cliente Alfa','Conectar Google Analytics a la app','Investigar competencia SEM — Gamma','Revisar landing pages de clientes'].map((x,i)=>(
-          <TItem key={i} text={x} p={i<2?'alta':'normal'} t={t}/>
-        ))}
-      </Card>
-    </PShell>
-  )
-}
-
-// ── PANEL CM ──────────────────────────────────────────────────────────────
-function VCM({t,clientes}:any){
-  const exp=()=>exportCSV('CHAR_Panel_CM',
-    ['Cliente','Red social','Publicaciones semana','Estado','Alcance','Engagement','Seguidores nuevos'],
-    [['Cliente Alfa','Instagram','3','Planificado','—','—','—'],['Cliente Beta','YouTube','1','Pendiente','—','—','—'],['Cliente Gamma','LinkedIn','2','Publicado','—','—','—']])
-  return(
-    <PShell ey="COMMUNITY MANAGEMENT" ti="Panel CM" expFn={exp} t={t}>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-        <Card t={t}>
-          <Eb text="CONTENIDO ESTA SEMANA" t={t}/><Div t={t}/>
-          {[{c:'Cliente Alfa',r:'Instagram',p:'3 posts',e:'PLANIFICADO',co:AMBER},{c:'Cliente Beta',r:'YouTube',p:'1 video',e:'PENDIENTE',co:RED},{c:'Cliente Gamma',r:'LinkedIn',p:'2 artículos',e:'PUBLICADO',co:GREEN}].map((x,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
-              <div>
-                <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{x.c}</div>
-                <div style={{fontSize:'11px',color:th(t).text3}}>{x.r} · {x.p}</div>
-              </div>
-              <Tag label={x.e} color={x.co}/>
-            </div>
-          ))}
-        </Card>
-        <Card t={t}>
-          <Eb text="MÉTRICAS CM" t={t}/><Div t={t}/>
-          {[['Posts publicados','2'],['Alcance promedio','—'],['Engagement rate','—'],['Seguidores ganados','—'],['Stories programadas','0'],['Comentarios respondidos','—']].map(([l,v],i)=>(
-            <SRow key={i} label={l} val={v} color={GREEN} t={t}/>
-          ))}
-        </Card>
-      </div>
-      <Card t={t}>
-        <Eb text="TAREAS CM" t={t}/><Div t={t}/>
-        {[{tx:'Crear calendario de contenido Mayo — Alfa',p:'alta'},{tx:'Grabar CHAR Session para Cliente Beta',p:'alta'},{tx:'Responder comentarios — Gamma LinkedIn',p:'media'},{tx:'Diseñar 3 stories template para Alfa',p:'normal'},{tx:'Revisar estética de feed — Cliente Gamma',p:'done'}].map((x,i)=>(
-          <TItem key={i} text={x.tx} p={x.p} done={x.p==='done'} t={t}/>
-        ))}
-      </Card>
-    </PShell>
-  )
-}
-
-// ── PANEL SEO ─────────────────────────────────────────────────────────────
-function VSEO({t,clientes}:any){
-  const exp=()=>exportCSV('CHAR_Panel_SEO',
-    ['Cliente','Keyword principal','Posición actual','Domain Authority','Backlinks','Tráfico orgánico','Páginas indexadas'],
-    clientes.map(cl=>[cl.nombre,'Sin asignar','—','—','—','—','—']))
-  return(
-    <PShell ey="SEARCH ENGINE OPTIMIZATION" ti="Panel SEO" expFn={exp} t={t}>
-      <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
-        <Card t={t}>
-          <Eb text="POSICIONAMIENTO" t={t}/><Div t={t}/>
-          {clientes.map((cl,i)=>(
-            <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',transition:'background 0.15s'}}>
-              <div>
-                <div style={{fontSize:'13px',color:th(t).text,fontWeight:600}}>{cl.nombre}</div>
-                <div style={{fontSize:'11px',color:th(t).text3}}>Keyword: Sin asignar</div>
-              </div>
-              <span style={{fontSize:'14px',fontWeight:700,color:th(t).text3}}>—</span>
-            </div>
-          ))}
-        </Card>
-        <Card t={t}>
-          <Eb text="MÉTRICAS SEO" t={t}/><Div t={t}/>
-          {[['Domain Authority','—'],['Backlinks totales','—'],['Keywords top 10','—'],['Tráfico orgánico','—'],['Páginas indexadas','—'],['Velocidad promedio','—']].map(([l,v],i)=>(
-            <SRow key={i} label={l} val={v} color={PURPLE} t={t}/>
-          ))}
-        </Card>
-      </div>
-      <Card t={t}>
-        <Eb text="TAREAS SEO" t={t}/><Div t={t}/>
-        {['Auditoría SEO inicial — Cliente Alfa','Investigación de keywords — Gamma','Optimizar meta descriptions — Beta','Instalar Google Search Console','Generar reporte mensual de posicionamiento'].map((x,i)=>(
-          <TItem key={i} text={x} p={i<2?'alta':'normal'} t={t}/>
-        ))}
-      </Card>
-    </PShell>
-  )
-}
-
 // ── PLACEHOLDER ───────────────────────────────────────────────────────────
 function Placeholder({ti,mod,t}:{ti:string;mod:string;t:Theme}){
   const c=th(t)
@@ -1126,10 +965,10 @@ const subirLogo=async(file:File)=>{
     switch(vista){
       case 'dashboard': return <VDash t={theme} usuario={usuario} irA={irA} permisos={permisos} clientes={clientes}/>
       case 'clientes': return <VClientes t={theme} clientes={clientes} setClientes={setClientes} rol={rolUsuario} permisos={permisos}/>
-case 'ceo': return <VCEO t={theme} clientes={clientes}/>
-case 'cm': return <VCM t={theme} clientes={clientes}/>
-case 'sem': return <VSEM t={theme} clientes={clientes}/>
-case 'seo': return <VSEO t={theme} clientes={clientes}/>
+case 'ceo': return <PanelCEO t={theme} clientes={clientes}/>
+case 'cm': return <PanelCM t={theme} clientes={clientes}/>
+case 'sem': return <PanelSEM t={theme} clientes={clientes}/>
+case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       case 'calendario': return <Calendario t={theme}/>
       case 'archivos': return <Archivos t={theme}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
