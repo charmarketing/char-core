@@ -440,13 +440,49 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                   </div>
                 </div>
                 <div>
-                  <div style={{fontSize:'11px',color:c.text3,marginBottom:'8px',letterSpacing:'1px'}}>COLOR DE SUBTÍTULOS</div>
-                  <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                    {COLORES_SUB.map(col=>(
-                      <div key={col.valor} onClick={()=>setConfig({...config,colorSub:col.valor})} style={{width:'36px',height:'36px',borderRadius:'8px',background:col.valor,border:`2px solid ${config.colorSub===col.valor?GOLD:'transparent'}`,cursor:'pointer',boxShadow:config.colorSub===col.valor?`0 0 10px ${GOLD}60`:'none',transition:'all 0.15s'}} title={col.nombre}/>
-                    ))}
-                  </div>
-                  <div style={{fontSize:'11px',color:c.text3,marginTop:'6px'}}>Color seleccionado: <span style={{color:config.colorSub,fontWeight:700}}>{COLORES_SUB.find(col=>col.valor===config.colorSub)?.nombre}</span></div>
+                <div style={{fontSize:'11px',color:c.text3,marginBottom:'8px',letterSpacing:'1px'}}>COLOR DE SUBTÍTULOS</div>
+
+{/* Colores rápidos */}
+<div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'10px'}}>
+  {COLORES_SUB.map(col=>(
+    <div key={col.valor} onClick={()=>setConfig({...config,colorSub:col.valor})}
+      style={{width:'32px',height:'32px',borderRadius:'7px',background:col.valor,
+      border:`2px solid ${config.colorSub===col.valor?GOLD:'transparent'}`,
+      cursor:'pointer',boxShadow:config.colorSub===col.valor?`0 0 10px ${GOLD}60`:'none',
+      transition:'all 0.15s'}} title={col.nombre}/>
+  ))}
+</div>
+
+{/* Color picker + HEX */}
+<div style={{display:'flex',gap:'10px',alignItems:'center',background:c.s2,borderRadius:'10px',padding:'10px 14px',border:`1px solid ${c.border}`}}>
+  <div style={{position:'relative'}}>
+    <div style={{width:'36px',height:'36px',borderRadius:'8px',background:config.colorSub,border:`2px solid ${c.border}`,cursor:'pointer',boxShadow:`0 0 8px ${config.colorSub}60`}}/>
+    <input
+      type="color"
+      value={config.colorSub}
+      onChange={e=>setConfig({...config,colorSub:e.target.value})}
+      style={{position:'absolute',inset:0,opacity:0,cursor:'pointer',width:'100%',height:'100%'}}
+    />
+  </div>
+  <div style={{flex:1}}>
+    <div style={{fontSize:'10px',color:c.text3,letterSpacing:'1px',marginBottom:'4px'}}>CÓDIGO HEX</div>
+    <input
+      type="text"
+      value={config.colorSub}
+      onChange={e=>{
+        const val=e.target.value
+        if(/^#[0-9A-Fa-f]{0,6}$/.test(val)) setConfig({...config,colorSub:val})
+      }}
+      placeholder="#ffffff"
+      style={{background:'transparent',border:'none',color:config.colorSub,fontSize:'14px',
+      fontWeight:800,fontFamily:'monospace',outline:'none',width:'100%',letterSpacing:'1px'}}
+    />
+  </div>
+  <div style={{fontSize:'11px',color:c.text3,textAlign:'right'}}>
+    <div>Click en el</div>
+    <div>cuadro de color</div>
+  </div>
+</div>
                 </div>
                 <div>
                   <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>POSICIÓN DE SUBTÍTULOS</div>
