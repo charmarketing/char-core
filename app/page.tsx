@@ -973,7 +973,7 @@ case 'cm': return <PanelCM t={theme} clientes={clientes}/>
 case 'sem': return <PanelSEM t={theme} clientes={clientes}/>
 case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       case 'calendario': return <Calendario t={theme}/>
-      case 'archivos': return <Archivos t={theme}/>
+      case 'archivos': return <Archivos t={theme} clientes={clientes}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData}/>
       case 'ia': return <CerebroIA t={theme}/>
         case 'video': return <VideoEditor t={theme}/>
