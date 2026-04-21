@@ -240,15 +240,6 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     posicionLogo:'Arriba derecha',
   })
   const inputRef=useRef<HTMLInputElement>(null)
-  const [colorHue,setColorHue]=useState(0)
-const hueToRgb=(h:number)=>{
-  const c2=(1-Math.abs(2*0.5-1))*1
-  const x=c2*(1-Math.abs((h/60)%2-1))
-  const m=0.5-c2/2
-  let r=0,g=0,b=0
-  if(h<60){r=c2;g=x}else if(h<120){r=x;g=c2}else if(h<180){g=c2;b=x}
-  else if(h<240){g=x;b=c2}else if(h<300){r=x;b=c2}else{r=c2;b=x}
-  return{r:Math.round((r+m)*255),g:Math.round((g+m)*255),b:Math.round((b+m)*255)}
 }
 
   const simularProceso=()=>{
@@ -481,83 +472,6 @@ const hueToRgb=(h:number)=>{
       />
     </div>
   </div>
-  
-  {/* Gradiente de color — Saturación/Brillo */}
-  <div style={{position:'relative',width:'100%',height:'160px',borderRadius:'8px',marginBottom:'10px',
-    background:`linear-gradient(to bottom, transparent, #000),
-                linear-gradient(to right, #fff, hsl(${colorHue},100%,50%))`,
-    cursor:'crosshair',overflow:'hidden'
-  }}
-    onMouseDown={e=>{
-      const rect=e.currentTarget.getBoundingClientRect()
-      const handleMove=(ev:MouseEvent)=>{
-        const x=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width))
-        const y=Math.max(0,Math.min(1,(ev.clientY-rect.top)/rect.height))
-        const r=Math.round((1-y)*(1-(1-x)*1)*255)
-        const g=Math.round((1-y)*(1-(1-x)*0.5)*255*(1-x*0.5))
-        const hex='#'+[
-          Math.round((1-y)*((1-x)*255+x*parseInt(hueToRgb(colorHue).r))),
-          Math.round((1-y)*((1-x)*255+x*parseInt(hueToRgb(colorHue).g))),
-          Math.round((1-y)*((1-x)*255+x*parseInt(hueToRgb(colorHue).b))),
-        ].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('')
-        setConfig(prev=>({...prev,colorSub:hex}))
-      }
-      window.addEventListener('mousemove',handleMove)
-      window.addEventListener('mouseup',()=>window.removeEventListener('mousemove',handleMove),{once:true})
-    }}
-    onTouchMove={e=>{
-      const rect=e.currentTarget.getBoundingClientRect()
-      const touch=e.touches[0]
-      const x=Math.max(0,Math.min(1,(touch.clientX-rect.left)/rect.width))
-      const y=Math.max(0,Math.min(1,(touch.clientY-rect.top)/rect.height))
-      const hex='#'+[
-        Math.round((1-y)*((1-x)*255+x*hueToRgb(colorHue).r)),
-        Math.round((1-y)*((1-x)*255+x*hueToRgb(colorHue).g)),
-        Math.round((1-y)*((1-x)*255+x*hueToRgb(colorHue).b)),
-      ].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('')
-      setConfig(prev=>({...prev,colorSub:hex}))
-    }}
-  >
-    <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,#fff,transparent)'}}/>
-    <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,transparent,#000)'}}/>
-  </div>
-
-  {/* Barra de tono (hue) */}
-  <div style={{position:'relative',height:'16px',borderRadius:'8px',marginBottom:'10px',cursor:'pointer',
-    background:'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)'}}
-    onMouseDown={e=>{
-      const rect=e.currentTarget.getBoundingClientRect()
-      const handleMove=(ev:MouseEvent)=>{
-        const x=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width))
-        setColorHue(Math.round(x*360))
-      }
-      handleMove(e.nativeEvent as MouseEvent)
-      window.addEventListener('mousemove',handleMove)
-      window.addEventListener('mouseup',()=>window.removeEventListener('mousemove',handleMove),{once:true})
-    }}
-    onTouchMove={e=>{
-      const rect=e.currentTarget.getBoundingClientRect()
-      const x=Math.max(0,Math.min(1,(e.touches[0].clientX-rect.left)/rect.width))
-      setColorHue(Math.round(x*360))
-    }}
-  >
-    <div style={{position:'absolute',top:'-2px',bottom:'-2px',width:'20px',borderRadius:'4px',
-      background:'#fff',border:'2px solid #fff',boxShadow:'0 0 4px #000',
-      left:`calc(${(colorHue/360)*100}% - 10px)`,transition:'left 0.05s'}}/>
-  </div>
-
-  {/* Colores rápidos */}
-  <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
-    {COLORES_SUB.map(col=>(
-      <div key={col.valor} onClick={()=>setConfig({...config,colorSub:col.valor})}
-        style={{width:'28px',height:'28px',borderRadius:'6px',background:col.valor,
-        border:`2px solid ${config.colorSub===col.valor?GOLD:'transparent'}`,
-        cursor:'pointer',transition:'all 0.15s'}} title={col.nombre}/>
-    ))}
-  </div>
-</div>
-  </div>
-</div>
                 </div>
                 <div>
                   <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>POSICIÓN DE SUBTÍTULOS</div>
