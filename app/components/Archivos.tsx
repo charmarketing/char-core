@@ -95,11 +95,6 @@ const tipoIcon = (tipo:TipoArchivo) => {
 
 const PROYECTOS = ['Redes Sociales','Campaña Mayo','Identidad Visual','SEO','Google Ads','Contenido Orgánico']
 const TIPOS:TipoArchivo[] = ['Video','Foto','Diseño','Documento','Audio','Afiche','Logo','Flyer','Otro']
-const clienteColor = (nombre:string) => {
-  const colors=[GOLD,BLUE,PURPLE,GREEN,AMBER]
-  const idx=clientes.findIndex(cl=>cl.nombre===nombre)
-  return colors[idx>=0?idx%colors.length:0]
-}
 
 const ARCHIVOS_INICIALES:Archivo[] = [
   {id:1,nombre:'Reel_Teaser_Campaña_Alfa',tipo:'Video',cliente:'Cliente Alfa',proyecto:'Redes Sociales',fecha:'2026-04-14',tamaño:'245 MB',extension:'mp4'},
@@ -115,6 +110,11 @@ const ARCHIVOS_INICIALES:Archivo[] = [
 export default function Archivos({t,clientes=[]}:{t:Theme,clientes:any[]}){
   const c=th(t)
   const CLIENTES_NOMBRES = clientes.map(cl=>cl.nombre)
+  const clienteColor = (nombre:string) => {
+  const colors=[GOLD,BLUE,PURPLE,GREEN,AMBER]
+  const idx=clientes.findIndex(cl=>cl.nombre===nombre)
+  return colors[idx>=0?idx%colors.length:0]
+}
   const [archivos,setArchivos]=useState<Archivo[]>([])
   const [organizacion,setOrganizacion]=useState<OrganizacionVista>('cliente-tipo-fecha')
   const [vistaGrid,setVistaGrid]=useState(true)
