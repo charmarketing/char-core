@@ -93,7 +93,6 @@ const tipoIcon = (tipo:TipoArchivo) => {
   return I.design
 }
 
-const CLIENTES_NOMBRES = clientes.map(cl=>cl.nombre)
 const PROYECTOS = ['Redes Sociales','Campaña Mayo','Identidad Visual','SEO','Google Ads','Contenido Orgánico']
 const TIPOS:TipoArchivo[] = ['Video','Foto','Diseño','Documento','Audio','Afiche','Logo','Flyer','Otro']
 const clienteColor = (nombre:string) => {
@@ -115,6 +114,7 @@ const ARCHIVOS_INICIALES:Archivo[] = [
 
 export default function Archivos({t,clientes=[]}:{t:Theme,clientes:any[]}){
   const c=th(t)
+  const CLIENTES_NOMBRES = clientes.map(cl=>cl.nombre)
   const [archivos,setArchivos]=useState<Archivo[]>([])
   const [organizacion,setOrganizacion]=useState<OrganizacionVista>('cliente-tipo-fecha')
   const [vistaGrid,setVistaGrid]=useState(true)
