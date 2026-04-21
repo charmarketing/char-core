@@ -67,14 +67,9 @@ type Alerta = {
   origen:'automatica'|'manual'
 }
 
-const ALERTAS_INICIALES:Alerta[] = [
-  {id:1,tipo:'urgente',titulo:'Cliente Beta sin actividad',descripcion:'Cliente Beta lleva más de 50hs sin actividad registrada. Requiere atención inmediata.',cliente:'Cliente Beta',rol:'CEO',tiempo:'hace 2h',leida:false,origen:'automatica'},
-  {id:2,tipo:'atencion',titulo:'Calendario de Mayo sin planificar',descripcion:'Cliente Alfa no tiene contenido planificado para Mayo. Faltan 8 días para el inicio del mes.',cliente:'Cliente Alfa',rol:'CM',tiempo:'hace 5h',leida:false,origen:'automatica'},
-  {id:3,tipo:'info',titulo:'Campaña SEM de Gamma sin iniciar',descripcion:'La campaña de Google Ads para Cliente Gamma todavía no fue configurada.',cliente:'Cliente Gamma',rol:'SEM',tiempo:'hace 1d',leida:false,origen:'automatica'},
-  {id:4,tipo:'atencion',titulo:'Auditoría SEO pendiente',descripcion:'La auditoría SEO inicial de Cliente Alfa fue asignada hace 3 días y sigue sin completarse.',cliente:'Cliente Alfa',rol:'SEO',tiempo:'hace 3d',leida:true,origen:'automatica'},
-]
+const ALERTAS_INICIALES:Alerta[] = []
 
-const CLIENTES=['Cliente Alfa','Cliente Beta','Cliente Gamma']
+const CLIENTES=clientes.map(cl=>cl.nombre)
 const ROLES=['CEO','CM','SEM','SEO']
 const RC:Record<string,string>={CEO:GOLD,CM:GREEN,SEM:BLUE,SEO:PURPLE}
 
@@ -94,13 +89,13 @@ function tipoIcon(tipo:Alerta['tipo']){
   return I.info
 }
 
-export default function Alertas({t,onActualizar,alertasIniciales,onCambio}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:Alerta[];onCambio?:(a:Alerta[])=>void}){
+export default function Alertas({t,onActualizar,alertasIniciales,onCambio,clientes=[]}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:Alerta[];onCambio?:(a:Alerta[])=>void;clientes?:any[]}){
   const c=th(t)
   const [alertas,setAlertas]=useState<Alerta[]>(alertasIniciales || ALERTAS_INICIALES)
   const [filtro,setFiltro]=useState<'todas'|'urgente'|'atencion'|'info'>('todas')
   const [soloNoLeidas,setSoloNoLeidas]=useState(false)
   const [mostrarForm,setMostrarForm]=useState(false)
-  const [nueva,setNueva]=useState({titulo:'',descripcion:'',tipo:'info' as Alerta['tipo'],cliente:'Cliente Alfa',rol:'CEO'})
+  const [nueva,setNueva]=useState({titulo:'',descripcion:'',tipo:'info' as Alerta['tipo'],cliente:clientes[0]?.nombre||'',rol:'CEO'})
 
 const marcarLeida=(id:number)=>{
   const nueva=alertas.map(a=>a.id===id?{...a,leida:true}:a)
@@ -193,25 +188,25 @@ const eliminar=(id:number)=>{
         <Eb text="SALUD DE CLIENTES" t={t}/>
         <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:'0 0 16px'}}>Semáforo de actividad</h3>
         <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
-          {[
-            {nombre:'Cliente Alfa',horas:2,color:GOLD},
-            {nombre:'Cliente Beta',horas:50,color:BLUE},
-            {nombre:'Cliente Gamma',horas:20,color:PURPLE},
-          ].map((cl,i)=>{
-            const s=cl.horas<24?{c:GREEN,l:'SALUDABLE'}:cl.horas<48?{c:AMBER,l:'ATENCIÓN'}:{c:RED,l:'CRÍTICO'}
-            return(
-              <div key={i} style={{padding:'16px',borderRadius:'12px',background:c.s2,border:`1px solid ${s.c}40`}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
-                  <div style={{fontWeight:700,color:c.text,fontSize:'14px'}}>{cl.nombre}</div>
-                  <Tag label={s.l} color={s.c}/>
-                </div>
-                <div style={{fontSize:'12px',color:c.text3,marginBottom:'8px'}}>Última actividad: <span style={{color:s.c,fontWeight:700}}>{cl.horas}hs atrás</span></div>
-                <div style={{height:'4px',background:c.border,borderRadius:'4px'}}>
-                  <div style={{height:'100%',width:`${Math.max(10,100-cl.horas*2)}%`,background:s.c,borderRadius:'4px',boxShadow:`0 0 8px ${s.c}55`,transition:'width 0.5s'}}/>
-                </div>
-              </div>
-            )
-          })}
+        {clientes.length===0
+  ?<div style={{fontSize:'13px',color:c.text3,gridColumn:'1/-1',textAlign:'center',padding:'20px'}}>Sin clientes cargados</div>
+  :clientes.map((cl:any,i:number)=>{
+    const colors=[GOLD,BLUE,PURPLE,GREEN,AMBER]
+    const s=cl.horas<24?{c:GREEN,l:'SALUDABLE'}:cl.horas<48?{c:AMBER,l:'ATENCIÓN'}:{c:RED,l:'CRÍTICO'}
+    return(
+      <div key={i} style={{padding:'16px',borderRadius:'12px',background:c.s2,border:`1px solid ${s.c}40`}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+          <div style={{fontWeight:700,color:c.text,fontSize:'14px'}}>{cl.nombre}</div>
+          <Tag label={s.l} color={s.c}/>
+        </div>
+        <div style={{fontSize:'12px',color:c.text3,marginBottom:'8px'}}>Última actividad: <span style={{color:s.c,fontWeight:700}}>{cl.horas}hs atrás</span></div>
+        <div style={{height:'4px',background:c.border,borderRadius:'4px'}}>
+          <div style={{height:'100%',width:`${Math.max(10,100-cl.horas*2)}%`,background:s.c,borderRadius:'4px',boxShadow:`0 0 8px ${s.c}55`,transition:'width 0.5s'}}/>
+        </div>
+      </div>
+    )
+  })
+}
         </div>
       </Card>
 
