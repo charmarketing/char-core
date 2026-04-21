@@ -274,11 +274,6 @@ export default function Calendario({ t }: { t: Theme }) {
 
       {vista === 'mensual' ? (
         <Card t={t} style={{ padding: '14px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', marginBottom: '10px' }}>
-            {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map(d => (
-              <div key={d} style={{ padding: '10px', textAlign: 'center', fontSize: '11px', color: c.text3, fontWeight: 700, letterSpacing: '1px' }}>{d}</div>
-            ))}
-          </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px' }}>
             {celdasMes.map((fecha, i) => {
               if (!fecha) return <div key={i} style={{ minHeight: '140px', borderRadius: '12px', background: 'transparent', border: `1px dashed ${c.border}`, opacity: 0.25 }} />
@@ -287,9 +282,14 @@ export default function Calendario({ t }: { t: Theme }) {
               return (
                 <div key={i} style={{ minHeight: '140px', borderRadius: '12px', background: c.s2, border: `1px solid ${esHoy ? GOLD : c.border}`, padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', boxShadow: esHoy ? `0 0 0 1px ${GOLD}30 inset` : 'none' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 800, color: esHoy ? GOLD : c.text }}>{fecha.getDate()}</div>
-                    {items.length > 0 && <Tag label={`${items.length} PIEZA${items.length > 1 ? 'S' : ''}`} color={GOLD} />}
-                  </div>
+  <div style={{ lineHeight: 1.2 }}>
+    <div style={{fontSize:'8px', color: esHoy ? GOLD : c.text3, fontWeight:700, letterSpacing:'0.5px'}}>
+      {['LUN','MAR','MIÉ','JUE','VIE','SÁB','DOM'][(fecha.getDay()+6)%7]}
+    </div>
+    <div style={{ fontSize: '13px', fontWeight: 800, color: esHoy ? GOLD : c.text }}>{fecha.getDate()}</div>
+  </div>
+  {items.length > 0 && <Tag label={`${items.length}`} color={GOLD} />}
+</div>
                   <div style={{ display: 'grid', gap: '6px' }}>
                     {items.slice(0, 3).map(ev => (
                       <div key={ev.id} className="char-row" style={{ padding: '10px', borderRadius: '10px', background: clienteColor(ev.cliente, clientes) + '12', border: `1px solid ${clienteColor(ev.cliente, clientes)}35`, display: 'grid', gap: '6px', position: 'relative' }}>
