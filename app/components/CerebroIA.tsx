@@ -75,7 +75,6 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
-const SUGERENCIAS_INICIALES = clientes.length>0 ? clientes.flatMap((cl:any)=>[
   {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Reel mostrando el proceso y detrás de cámara de ${cl.nombre} — alto potencial viral`,tipo:'Reel',prioridad:'alta'},
   {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Carrusel "5 razones para elegir ${cl.nombre}" con diseño cinematográfico CHAR`,tipo:'Carrusel',prioridad:'media'},
 ]) : []
@@ -90,6 +89,7 @@ const BLOG_NOTICIAS = [
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
   const clientesNombres=['CHAR',...clientes.map((cl:any)=>cl.nombre)]
+  const SUGERENCIAS_INICIALES = clientes.length>0 ? clientes.flatMap((cl:any)=>[
   const [tab,setTab]=useState<Tab>('chat')
   const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
