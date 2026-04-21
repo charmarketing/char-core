@@ -336,7 +336,9 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
                     <div style={{width:'34px',height:'34px',background:cl.color+'20',borderRadius:'9px',border:`1px solid ${cl.color}45`,display:'flex',alignItems:'center',justifyContent:'center',color:cl.color,fontWeight:800,fontSize:'13px',boxShadow:`0 0 12px ${cl.color}20`}}>
-                      {cl.nombre.charAt(8)}
+                      {cl.url_logo 
+  ? <img src={cl.url_logo} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'9px'}}/> 
+  : cl.nombre.charAt(0)}
                     </div>
                     <div>
                       <div style={{fontWeight:700,fontSize:'14px',color:c.text}}>{cl.nombre}</div>
