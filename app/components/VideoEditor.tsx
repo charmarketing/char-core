@@ -159,7 +159,8 @@ function ColorPickerCustom({valor,onChange,t,coloresRapidos}:{valor:string,onCha
   const [hue,sat,bri]=[hsb[0],hsb[1],hsb[2]]
   return(
     <div style={{userSelect:'none'}}>
-      <div style={{position:'relative',width:'100%',height:'160px',borderRadius:'10px',marginBottom:'12px',cursor:'crosshair',overflow:'hidden'}}
+      <div
+        style={{position:'relative',width:'100%',height:'160px',borderRadius:'10px',marginBottom:'12px',cursor:'crosshair',overflow:'hidden'}}
         onMouseDown={e=>{
           const rect=e.currentTarget.getBoundingClientRect()
           const move=(ev:MouseEvent)=>{
@@ -192,9 +193,8 @@ function ColorPickerCustom({valor,onChange,t,coloresRapidos}:{valor:string,onCha
       </div>
       <input type="range" min="0" max="360" value={hue}
         onChange={e=>setColor(Number(e.target.value),sat,bri)}
-        style={{width:'100%',height:'16px',borderRadius:'8px',marginBottom:'14px',outline:'none',cursor:'pointer',
-        background:'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)',
-        appearance:'none' as any,WebkitAppearance:'none' as any}}/>
+        style={{width:'100%',height:'16px',borderRadius:'8px',marginBottom:'14px',outline:'none',cursor:'pointer',background:'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)',appearance:'none' as any,WebkitAppearance:'none' as any}}
+      />
       <div style={{display:'flex',gap:'12px',alignItems:'center',marginBottom:'14px',padding:'10px 14px',background:c.s2,borderRadius:'10px',border:`1px solid ${c.border}`}}>
         <div style={{width:'44px',height:'44px',borderRadius:'8px',background:valor,border:`2px solid ${c.border}`,boxShadow:`0 0 14px ${valor}70`,flexShrink:0}}/>
         <div style={{flex:1}}>
@@ -207,17 +207,14 @@ function ColorPickerCustom({valor,onChange,t,coloresRapidos}:{valor:string,onCha
                 if(/^#[0-9A-Fa-f]{6}$/.test(v)){const[h,s,b]=hexToHsb(v);setHsb([h,s,b])}
               }
             }}
-            style={{background:'transparent',border:'none',color:c.text,fontSize:'18px',fontWeight:800,fontFamily:'monospace',outline:'none',width:'100%',letterSpacing:'2px'}}/>
+            style={{background:'transparent',border:'none',color:c.text,fontSize:'18px',fontWeight:800,fontFamily:'monospace',outline:'none',width:'100%',letterSpacing:'2px'}}
+          />
         </div>
       </div>
       <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:'8px'}}>
         {coloresRapidos.map(col=>(
           <div key={col.valor} onClick={()=>handlePreset(col.valor)} title={col.nombre}
-            style={{height:'38px',borderRadius:'8px',background:col.valor,
-            border:`2px solid ${valor===col.valor?GOLD:'transparent'}`,
-            cursor:'pointer',
-            boxShadow:valor===col.valor?`0 0 12px ${GOLD}70`:'none',
-            transition:'all 0.15s',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            style={{height:'38px',borderRadius:'8px',background:col.valor,border:`2px solid ${valor===col.valor?GOLD:'transparent'}`,cursor:'pointer',boxShadow:valor===col.valor?`0 0 12px ${GOLD}70`:'none',transition:'all 0.15s',display:'flex',alignItems:'center',justifyContent:'center'}}>
             {valor===col.valor&&(
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" style={{filter:'drop-shadow(0 1px 2px #000)'}}><polyline points="20 6 9 17 4 12"/></svg>
             )}
@@ -431,6 +428,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       {tab==='procesar'&&(
         <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
           <div style={{display:'grid',gap:'16px'}}>
+
             <Card t={t}>
               <Eb text="SUBIR VIDEO" t={t}/>
               <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:'0 0 16px'}}>Video del cliente</h3>
@@ -567,6 +565,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
             <Btn v="primary" t={t} onClick={simularProceso} disabled={estado!=='idle'&&estado!=='completado'}>
               {I.bolt} {estado==='completado'?'Procesar otro video':'Detectar clips virales ahora'}
             </Btn>
+
           </div>
 
           <div style={{display:'grid',gap:'16px',alignContent:'start'}}>
@@ -603,4 +602,43 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
             {config.tipografia&&(
               <Card t={t} style={{padding:'16px 20px'}}>
                 <Eb text="PREVIEW DE SUBTÍTULOS" t={t}/>
-                <div style={{marginTop:'10px',background:'#000',borderRadius:'10px',padding:'
+                <div style={{marginTop:'10px',background:'#000',borderRadius:'10px',padding:'16px',textAlign:'center'}}>
+                  <div style={{fontSize:'16px',fontWeight:800,color:config.colorSub,fontFamily:config.tipografia+',sans-serif',textShadow:'0 2px 8px #000',letterSpacing:'0.5px'}}>
+                    Así se verán los subtítulos
+                  </div>
+                  <div style={{fontSize:'11px',color:'#666',marginTop:'8px'}}>{config.tipografia} · {COLORES_SUB.find(col=>col.valor===config.colorSub)?.nombre||config.colorSub} · {config.posicionSub}</div>
+                </div>
+              </Card>
+            )}
+          </div>
+        </div>
+      )}
+
+      {clips.length>0&&tab==='procesar'&&(
+        <div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'10px'}}>
+            <div>
+              <Eb text="GALERÍA DE CLIPS" t={t}/>
+              <h2 style={{fontSize:'20px',fontWeight:800,color:c.text,margin:0}}>Clips listos para Reels y TikTok</h2>
+            </div>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              <Tag label={config.formato+' ✓'} color={BLUE}/>
+              <Tag label={'LOGO CLIENTE ✓'} color={GOLD}/>
+              <Tag label={'SUBTÍTULOS ✓'} color={PURPLE}/>
+            </div>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}>
+            {clips.map(clip=>(
+              <ClipCard key={clip.id} clip={clip} t={t} formato={config.formato} tipografia={config.tipografia} colorSub={config.colorSub} posicionSub={config.posicionSub} posicionLogo={config.posicionLogo}/>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Card t={t} style={{padding:'16px 20px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap',justifyContent:'space-between'}}>
+          <div>
+            <div style={{fontSize:'13px',fontWeight:700,color:c.text,marginBottom:'4px'}}>¿Cómo va a funcionar en Módulo 8?</div>
+            <div style={{fontSize:'12px',color:c.text3}}>AssemblyAI analiza el audio real → Shotstack corta y renderiza → clips listos en minutos</div>
+          </div>
+          <div style={{display
