@@ -93,10 +93,14 @@ const tipoIcon = (tipo:TipoArchivo) => {
   return I.design
 }
 
-const CLIENTES = ['Cliente Alfa','Cliente Beta','Cliente Gamma']
+const CLIENTES_NOMBRES = clientes.map(cl=>cl.nombre)
 const PROYECTOS = ['Redes Sociales','Campaña Mayo','Identidad Visual','SEO','Google Ads','Contenido Orgánico']
 const TIPOS:TipoArchivo[] = ['Video','Foto','Diseño','Documento','Audio','Afiche','Logo','Flyer','Otro']
-const clienteColor = (c:string) => c.includes('Alfa')?GOLD:c.includes('Beta')?BLUE:PURPLE
+const clienteColor = (nombre:string) => {
+  const colors=[GOLD,BLUE,PURPLE,GREEN,AMBER]
+  const idx=clientes.findIndex(cl=>cl.nombre===nombre)
+  return colors[idx>=0?idx%colors.length:0]
+}
 
 const ARCHIVOS_INICIALES:Archivo[] = [
   {id:1,nombre:'Reel_Teaser_Campaña_Alfa',tipo:'Video',cliente:'Cliente Alfa',proyecto:'Redes Sociales',fecha:'2026-04-14',tamaño:'245 MB',extension:'mp4'},
@@ -109,9 +113,9 @@ const ARCHIVOS_INICIALES:Archivo[] = [
   {id:8,nombre:'Flyer_Promo_Beta',tipo:'Flyer',cliente:'Cliente Beta',proyecto:'Campaña Mayo',fecha:'2026-04-19',tamaño:'5.1 MB',extension:'pdf'},
 ]
 
-export default function Archivos({t}:{t:Theme}){
+export default function Archivos({t,clientes=[]}:{t:Theme,clientes:any[]}){
   const c=th(t)
-  const [archivos,setArchivos]=useState<Archivo[]>(ARCHIVOS_INICIALES)
+  const [archivos,setArchivos]=useState<Archivo[]>([])
   const [organizacion,setOrganizacion]=useState<OrganizacionVista>('cliente-tipo-fecha')
   const [vistaGrid,setVistaGrid]=useState(true)
   const [filtroCliente,setFiltroCliente]=useState('Todos')
@@ -183,7 +187,7 @@ export default function Archivos({t}:{t:Theme}){
         </Card>
         <Card t={t} style={{padding:'18px'}}>
           <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>CLIENTES</div>
-          <div style={{fontSize:'30px',fontWeight:800,color:GOLD}}>{CLIENTES.length}</div>
+          <div style={{fontSize:'30px',fontWeight:800,color:GOLD}}>{clientes.length}</div>
         </Card>
         <Card t={t} style={{padding:'18px'}}>
           <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>TIPOS</div>
@@ -254,7 +258,7 @@ export default function Archivos({t}:{t:Theme}){
           {/* Filtro cliente */}
           <select value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)} style={{...inputSt,padding:'8px 12px'}}>
             <option>Todos</option>
-            {CLIENTES.map(c=><option key={c}>{c}</option>)}
+            {CLIENTES_NOMBRES.map(c=><option key={c}>{c}</option>)}
           </select>
 
           {/* Filtro tipo */}
