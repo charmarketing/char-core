@@ -132,15 +132,102 @@ const PASOS_PROCESO = [
 
 function ColorPickerCustom({valor,onChange,t,coloresRapidos}:{valor:string,onChange:(v:string)=>void,t:Theme,coloresRapidos:{valor:string,nombre:string}[]}){
   const c=th(t)
-  const [hue,setHue]=useState(0)
-  const [sat,setSat]=useState(100)
-  const [bri,setBri]=useState(50)
+  const hexToHsb=(hex:string):[number,number,number]=>{
+    if(!/^#[0-9A-Fa-f]{6}$/.test(hex)) return [0,100,100]
+    const r=parseInt(hex.slice(1,3),16)/255
+    const g=parseInt(hex.slice(3,5),16)/255
+    const b=parseInt(hex.slice(5,7),16)/255
+    const max=Math.max(r,g,b),min=Math.min(r,g,b),delta=max-min
+    let h=0
+    if(delta!==0){
+      if(max===r) h=((g-b)/delta)%6
+      else if(max===g) h=(b-r)/delta+2
+      else h=(r-g)/delta+4
+      h=Math.round(h*60)
+      if(h<0) h+=360
+    }
+    return [h,max===0?0:Math.round((delta/max)*100),Math.round(max*100)]
+  }
+  const [hsb,setHsb]=useState<[number,number,number]>(()=>hexToHsb(valor))
   const hsbToHex=(h:number,s:number,b:number)=>{
     const s2=s/100,b2=b/100
     const k=(n:number)=>(n+h/60)%6
     const f=(n:number)=>b2*(1-s2*Math.max(0,Math.min(k(n),4-k(n),1)))
     return '#'+[Math.round(255*f(5)),Math.round(255*f(3)),Math.round(255*f(1))].map(v=>Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')).join('')
   }
+  const setColor=(h:number,s:number,b:number)=>{setHsb([h,s,b]);onChange(hsbToHex(h,s,b))}
+  const handlePreset=(hex:string)=>{const[h,s,b]=hexToHsb(hex);setHsb([h,s,b]);onChange(hex)}
+  const [hue,sat,bri]=[hsb[0],hsb[1],hsb[2]]
+  return(
+    <div style={{userSelect:'none'}}>
+      <div style={{position:'relative',width:'100%',height:'160px',borderRadius:'10px',marginBottom:'12px',cursor:'crosshair',overflow:'hidden'}}
+        onMouseDown={e=>{
+          const rect=e.currentTarget.getBoundingClientRect()
+          const move=(ev:MouseEvent)=>{
+            const x=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width))
+            const y=Math.max(0,Math.min(1,(ev.clientY-rect.top)/rect.height))
+            setColor(hue,Math.round(x*100),Math.round((1-y)*100))
+          }
+          move(e.nativeEvent as MouseEvent)
+          window.addEventListener('mousemove',move)
+          window.addEventListener('mouseup',()=>window.removeEventListener('mousemove',move),{once:true})
+        }}
+        onTouchStart={e=>{
+          e.preventDefault()
+          const rect=e.currentTarget.getBoundingClientRect()
+          const move=(ev:TouchEvent)=>{
+            const touch=ev.touches[0]
+            const x=Math.max(0,Math.min(1,(touch.clientX-rect.left)/rect.width))
+            const y=Math.max(0,Math.min(1,(touch.clientY-rect.top)/rect.height))
+            setColor(hue,Math.round(x*100),Math.round((1-y)*100))
+          }
+          move(e.nativeEvent as TouchEvent)
+          window.addEventListener('touchmove',move,{passive:false})
+          window.addEventListener('touchend',()=>window.removeEventListener('touchmove',move),{once:true})
+        }}
+      >
+        <div style={{position:'absolute',inset:0,background:`hsl(${hue},100%,50%)`}}/>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(to right,#fff,transparent)'}}/>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,transparent,#000)'}}/>
+        <div style={{position:'absolute',width:'16px',height:'16px',borderRadius:'50%',border:'2px solid #fff',boxShadow:'0 0 6px rgba(0,0,0,0.9)',background:valor,pointerEvents:'none',transform:'translate(-50%,-50%)',left:`${sat}%`,top:`${100-bri}%`}}/>
+      </div>
+      <input type="range" min="0" max="360" value={hue}
+        onChange={e=>setColor(Number(e.target.value),sat,bri)}
+        style={{width:'100%',height:'16px',borderRadius:'8px',marginBottom:'14px',outline:'none',cursor:'pointer',
+        background:'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)',
+        appearance:'none' as any,WebkitAppearance:'none' as any}}/>
+      <div style={{display:'flex',gap:'12px',alignItems:'center',marginBottom:'14px',padding:'10px 14px',background:c.s2,borderRadius:'10px',border:`1px solid ${c.border}`}}>
+        <div style={{width:'44px',height:'44px',borderRadius:'8px',background:valor,border:`2px solid ${c.border}`,boxShadow:`0 0 14px ${valor}70`,flexShrink:0}}/>
+        <div style={{flex:1}}>
+          <div style={{fontSize:'10px',color:c.text3,letterSpacing:'1px',marginBottom:'4px'}}>CÓDIGO HEX</div>
+          <input type="text" value={valor}
+            onChange={e=>{
+              const v=e.target.value
+              if(/^#[0-9A-Fa-f]{0,6}$/.test(v)){
+                onChange(v)
+                if(/^#[0-9A-Fa-f]{6}$/.test(v)){const[h,s,b]=hexToHsb(v);setHsb([h,s,b])}
+              }
+            }}
+            style={{background:'transparent',border:'none',color:c.text,fontSize:'18px',fontWeight:800,fontFamily:'monospace',outline:'none',width:'100%',letterSpacing:'2px'}}/>
+        </div>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:'8px'}}>
+        {coloresRapidos.map(col=>(
+          <div key={col.valor} onClick={()=>handlePreset(col.valor)} title={col.nombre}
+            style={{height:'38px',borderRadius:'8px',background:col.valor,
+            border:`2px solid ${valor===col.valor?GOLD:'transparent'}`,
+            cursor:'pointer',
+            boxShadow:valor===col.valor?`0 0 12px ${GOLD}70`:'none',
+            transition:'all 0.15s',position:'relative',display:'flex',alignItems:'center',justifyContent:'center'}}>
+            {valor===col.valor&&(
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" style={{filter:'drop-shadow(0 1px 2px #000)'}}><polyline points="20 6 9 17 4 12"/></svg>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
   return(
     <div>
       <div style={{position:'relative',width:'100%',height:'150px',borderRadius:'8px',marginBottom:'10px',cursor:'crosshair',overflow:'hidden'}}
@@ -506,17 +593,6 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                 <div>
                 <div style={{fontSize:'11px',color:c.text3,marginBottom:'8px',letterSpacing:'1px'}}>COLOR DE SUBTÍTULOS</div>
 <ColorPickerCustom valor={config.colorSub} onChange={v=>setConfig({...config,colorSub:v})} t={t} coloresRapidos={COLORES_SUB}/>
-
-{/* Colores rápidos */}
-<div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'10px'}}>
-  {COLORES_SUB.map(col=>(
-    <div key={col.valor} onClick={()=>setConfig({...config,colorSub:col.valor})}
-      style={{width:'32px',height:'32px',borderRadius:'7px',background:col.valor,
-      border:`2px solid ${config.colorSub===col.valor?GOLD:'transparent'}`,
-      cursor:'pointer',boxShadow:config.colorSub===col.valor?`0 0 10px ${GOLD}60`:'none',
-      transition:'all 0.15s'}} title={col.nombre}/>
-  ))}
-</div>
 
                 </div>
                 <div>
