@@ -69,7 +69,6 @@ type Alerta = {
 
 const ALERTAS_INICIALES:Alerta[] = []
 
-const CLIENTES=clientes.map(cl=>cl.nombre)
 const ROLES=['CEO','CM','SEM','SEO']
 const RC:Record<string,string>={CEO:GOLD,CM:GREEN,SEM:BLUE,SEO:PURPLE}
 
@@ -91,6 +90,7 @@ function tipoIcon(tipo:Alerta['tipo']){
 
 export default function Alertas({t,onActualizar,alertasIniciales,onCambio,clientes=[]}:{t:Theme;onActualizar?:(n:number)=>void;alertasIniciales?:Alerta[];onCambio?:(a:Alerta[])=>void;clientes?:any[]}){
   const c=th(t)
+  const CLIENTES=clientes.map(cl=>cl.nombre)
   const [alertas,setAlertas]=useState<Alerta[]>(alertasIniciales || ALERTAS_INICIALES)
   const [filtro,setFiltro]=useState<'todas'|'urgente'|'atencion'|'info'>('todas')
   const [soloNoLeidas,setSoloNoLeidas]=useState(false)
