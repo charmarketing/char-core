@@ -518,36 +518,6 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   ))}
 </div>
 
-{/* Color picker + HEX */}
-<div style={{display:'flex',gap:'10px',alignItems:'center',background:c.s2,borderRadius:'10px',padding:'10px 14px',border:`1px solid ${c.border}`}}>
-  <div style={{position:'relative'}}>
-    <div style={{width:'36px',height:'36px',borderRadius:'8px',background:config.colorSub,border:`2px solid ${c.border}`,cursor:'pointer',boxShadow:`0 0 8px ${config.colorSub}60`}}/>
-    <input
-      type="color"
-      value={config.colorSub}
-      onChange={e=>setConfig({...config,colorSub:e.target.value})}
-      style={{position:'absolute',inset:0,opacity:0,cursor:'pointer',width:'100%',height:'100%'}}
-    />
-  </div>
-  <div style={{flex:1}}>
-    <div style={{fontSize:'10px',color:c.text3,letterSpacing:'1px',marginBottom:'4px'}}>CÓDIGO HEX</div>
-    <input
-      type="text"
-      value={config.colorSub}
-      onChange={e=>{
-        const val=e.target.value
-        if(/^#[0-9A-Fa-f]{0,6}$/.test(val)) setConfig({...config,colorSub:val})
-      }}
-      placeholder="#ffffff"
-      style={{background:'transparent',border:'none',color:config.colorSub,fontSize:'14px',
-      fontWeight:800,fontFamily:'monospace',outline:'none',width:'100%',letterSpacing:'1px'}}
-    />
-  </div>
-  <div style={{fontSize:'11px',color:c.text3,textAlign:'right'}}>
-    <div>Click en el</div>
-    <div>cuadro de color</div>
-  </div>
-</div>
                 </div>
                 <div>
                   <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>POSICIÓN DE SUBTÍTULOS</div>
