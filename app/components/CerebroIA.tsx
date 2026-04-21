@@ -89,10 +89,7 @@ const BLOG_NOTICIAS = [
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
   const clientesNombres=['CHAR',...clientes.map((cl:any)=>cl.nombre)]
-  const SUGERENCIAS_INICIALES = clientes.length>0 ? clientes.flatMap((cl:any)=>[
-  {cliente:cl.nombre,red:cl.red||'Instagram',idea:'Reel mostrando el proceso de '+cl.nombre+' — alto potencial viral',tipo:'Reel',prioridad:'alta'},
-  {cliente:cl.nombre,red:cl.red||'Instagram',idea:'Carrusel 5 razones para elegir '+cl.nombre+' con diseño CHAR',tipo:'Carrusel',prioridad:'media'},
-]) : []
+  const SUGERENCIAS_INICIALES:any[] = []
   const [tab,setTab]=useState<Tab>('chat')
   const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
