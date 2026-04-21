@@ -75,10 +75,6 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
-  {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Reel mostrando el proceso y detrás de cámara de ${cl.nombre} — alto potencial viral`,tipo:'Reel',prioridad:'alta'},
-  {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Carrusel "5 razones para elegir ${cl.nombre}" con diseño cinematográfico CHAR`,tipo:'Carrusel',prioridad:'media'},
-]) : []
-
 const BLOG_NOTICIAS = [
   {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
   {titulo:'Google Ads lanza IA predictiva para optimización automática',fuente:'Search Engine Journal',tiempo:'hace 4h',resumen:'La nueva función permite que el sistema ajuste pujas en tiempo real. Los early adopters reportan un 40% de mejora en ROAS.'},
