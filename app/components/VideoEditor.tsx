@@ -118,20 +118,9 @@ const COLORES_SUB = [
 ]
 const POSICIONES_LOGO = ['Arriba izquierda','Arriba derecha','Abajo izquierda','Abajo derecha']
 
-const CLIPS_DEMO:Clip[] = [
-  {id:1,titulo:'Momento viral — Frase clave impactante',duracion:'0:28',inicio:'02:14',score:94,motivo:'Alta energía vocal + pausa dramática detectada',cliente:'Cliente Alfa'},
-  {id:2,titulo:'Hook perfecto — Apertura con gancho',duracion:'0:22',inicio:'00:45',score:91,motivo:'Inicio dinámico + cambio de tono emocional',cliente:'Cliente Alfa'},
-  {id:3,titulo:'Momento emotivo — Conexión con audiencia',duracion:'0:35',inicio:'08:32',score:87,motivo:'Bajada de ritmo + contenido de alto valor',cliente:'Cliente Alfa'},
-  {id:4,titulo:'Dato sorprendente — Estadística impactante',duracion:'0:19',inicio:'15:20',score:82,motivo:'Cambio súbito de energía + reacción notable',cliente:'Cliente Alfa'},
-  {id:5,titulo:'Cierre poderoso — Call to action',duracion:'0:31',inicio:'22:05',score:79,motivo:'Ritmo ascendente + conclusión memorable',cliente:'Cliente Alfa'},
-]
+const CLIPS_DEMO:Clip[] = []
 
-const HISTORIAL_DEMO:Sesion[] = [
-  {id:1,nombre:'Podcast Ep.12 — Tendencias 2026',cliente:'Cliente Alfa',fecha:'2026-04-14',clips:5,formato:'9:16',tipo:'Podcast'},
-  {id:2,nombre:'Entrevista CEO — Lanzamiento producto',cliente:'Cliente Beta',fecha:'2026-04-10',clips:4,formato:'1:1',tipo:'Entrevista'},
-  {id:3,nombre:'Evento apertura nueva sede',cliente:'Cliente Gamma',fecha:'2026-04-08',clips:6,formato:'16:9',tipo:'Evento en vivo'},
-  {id:4,nombre:'Tutorial uso del producto',cliente:'Cliente Beta',fecha:'2026-04-05',clips:3,formato:'9:16',tipo:'Tutorial / How-to'},
-]
+const HISTORIAL_DEMO:Sesion[] = []
 
 const PASOS_PROCESO = [
   {id:1,label:'Subiendo video',desc:'Cargando archivo al servidor',icono:I.upload},
@@ -227,16 +216,17 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
   )
 }
 
-export default function VideoEditor({t}:{t:Theme}){
+export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
+  const clientesNombres=clientes.map((cl:any)=>cl.nombre)
   const [tab,setTab]=useState<Tab>('procesar')
   const [estado,setEstado]=useState<EstadoProceso>('idle')
   const [pasoActual,setPasoActual]=useState(0)
   const [dragOver,setDragOver]=useState(false)
   const [videoInfo,setVideoInfo]=useState<{nombre:string;tamaño:string}|null>(null)
   const [clips,setClips]=useState<Clip[]>([])
-  const [config,setConfig]=useState({
-    cliente:'Cliente Alfa',
+ const [config,setConfig]=useState({
+    cliente:'',
     tipoContenido:'Podcast',
     nombreSesion:'',
     clipsCantidad:'5',
@@ -395,10 +385,11 @@ export default function VideoEditor({t}:{t:Theme}){
                 <div>
                   <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>CLIENTE</div>
                   <select value={config.cliente} onChange={e=>setConfig({...config,cliente:e.target.value})} style={inputSt}>
-                    <option>Cliente Alfa</option>
-                    <option>Cliente Beta</option>
-                    <option>Cliente Gamma</option>
-                  </select>
+  {clientesNombres.length===0
+    ?<option>Sin clientes</option>
+    :clientesNombres.map((n:string)=><option key={n}>{n}</option>)
+  }
+</select>
                 </div>
                 <div>
                   <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>TIPO DE CONTENIDO</div>
