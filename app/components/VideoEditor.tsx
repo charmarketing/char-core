@@ -641,4 +641,18 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
             <div style={{fontSize:'13px',fontWeight:700,color:c.text,marginBottom:'4px'}}>¿Cómo va a funcionar en Módulo 8?</div>
             <div style={{fontSize:'12px',color:c.text3}}>AssemblyAI analiza el audio real → Shotstack corta y renderiza → clips listos en minutos</div>
           </div>
-          <div style={{display
+                   <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap',justifyContent:'space-between'}}>
+            <div>
+              <div style={{fontSize:'13px',fontWeight:700,color:c.text,marginBottom:'4px'}}>¿Cómo va a funcionar en Módulo 8?</div>
+              <div style={{fontSize:'12px',color:c.text3}}>AssemblyAI analiza el audio real → Shotstack corta y renderiza → clips listos en minutos</div>
+            </div>
+            <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+              <Tag label="ASSEMBLIAI — CRÉDITO GRATUITO AL REGISTRARSE" color={BLUE}/>
+              <Tag label="SHOTSTACK — 50 RENDERS/MES INCLUIDOS GRATIS" color={GREEN}/>
+            </div>
+          </div>
+        </Card>
+
+    </div>
+  )
+}
