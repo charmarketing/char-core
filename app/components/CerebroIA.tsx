@@ -75,13 +75,10 @@ function obtenerRespuesta(texto:string,cliente:string):string{
   return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
 }
 
-const SUGERENCIAS_INICIALES = [
-  {cliente:'Cliente Alfa',red:'Instagram',idea:'Reel detrás de cámara mostrando el proceso de producción — alto potencial viral',tipo:'Reel',prioridad:'alta'},
-  {cliente:'Cliente Beta',red:'YouTube',idea:'Video tutorial largo explicando el producto — ideal para SEO y autoridad de marca',tipo:'Video',prioridad:'alta'},
-  {cliente:'Cliente Gamma',red:'LinkedIn',idea:'Artículo de liderazgo sobre tendencias del sector — genera autoridad B2B',tipo:'Artículo',prioridad:'media'},
-  {cliente:'Cliente Alfa',red:'Instagram',idea:'Carrusel 5 razones para elegirnos con diseño cinematográfico CHAR',tipo:'Carrusel',prioridad:'media'},
-  {cliente:'Cliente Gamma',red:'Instagram',idea:'Story encuesta qué contenido querés ver — aumenta engagement orgánico',tipo:'Story',prioridad:'baja'},
-]
+const SUGERENCIAS_INICIALES = clientes.length>0 ? clientes.flatMap((cl:any)=>[
+  {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Reel mostrando el proceso y detrás de cámara de ${cl.nombre} — alto potencial viral`,tipo:'Reel',prioridad:'alta'},
+  {cliente:cl.nombre,red:cl.red||'Instagram',idea:`Carrusel "5 razones para elegir ${cl.nombre}" con diseño cinematográfico CHAR`,tipo:'Carrusel',prioridad:'media'},
+]) : []
 
 const BLOG_NOTICIAS = [
   {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
@@ -90,8 +87,9 @@ const BLOG_NOTICIAS = [
   {titulo:'LinkedIn: El contenido de video crece 120% en publicaciones B2B',fuente:'LinkedIn Insights',tiempo:'hace 8h',resumen:'Los videos cortos de 60-90 segundos tienen un alcance 5x mayor que los posts de texto.'},
 ]
 
-export default function CerebroIA({t}:{t:Theme}){
+export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
+  const clientesNombres=['CHAR',...clientes.map((cl:any)=>cl.nombre)]
   const [tab,setTab]=useState<Tab>('chat')
   const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
@@ -180,7 +178,7 @@ export default function CerebroIA({t}:{t:Theme}){
             <div style={{fontSize:'13px',color:c.text2,marginTop:'2px'}}>La IA responde desde la filosofía de:</div>
           </div>
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-            {['CHAR','Cliente Alfa','Cliente Beta','Cliente Gamma'].map(cl=>(
+            {clientesNombres.map(cl=>(
               <button key={cl} onClick={()=>setClienteCtx(cl)} className="char-btn" style={{
                 background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
                 color:clienteCtx===cl?'#050510':c.text2,
@@ -312,7 +310,7 @@ export default function CerebroIA({t}:{t:Theme}){
                 <Tag label={s.prioridad.toUpperCase()} color={s.prioridad==='alta'?RED:s.prioridad==='media'?AMBER:BLUE}/>
               </div>
               <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <Tag label={s.cliente.toUpperCase()} color={s.cliente.includes('Alfa')?GOLD:s.cliente.includes('Beta')?BLUE:PURPLE}/>
+                <Tag label={s.cliente.toUpperCase()} color={GOLD}/>
                 <Tag label={s.red.toUpperCase()} color={GREEN}/>
                 <Tag label={s.tipo.toUpperCase()} color={PURPLE}/>
               </div>
