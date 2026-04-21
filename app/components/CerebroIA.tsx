@@ -84,7 +84,7 @@ const BLOG_NOTICIAS = [
 
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
-  const clientesNombres=['CHAR',...clientes.map((cl:any)=>cl.nombre)]
+  const clientesNombres=['CHAR',...clientes.filter((cl:any)=>cl.nombre!=='CHAR').map((cl:any)=>cl.nombre)]
   const SUGERENCIAS_INICIALES:any[] = []
   const [tab,setTab]=useState<Tab>('chat')
   const [clienteCtx,setClienteCtx]=useState('CHAR')
