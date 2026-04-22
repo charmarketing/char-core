@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 type Theme = 'dark'|'light'
 const D = {surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a'}
@@ -26,8 +27,20 @@ interface Campana {
   presupuesto: string
 }
 
+const DEFAULTS_SEM=[
+  {titulo:'Configurar primeras campañas Google Ads para clientes activos',prioridad:'alta'},
+  {titulo:'Definir keywords principales por cliente',prioridad:'alta'},
+  {titulo:'Conectar Google Analytics a la app',prioridad:'media'},
+  {titulo:'Investigar competencia SEM por cliente',prioridad:'media'},
+  {titulo:'Revisar landing pages de cada cliente',prioridad:'normal'},
+]
+
 export default function PanelSEM({t,clientes}:{t:Theme,clientes:any[]}){
   const c=th(t)
+  const [tareas,setTareas]=useState<{id:string,texto:string,p:string,done:boolean}[]>([])
+  const [loading,setLoading]=useState(true)
+  const [nueva,setNueva]=useState('')
+  const [agregando,setAgregando]=useState(false)
 
   const estadoColor=(e:EstadoCampana)=>{
     if(e==='ACTIVA') return GREEN
@@ -35,35 +48,52 @@ export default function PanelSEM({t,clientes}:{t:Theme,clientes:any[]}){
     return c.text3
   }
 
-  const [campanas,setCampanas]=useState<Campana[]>([])
-
-  // Genera campañas automáticamente desde los clientes reales
-  const campanasGeneradas:Campana[] = clientes.map(cl=>({
-    clienteId: cl.id,
-    clienteNombre: cl.nombre,
-    tipo: cl.red==='YouTube'?'YouTube Ads':cl.red==='LinkedIn'?'LinkedIn Ads':'Google Ads',
-    estado: 'SIN INICIAR' as EstadoCampana,
-    presupuesto: cl.presupuesto||'—',
+  const campanasGeneradas:Campana[]=clientes.map(cl=>({
+    clienteId:cl.id,
+    clienteNombre:cl.nombre,
+    tipo:cl.red==='YouTube'?'YouTube Ads':cl.red==='LinkedIn'?'LinkedIn Ads':'Google Ads',
+    estado:'SIN INICIAR' as EstadoCampana,
+    presupuesto:cl.presupuesto||'—',
   }))
 
-  const todasCampanas = campanasGeneradas
+  useEffect(()=>{cargarTareas()},[])
 
-  const [tareas,setTareas]=useState([
-    {texto:'Configurar primeras campañas Google Ads para clientes activos',p:'alta',done:false},
-    {texto:'Definir keywords principales por cliente',p:'alta',done:false},
-    {texto:'Conectar Google Analytics a la app',p:'media',done:false},
-    {texto:'Investigar competencia SEM por cliente',p:'media',done:false},
-    {texto:'Revisar landing pages de cada cliente',p:'normal',done:false},
-  ])
+  const cargarTareas=async()=>{
+    setLoading(true)
+    const {data,error}=await supabase.from('tareas').select('*').eq('rol','sem').order('created_at',{ascending:true})
+    if(!error&&data){
+      if(data.length===0){
+        const ins=DEFAULTS_SEM.map(x=>({...x,completada:false,rol:'sem'}))
+        const {data:d}=await supabase.from('tareas').insert(ins).select()
+        if(d) setTareas(d.map((x:any)=>({id:x.id,texto:x.titulo,p:x.prioridad,done:x.completada})))
+      } else {
+        setTareas(data.map((x:any)=>({id:x.id,texto:x.titulo,p:x.prioridad,done:x.completada})))
+      }
+    }
+    setLoading(false)
+  }
+
+  const toggleTarea=async(id:string,done:boolean)=>{
+    await supabase.from('tareas').update({completada:!done}).eq('id',id)
+    setTareas(prev=>prev.map(t=>t.id===id?{...t,done:!done}:t))
+  }
+
+  const agregarTarea=async()=>{
+    if(!nueva.trim()) return
+    setAgregando(true)
+    const {data}=await supabase.from('tareas').insert({titulo:nueva.trim(),prioridad:'normal',completada:false,rol:'sem'}).select().single()
+    if(data) setTareas(prev=>[...prev,{id:data.id,texto:data.titulo,p:data.prioridad,done:data.completada}])
+    setNueva('')
+    setAgregando(false)
+  }
 
   const exp=()=>exportCSV('CHAR_Panel_SEM',
     ['Cliente','Tipo campaña','Estado','Presupuesto','Impresiones','Clics','CTR','CPC','Conversiones','ROAS'],
-    todasCampanas.map(x=>[x.clienteNombre,x.tipo,x.estado,x.presupuesto,'—','—','—','—','—','—']))
+    campanasGeneradas.map(x=>[x.clienteNombre,x.tipo,x.estado,x.presupuesto,'—','—','—','—','—','—']))
 
   return(
     <div className="char-fade" style={{display:'grid',gap:'24px'}}>
 
-      {/* HEADER */}
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
         <div>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>SEARCH ENGINE MARKETING</div>
@@ -74,16 +104,14 @@ export default function PanelSEM({t,clientes}:{t:Theme,clientes:any[]}){
         </button>
       </div>
 
-      {/* CAMPAÑAS + MÉTRICAS */}
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
 
-        {/* CAMPAÑAS */}
         <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>CAMPAÑAS POR CLIENTE</div>
           <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
-          {todasCampanas.length===0
+          {campanasGeneradas.length===0
             ?<div style={{color:c.text3,fontSize:'13px',textAlign:'center',padding:'20px 0'}}>Sin clientes cargados</div>
-            :todasCampanas.map((x,i)=>(
+            :campanasGeneradas.map((x,i)=>(
               <div key={i} className="char-row" style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'10px 8px',borderRadius:'6px',marginBottom:'2px',transition:'background 0.15s'}}>
                 <div style={{display:'flex',gap:'10px',alignItems:'center'}}>
                   <div style={{width:'34px',height:'34px',borderRadius:'9px',background:BLUE+'20',border:`1px solid ${BLUE}45`,display:'flex',alignItems:'center',justifyContent:'center',color:BLUE,fontWeight:800,fontSize:'13px',overflow:'hidden'}}>
@@ -104,14 +132,14 @@ export default function PanelSEM({t,clientes}:{t:Theme,clientes:any[]}){
           }
         </div>
 
-        {/* MÉTRICAS */}
         <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>MÉTRICAS SEM</div>
           <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
           {[
-            ['Campañas activas',String(todasCampanas.filter(x=>x.estado==='ACTIVA').length),GREEN],
-            ['Campañas pausadas',String(todasCampanas.filter(x=>x.estado==='PAUSADA').length),AMBER],
-            ['Sin iniciar',String(todasCampanas.filter(x=>x.estado==='SIN INICIAR').length),c.text3],
+            ['Campañas activas',String(campanasGeneradas.filter(x=>x.estado==='ACTIVA').length),GREEN],
+            ['Campañas pausadas',String(campanasGeneradas.filter(x=>x.estado==='PAUSADA').length),AMBER],
+            ['Sin iniciar',String(campanasGeneradas.filter(x=>x.estado==='SIN INICIAR').length),c.text3],
+            ['Tareas completadas',String(tareas.filter(x=>x.done).length)+' / '+tareas.length,BLUE],
             ['Impresiones totales','—',BLUE],
             ['Clics totales','—',BLUE],
             ['CTR promedio','—',BLUE],
@@ -127,24 +155,42 @@ export default function PanelSEM({t,clientes}:{t:Theme,clientes:any[]}){
         </div>
       </div>
 
-      {/* TAREAS */}
       <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
-        <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>TAREAS SEM</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
+          <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700}}>TAREAS SEM</div>
+          <span style={{fontSize:'11px',color:c.text3}}>{tareas.filter(x=>x.done).length}/{tareas.length} completadas</span>
+        </div>
         <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
-        {tareas.map((x,i)=>{
-          const pc=x.p==='alta'?RED:x.p==='media'?AMBER:c.text3
-          return(
-            <div key={i} className="char-row"
-              onClick={()=>setTareas(prev=>prev.map((tsk,j)=>j===i?{...tsk,done:!tsk.done}:tsk))}
-              style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px',cursor:'pointer',transition:'background 0.15s',marginBottom:'2px'}}>
-              <div style={{width:'17px',height:'17px',borderRadius:'5px',border:`1.5px solid ${x.done?GREEN:c.b2}`,background:x.done?GREEN+'25':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
-                {x.done&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+        {loading
+          ?<div style={{color:c.text3,fontSize:'13px',textAlign:'center',padding:'16px 0'}}>Cargando tareas...</div>
+          :tareas.map((x)=>{
+            const pc=x.p==='alta'?RED:x.p==='media'?AMBER:c.text3
+            return(
+              <div key={x.id} className="char-row"
+                onClick={()=>toggleTarea(x.id,x.done)}
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px',cursor:'pointer',transition:'background 0.15s',marginBottom:'2px'}}>
+                <div style={{width:'17px',height:'17px',borderRadius:'5px',border:`1.5px solid ${x.done?GREEN:c.b2}`,background:x.done?GREEN+'25':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                  {x.done&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <span style={{fontSize:'13px',color:x.done?c.text3:c.text2,textDecoration:x.done?'line-through':'none',flex:1,lineHeight:'1.4'}}>{x.texto}</span>
+                {x.p!=='normal'&&!x.done&&<span style={{padding:'2px 9px',borderRadius:'20px',background:pc+'18',border:`1px solid ${pc}45`,fontSize:'9px',color:pc,fontWeight:700,letterSpacing:'0.5px'}}>{x.p.toUpperCase()}</span>}
               </div>
-              <span style={{fontSize:'13px',color:x.done?c.text3:c.text2,textDecoration:x.done?'line-through':'none',flex:1,lineHeight:'1.4'}}>{x.texto}</span>
-              {x.p!=='normal'&&!x.done&&<span style={{padding:'2px 9px',borderRadius:'20px',background:pc+'18',border:`1px solid ${pc}45`,fontSize:'9px',color:pc,fontWeight:700,letterSpacing:'0.5px'}}>{x.p.toUpperCase()}</span>}
-            </div>
-          )
-        })}
+            )
+          })
+        }
+        <div style={{display:'flex',gap:'8px',marginTop:'14px'}}>
+          <input
+            value={nueva}
+            onChange={e=>setNueva(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&agregarTarea()}
+            placeholder="Nueva tarea SEM..."
+            style={{flex:1,background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 12px',color:c.text,fontSize:'13px',fontFamily:'Rajdhani,sans-serif',outline:'none'}}
+          />
+          <button onClick={agregarTarea} disabled={agregando||!nueva.trim()}
+            style={{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',borderRadius:'8px',padding:'9px 16px',cursor:'pointer',fontSize:'13px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',opacity:agregando||!nueva.trim()?0.5:1}}>
+            + Agregar
+          </button>
+        </div>
       </div>
 
     </div>
