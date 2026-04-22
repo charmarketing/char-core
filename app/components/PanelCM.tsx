@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 type Theme = 'dark'|'light'
 const D = {surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a'}
@@ -25,15 +26,51 @@ function redColor(red:string){
   return GOLD
 }
 
+const DEFAULTS_CM=[
+  {titulo:'Crear calendarios de contenido mensual para todos los clientes',prioridad:'alta'},
+  {titulo:'Programar publicaciones en Buffer',prioridad:'alta'},
+  {titulo:'Responder comentarios y mensajes directos',prioridad:'media'},
+  {titulo:'Revisar estética y coherencia de feeds',prioridad:'normal'},
+  {titulo:'Preparar informe semanal de métricas',prioridad:'normal'},
+]
+
 export default function PanelCM({t,clientes}:{t:Theme,clientes:any[]}){
   const c=th(t)
-  const [tareas,setTareas]=useState([
-    {texto:'Crear calendarios de contenido mensual para todos los clientes',p:'alta',done:false},
-    {texto:'Programar publicaciones en Buffer',p:'alta',done:false},
-    {texto:'Responder comentarios y mensajes directos',p:'media',done:false},
-    {texto:'Revisar estética y coherencia de feeds',p:'normal',done:false},
-    {texto:'Preparar informe semanal de métricas',p:'normal',done:false},
-  ])
+  const [tareas,setTareas]=useState<{id:string,texto:string,p:string,done:boolean}[]>([])
+  const [loading,setLoading]=useState(true)
+  const [nueva,setNueva]=useState('')
+  const [agregando,setAgregando]=useState(false)
+
+  useEffect(()=>{cargarTareas()},[])
+
+  const cargarTareas=async()=>{
+    setLoading(true)
+    const {data,error}=await supabase.from('tareas').select('*').eq('rol','cm').order('created_at',{ascending:true})
+    if(!error&&data){
+      if(data.length===0){
+        const ins=DEFAULTS_CM.map(x=>({...x,completada:false,rol:'cm'}))
+        const {data:d}=await supabase.from('tareas').insert(ins).select()
+        if(d) setTareas(d.map((x:any)=>({id:x.id,texto:x.titulo,p:x.prioridad,done:x.completada})))
+      } else {
+        setTareas(data.map((x:any)=>({id:x.id,texto:x.titulo,p:x.prioridad,done:x.completada})))
+      }
+    }
+    setLoading(false)
+  }
+
+  const toggleTarea=async(id:string,done:boolean)=>{
+    await supabase.from('tareas').update({completada:!done}).eq('id',id)
+    setTareas(prev=>prev.map(t=>t.id===id?{...t,done:!done}:t))
+  }
+
+  const agregarTarea=async()=>{
+    if(!nueva.trim()) return
+    setAgregando(true)
+    const {data}=await supabase.from('tareas').insert({titulo:nueva.trim(),prioridad:'normal',completada:false,rol:'cm'}).select().single()
+    if(data) setTareas(prev=>[...prev,{id:data.id,texto:data.titulo,p:data.prioridad,done:data.completada}])
+    setNueva('')
+    setAgregando(false)
+  }
 
   const exp=()=>exportCSV('CHAR_Panel_CM',
     ['Cliente','Red social','Estado','Alcance','Engagement','Seguidores nuevos'],
@@ -42,7 +79,6 @@ export default function PanelCM({t,clientes}:{t:Theme,clientes:any[]}){
   return(
     <div className="char-fade" style={{display:'grid',gap:'24px'}}>
 
-      {/* HEADER */}
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
         <div>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>COMMUNITY MANAGEMENT</div>
@@ -53,10 +89,8 @@ export default function PanelCM({t,clientes}:{t:Theme,clientes:any[]}){
         </button>
       </div>
 
-      {/* GRILLA */}
       <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
 
-        {/* CLIENTES */}
         <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>CLIENTES ACTIVOS</div>
           <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
@@ -84,12 +118,12 @@ export default function PanelCM({t,clientes}:{t:Theme,clientes:any[]}){
           }
         </div>
 
-        {/* MÉTRICAS */}
         <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
           <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>MÉTRICAS CM</div>
           <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
           {[
             ['Clientes activos',String(clientes.length),GOLD],
+            ['Tareas completadas',String(tareas.filter(x=>x.done).length)+' / '+tareas.length,BLUE],
             ['Posts publicados','—',GREEN],
             ['Alcance promedio','—',BLUE],
             ['Engagement rate','—',GREEN],
@@ -104,23 +138,42 @@ export default function PanelCM({t,clientes}:{t:Theme,clientes:any[]}){
         </div>
       </div>
 
-      {/* TAREAS */}
       <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px'}}>
-        <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>TAREAS CM</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'4px'}}>
+          <div style={{fontSize:'9px',color:c.text3,letterSpacing:'3px',fontWeight:700}}>TAREAS CM</div>
+          <span style={{fontSize:'11px',color:c.text3}}>{tareas.filter(x=>x.done).length}/{tareas.length} completadas</span>
+        </div>
         <div style={{height:'1px',background:c.border,margin:'10px 0 14px'}}/>
-        {tareas.map((x,i)=>{
-          const pc=x.p==='alta'?RED:x.p==='media'?AMBER:c.text3
-          return(
-            <div key={i} className="char-row" onClick={()=>setTareas(prev=>prev.map((tsk,j)=>j===i?{...tsk,done:!tsk.done}:tsk))}
-              style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px',cursor:'pointer',transition:'background 0.15s',marginBottom:'2px'}}>
-              <div style={{width:'17px',height:'17px',borderRadius:'5px',border:`1.5px solid ${x.done?GREEN:c.b2}`,background:x.done?GREEN+'25':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
-                {x.done&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+        {loading
+          ?<div style={{color:c.text3,fontSize:'13px',textAlign:'center',padding:'16px 0'}}>Cargando tareas...</div>
+          :tareas.map((x)=>{
+            const pc=x.p==='alta'?RED:x.p==='media'?AMBER:c.text3
+            return(
+              <div key={x.id} className="char-row"
+                onClick={()=>toggleTarea(x.id,x.done)}
+                style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px',cursor:'pointer',transition:'background 0.15s',marginBottom:'2px'}}>
+                <div style={{width:'17px',height:'17px',borderRadius:'5px',border:`1.5px solid ${x.done?GREEN:c.b2}`,background:x.done?GREEN+'25':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,transition:'all 0.15s'}}>
+                  {x.done&&<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke={GREEN} strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                </div>
+                <span style={{fontSize:'13px',color:x.done?c.text3:c.text2,textDecoration:x.done?'line-through':'none',flex:1,lineHeight:'1.4'}}>{x.texto}</span>
+                {x.p!=='normal'&&!x.done&&<span style={{padding:'2px 9px',borderRadius:'20px',background:pc+'18',border:`1px solid ${pc}45`,fontSize:'9px',color:pc,fontWeight:700,letterSpacing:'0.5px'}}>{x.p.toUpperCase()}</span>}
               </div>
-              <span style={{fontSize:'13px',color:x.done?c.text3:c.text2,textDecoration:x.done?'line-through':'none',flex:1,lineHeight:'1.4'}}>{x.texto}</span>
-              {x.p!=='normal'&&!x.done&&<span style={{padding:'2px 9px',borderRadius:'20px',background:pc+'18',border:`1px solid ${pc}45`,fontSize:'9px',color:pc,fontWeight:700,letterSpacing:'0.5px'}}>{x.p.toUpperCase()}</span>}
-            </div>
-          )
-        })}
+            )
+          })
+        }
+        <div style={{display:'flex',gap:'8px',marginTop:'14px'}}>
+          <input
+            value={nueva}
+            onChange={e=>setNueva(e.target.value)}
+            onKeyDown={e=>e.key==='Enter'&&agregarTarea()}
+            placeholder="Nueva tarea CM..."
+            style={{flex:1,background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'9px 12px',color:c.text,fontSize:'13px',fontFamily:'Rajdhani,sans-serif',outline:'none'}}
+          />
+          <button onClick={agregarTarea} disabled={agregando||!nueva.trim()}
+            style={{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',borderRadius:'8px',padding:'9px 16px',cursor:'pointer',fontSize:'13px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',opacity:agregando||!nueva.trim()?0.5:1}}>
+            + Agregar
+          </button>
+        </div>
       </div>
 
     </div>
