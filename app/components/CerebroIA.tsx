@@ -132,34 +132,31 @@ const expandirNoticia=async(noticia:any, index:number)=>{
     return
   }
   setNoticiaAbierta(index)
+  
+  // Si ya tenemos el análisis en memoria no llamamos a Gemini
   if(analisisNoticia[index]) return
   
+  // Si la noticia ya tiene análisis guardado en Supabase lo usamos directo
+  if(noticia.analisis){
+    setAnalisisNoticia(prev=>({...prev,[index]:noticia.analisis}))
+    return
+  }
+  
   setAnalizandoNoticia(true)
-  
-  await new Promise(resolve => setTimeout(resolve, 1500))
-  
   try{
     const res=await fetch('/api/blog',{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({noticia})
     })
-    
-    if(!res.ok){
-      const errData=await res.json()
-      if(errData.error?.includes('429')||errData.analisis?.includes('quota')||errData.analisis?.includes('RESOURCE_EXHAUSTED')){
-        setAnalisisNoticia(prev=>({...prev,[index]:'Gemini está ocupado en este momento. Esperá 30 segundos y volvé a intentarlo. Esto pasa cuando se hacen muchas consultas seguidas en el plan gratuito.'}))
-        setAnalizandoNoticia(false)
-        return
-      }
-    }
-    
     const data=await res.json()
     if(data.analisis){
       setAnalisisNoticia(prev=>({...prev,[index]:data.analisis}))
+      // Actualizar la noticia en el array local también
+      setNoticiasIA(prev=>prev.map((n,i)=>i===index?{...n,analisis:data.analisis}:n))
     }
   }catch(err:any){
-    setAnalisisNoticia(prev=>({...prev,[index]:'Error de conexión. Intentá de nuevo en unos segundos.'}))
+    setAnalisisNoticia(prev=>({...prev,[index]:'Error de conexión. Intentá de nuevo.'}))
   }
   setAnalizandoNoticia(false)
 }
