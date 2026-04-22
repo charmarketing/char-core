@@ -103,7 +103,7 @@ const iniciarContador=()=>{
       <div style={{borderBottom:'1px solid #16163a',padding:'0 24px',position:'sticky',top:0,background:'rgba(5,5,15,0.95)',zIndex:100,backdropFilter:'blur(20px)'}}>
         <div style={{maxWidth:'1000px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 0',gap:'12px',flexWrap:'wrap'}}>
           <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-           <div style={{width:'38px',height:'38px',background:`linear-gradient(135deg,#1a1a2e,#0d0d1f)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',boxShadow:`0 4px 16px ${GOLD}40`,overflow:'hidden',padding:'4px'}}>
+           <div style={{width:'38px',height:'38px',display:'flex',alignItems:'center',justifyContent:'center'}}>
   <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'100%',height:'100%',objectFit:'contain'}}/>
 </div>
             <div>
