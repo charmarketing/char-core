@@ -126,30 +126,43 @@ const generarNoticiasIA=async()=>{
   setCargandoNoticias(false)
 }
 
-  const expandirNoticia=async(noticia:any, index:number)=>{
+const expandirNoticia=async(noticia:any, index:number)=>{
   if(noticiaAbierta===index){
     setNoticiaAbierta(null)
     return
   }
   setNoticiaAbierta(index)
   if(analisisNoticia[index]) return
+  
   setAnalizandoNoticia(true)
+  
+  await new Promise(resolve => setTimeout(resolve, 1500))
+  
   try{
     const res=await fetch('/api/blog',{
       method:'PUT',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({noticia})
     })
+    
+    if(!res.ok){
+      const errData=await res.json()
+      if(errData.error?.includes('429')||errData.analisis?.includes('quota')||errData.analisis?.includes('RESOURCE_EXHAUSTED')){
+        setAnalisisNoticia(prev=>({...prev,[index]:'Gemini está ocupado en este momento. Esperá 30 segundos y volvé a intentarlo. Esto pasa cuando se hacen muchas consultas seguidas en el plan gratuito.'}))
+        setAnalizandoNoticia(false)
+        return
+      }
+    }
+    
     const data=await res.json()
     if(data.analisis){
       setAnalisisNoticia(prev=>({...prev,[index]:data.analisis}))
     }
-  }catch(err){
-    console.error('Error expandir:',err)
+  }catch(err:any){
+    setAnalisisNoticia(prev=>({...prev,[index]:'Error de conexión. Intentá de nuevo en unos segundos.'}))
   }
   setAnalizandoNoticia(false)
 }
-
 const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
   if(tipo==='imagen') setSubiendoImagen(true)
   else setSubiendoVideo(true)
