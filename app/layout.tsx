@@ -1,6 +1,9 @@
+import type { Metadata } from 'next'
+import './globals.css'
+
 export const metadata: Metadata = {
-  title: "CHAR CORE",
-  description: "Sistema Operativo para Agencias de Marketing",
+  title: 'CHAR CORE',
+  description: 'Sistema Operativo para Agencias de Marketing',
   icons: {
     icon: '/fonts/logo-char.png',
     apple: '/fonts/logo-char.png',
