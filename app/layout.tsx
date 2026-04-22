@@ -1,6 +1,10 @@
-export const metadata = {
-  title: 'CHAR CORE',
-  description: 'Sistema Operativo de la Agencia',
+export const metadata: Metadata = {
+  title: "CHAR CORE",
+  description: "Sistema Operativo para Agencias de Marketing",
+  icons: {
+    icon: '/fonts/logo-char.png',
+    apple: '/fonts/logo-char.png',
+  }
 }
 
 export default function RootLayout({
