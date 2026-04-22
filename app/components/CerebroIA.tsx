@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -46,33 +47,20 @@ const I={
   pen:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>,
   save:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>,
   user:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>,
+  trash:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>,
+  copy:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>,
 }
 
-type Mensaje = {id:number;rol:'user'|'ia';texto:string;tiempo:string}
-type Tab = 'chat'|'shadow'|'autopitch'|'sugerencias'|'filosofia'|'blog'
+type Mensaje = {id:string;rol:'user'|'ia';texto:string;tiempo:string}
+type Tab = 'chat'|'shadow'|'autopitch'|'filosofia'|'blog'
 
-const FILOSOFIAS_CLIENTES:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
-  'CHAR':{tono:'Profesional + cercano',estilo:'Cinematográfico premium',publico:'Agencias y marcas premium',descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico y estrategia de alto impacto.'},
-  'Cliente Alfa':{tono:'Cálido + familiar',estilo:'Natural y artesanal',publico:'Familias y madres 25-40 años',descripcion:'Marca con valores naturales, auténtica y cercana. El contenido debe transmitir calidez, confianza y conexión emocional.'},
-  'Cliente Beta':{tono:'Directo + técnico',estilo:'Tecnológico e innovador',publico:'Empresas B2B y profesionales',descripcion:'Marca orientada a soluciones tecnológicas. El contenido debe transmitir innovación, eficiencia y liderazgo.'},
-  'Cliente Gamma':{tono:'Formal + aspiracional',estilo:'Corporativo premium',publico:'Profesionales y empresas LinkedIn',descripcion:'Marca B2B con foco en liderazgo. El contenido debe transmitir autoridad, experiencia y visión estratégica.'},
-}
-
-function obtenerRespuesta(texto:string,cliente:string):string{
-  const t=texto.toLowerCase()
-  const ctx=FILOSOFIAS_CLIENTES[cliente]
-  const intro=cliente==='CHAR'?'Desde la filosofía CHAR':`Pensando en ${cliente}`
-  if(t.includes('contenido')||t.includes('post')||t.includes('reel'))
-    return `${intro}: Recomiendo contenido con estilo ${ctx?.estilo||''}. Público objetivo: ${ctx?.publico||''}. ¿Genero ideas específicas?`
-  if(t.includes('cliente')||t.includes('gestión'))
-    return `${intro}: La estrategia debe alinearse con la filosofía de ${cliente}. ¿Arrancamos con una auditoría digital?`
-  if(t.includes('instagram')||t.includes('red social'))
-    return `${intro}: Para ${ctx?.publico||''} recomiendo tono ${ctx?.tono||''}. ¿Qué red trabajamos primero?`
-  if(t.includes('propuesta')||t.includes('pitch')||t.includes('lead'))
-    return `${intro}: Propuesta alineada con estilo ${ctx?.estilo||''}. ¿Para qué industria es el lead?`
-  if(t.includes('diseño')||t.includes('imagen')||t.includes('visual'))
-    return `${intro}: El diseño debe transmitir ${ctx?.estilo||''}. ¿Lo analizo en detalle?`
-  return `${intro}: Basándome en la filosofía de ${cliente}, ¿en qué aspecto puntual te ayudo?`
+const FILOSOFIAS_DEFAULT:Record<string,{tono:string;estilo:string;publico:string;descripcion:string}> = {
+  'CHAR':{
+    tono:'Profesional + cercano',
+    estilo:'Cinematográfico premium',
+    publico:'Agencias y marcas premium',
+    descripcion:'CHAR es una agencia de marketing digital argentina especializada en contenido cinematográfico y estrategia de alto impacto. Nuestro diferencial es combinar calidad visual de élite con datos en tiempo real. Somos directos, creativos y siempre orientados a resultados medibles.'
+  },
 }
 
 const BLOG_NOTICIAS = [
@@ -85,70 +73,188 @@ const BLOG_NOTICIAS = [
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
   const clientesNombres=['CHAR',...clientes.filter((cl:any)=>cl.nombre!=='CHAR').map((cl:any)=>cl.nombre)]
-  const SUGERENCIAS_INICIALES:any[] = []
+
   const [tab,setTab]=useState<Tab>('chat')
   const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
-    {id:1,rol:'ia',texto:'Hola! Soy el Cerebro IA de CHAR. Podés seleccionar un cliente arriba y responderé siempre desde su filosofía. ¿En qué te ayudo?',tiempo:'ahora'},
+    {id:'init',rol:'ia',texto:'¡Hola! Soy el Cerebro IA de CHAR, potenciado por Google Gemini. Seleccioná un cliente arriba y respondo siempre desde su filosofía. ¿En qué te ayudo hoy?',tiempo:'ahora'},
   ])
   const [input,setInput]=useState('')
   const [escribiendo,setEscribiendo]=useState(false)
-  const [filosofia,setFilosofia]=useState(FILOSOFIAS_CLIENTES['CHAR'].descripcion)
+  const [filosofias,setFilosofias]=useState<Record<string,any>>(FILOSOFIAS_DEFAULT)
   const [editandoFilosofia,setEditandoFilosofia]=useState(false)
   const [shadowTexto,setShadowTexto]=useState('')
   const [shadowRespuesta,setShadowRespuesta]=useState('')
   const [pitchData,setPitchData]=useState({empresa:'',rubro:'',problema:'',red:'Instagram'})
   const [pitchGenerado,setPitchGenerado]=useState('')
+  const [guardando,setGuardando]=useState(false)
   const chatRef=useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
     if(chatRef.current) chatRef.current.scrollTop=chatRef.current.scrollHeight
-  },[mensajes])
+  },[mensajes,escribiendo])
 
   useEffect(()=>{
-    setFilosofia(FILOSOFIAS_CLIENTES[clienteCtx]?.descripcion||'')
+    cargarFilosofia(clienteCtx)
+    cargarHistorial(clienteCtx)
     setShadowRespuesta('')
     setPitchGenerado('')
   },[clienteCtx])
 
-  const enviarMensaje=()=>{
-    if(!input.trim()) return
-    const userMsg:Mensaje={id:Date.now(),rol:'user',texto:input,tiempo:'ahora'}
-    setMensajes(prev=>[...prev,userMsg])
+  useEffect(()=>{
+    // Inicializar filosofía para clientes reales
+    clientes.forEach((cl:any)=>{
+      if(!filosofias[cl.nombre]){
+        setFilosofias(prev=>({...prev,[cl.nombre]:{
+          tono:'Profesional + cercano',
+          estilo:'Moderno y dinámico',
+          publico:'Audiencia objetivo del cliente',
+          descripcion:`${cl.nombre} es un cliente de CHAR. Completá la filosofía de esta marca para que el Cerebro IA responda alineado con su identidad.`
+        }}))
+      }
+    })
+  },[clientes])
+
+  const cargarFilosofia=async(nombre:string)=>{
+    const {data}=await supabase.from('cerebro_conversaciones')
+      .select('texto').eq('cliente',nombre).eq('rol','filosofia').order('created_at',{ascending:false}).limit(1)
+    if(data&&data.length>0){
+      try{
+        const f=JSON.parse(data[0].texto)
+        setFilosofias(prev=>({...prev,[nombre]:f}))
+      }catch{}
+    }
+  }
+
+  const cargarHistorial=async(nombre:string)=>{
+    const {data}=await supabase.from('cerebro_conversaciones')
+      .select('*').eq('cliente',nombre).in('rol',['user','ia']).order('created_at',{ascending:true}).limit(50)
+    if(data&&data.length>0){
+      setMensajes(data.map((d:any)=>({id:d.id,rol:d.rol,texto:d.texto,tiempo:new Date(d.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'})})))
+    } else {
+      setMensajes([{id:'init',rol:'ia',texto:`¡Hola! Estoy listo para trabajar en el contexto de ${nombre}. ¿En qué te ayudo?`,tiempo:'ahora'}])
+    }
+  }
+
+  const guardarMensaje=async(rol:'user'|'ia',texto:string,cliente:string)=>{
+    await supabase.from('cerebro_conversaciones').insert({cliente,rol,texto})
+  }
+
+  const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
+
+  const enviarMensaje=async()=>{
+    if(!input.trim()||escribiendo) return
+    const texto=input.trim()
     setInput('')
+
+    const userMsg:Mensaje={id:Date.now().toString(),rol:'user',texto,tiempo:'ahora'}
+    setMensajes(prev=>[...prev,userMsg])
+    await guardarMensaje('user',texto,clienteCtx)
     setEscribiendo(true)
-    setTimeout(()=>{
-      const respuesta=obtenerRespuesta(input,clienteCtx)
-      setMensajes(prev=>[...prev,{id:Date.now()+1,rol:'ia',texto:respuesta,tiempo:'ahora'}])
-      setEscribiendo(false)
-    },1200)
+
+    try{
+      const historialReciente=mensajes.slice(-10).filter(m=>m.id!=='init')
+      const res=await fetch('/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          mensaje:texto,
+          cliente:clienteCtx,
+          filosofia:getFilosofia(clienteCtx).descripcion,
+          historial:historialReciente,
+        })
+      })
+      const data=await res.json()
+      if(data.respuesta){
+        const iaMsg:Mensaje={id:(Date.now()+1).toString(),rol:'ia',texto:data.respuesta,tiempo:'ahora'}
+        setMensajes(prev=>[...prev,iaMsg])
+        await guardarMensaje('ia',data.respuesta,clienteCtx)
+      } else {
+        throw new Error(data.error||'Sin respuesta')
+      }
+    }catch(err:any){
+      setMensajes(prev=>[...prev,{id:(Date.now()+1).toString(),rol:'ia',texto:`Error: ${err.message}. Verificá la API key en Vercel.`,tiempo:'ahora'}])
+    }
+    setEscribiendo(false)
   }
 
-  const analizarShadow=()=>{
-    if(!shadowTexto.trim()) return
+  const analizarShadow=async()=>{
+    if(!shadowTexto.trim()||escribiendo) return
     setEscribiendo(true)
-    setTimeout(()=>{
-      const ctx=FILOSOFIAS_CLIENTES[clienteCtx]
-      setShadowRespuesta(`Analizando desde la filosofía de ${clienteCtx}... Tono esperado: ${ctx?.tono}. Estilo: ${ctx?.estilo}. Público: ${ctx?.publico}. Evaluación: 1) Verificar que el gancho visual sea consistente con la identidad de ${clienteCtx}, 2) Asegurar que el copy transmita emoción antes que información, 3) Confirmar que el tono sea ${ctx?.tono}. Puntuación: 7/10. Con los ajustes llegaría a un 9/10.`)
-      setEscribiendo(false)
-    },1500)
+    try{
+      const res=await fetch('/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          mensaje:`Analizá este contenido desde la filosofía de ${clienteCtx} y decime si representa bien la marca, qué está bien, qué mejorarías y dale una puntuación del 1 al 10:\n\n${shadowTexto}`,
+          cliente:clienteCtx,
+          filosofia:getFilosofia(clienteCtx).descripcion,
+          historial:[],
+        })
+      })
+      const data=await res.json()
+      setShadowRespuesta(data.respuesta||'Error al analizar')
+    }catch(err:any){
+      setShadowRespuesta(`Error: ${err.message}`)
+    }
+    setEscribiendo(false)
   }
 
-  const generarPitch=()=>{
-    if(!pitchData.empresa.trim()) return
+  const generarPitch=async()=>{
+    if(!pitchData.empresa.trim()||escribiendo) return
     setEscribiendo(true)
-    setTimeout(()=>{
-      const ctx=FILOSOFIAS_CLIENTES[clienteCtx]
-      setPitchGenerado(`PROPUESTA CHAR PARA ${pitchData.empresa.toUpperCase()}\n\nDIAGNÓSTICO INICIAL\nLuego de analizar la presencia digital de ${pitchData.empresa} en el sector ${pitchData.rubro||'su industria'}, identificamos una oportunidad clara de diferenciación.\n\nEL PROBLEMA QUE RESOLVEMOS\n${pitchData.problema||'Presencia digital genérica que no conecta emocionalmente con la audiencia objetivo.'}\n\nNUESTRA PROPUESTA DE VALOR\n• Rediseño completo de identidad visual en ${pitchData.red}\n• Calendario editorial de 30 días con contenido ${ctx?.estilo||'premium'}\n• 4 piezas de alto impacto mensuales\n• Estrategia de crecimiento orgánico basada en datos\n• Reporte mensual con métricas de performance\n\nPOR QUÉ CHAR\nSomos la única agencia argentina que combina calidad cinematográfica con estrategia de datos en tiempo real.\n\nPRÓXIMO PASO\nUna reunión de 30 minutos para mostrarte casos de éxito similares a tu industria.`)
-      setEscribiendo(false)
-    },2000)
+    try{
+      const res=await fetch('/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          mensaje:`Generá una propuesta comercial profesional y persuasiva de CHAR para esta empresa:
+- Empresa: ${pitchData.empresa}
+- Rubro: ${pitchData.rubro||'No especificado'}
+- Red principal: ${pitchData.red}
+- Problema detectado: ${pitchData.problema||'Presencia digital débil'}
+
+La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específicos, por qué CHAR y próximo paso. Formato profesional listo para enviar.`,
+          cliente:clienteCtx,
+          filosofia:getFilosofia(clienteCtx).descripcion,
+          historial:[],
+        })
+      })
+      const data=await res.json()
+      setPitchGenerado(data.respuesta||'Error al generar')
+    }catch(err:any){
+      setPitchGenerado(`Error: ${err.message}`)
+    }
+    setEscribiendo(false)
   }
 
-  const tabs:Array<{id:Tab;label:string;icon:JSX.Element}> = [
+  const guardarFilosofia=async()=>{
+    setGuardando(true)
+    const f=getFilosofia(clienteCtx)
+    await supabase.from('cerebro_conversaciones').insert({
+      cliente:clienteCtx,
+      rol:'filosofia',
+      texto:JSON.stringify(f)
+    })
+    setEditandoFilosofia(false)
+    setGuardando(false)
+  }
+
+  const limpiarChat=async()=>{
+    if(!confirm('¿Limpiar el historial de chat de '+clienteCtx+'?')) return
+    await supabase.from('cerebro_conversaciones').delete().eq('cliente',clienteCtx).in('rol',['user','ia'])
+    setMensajes([{id:'init',rol:'ia',texto:`Chat limpiado. ¿En qué te ayudo con ${clienteCtx}?`,tiempo:'ahora'}])
+  }
+
+  const copiarTexto=(texto:string)=>{
+    navigator.clipboard.writeText(texto)
+    alert('Copiado ✅')
+  }
+
+  const tabs:Array<{id:Tab;label:string;icon:any}> = [
     {id:'chat',label:'Chat IA',icon:I.cpu},
     {id:'shadow',label:'Shadow',icon:I.eye},
     {id:'autopitch',label:'Auto-Pitch',icon:I.target},
-    {id:'sugerencias',label:'Sugerencias',icon:I.star},
     {id:'filosofia',label:'Filosofía',icon:I.pen},
     {id:'blog',label:'Daily Blog',icon:I.news},
   ]
@@ -158,13 +264,13 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   return(
     <div className="char-fade" style={{display:'grid',gap:'28px'}}>
 
-      <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px'}}>
+      <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px',flexWrap:'wrap'}}>
         <div>
           <Eb text="INTELIGENCIA ARTIFICIAL" t={t}/>
           <h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Cerebro IA</h1>
-          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>Powered by Claude API · Se activa completamente en Módulo 8</div>
+          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>Powered by Google Gemini · Gratis · Historial en Supabase</div>
         </div>
-        <Tag label="MODO DEMO — API REAL EN M8" color={AMBER}/>
+        <Tag label="GEMINI ACTIVO ✅" color={GREEN}/>
       </div>
 
       <Card t={t} style={{padding:'16px 20px'}}>
@@ -180,16 +286,15 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                 color:clienteCtx===cl?'#050510':c.text2,
                 border:clienteCtx===cl?'none':`1px solid ${c.border}`,
                 borderRadius:'8px',padding:'8px 14px',cursor:'pointer',
-                fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',
-                transition:'all 0.15s',
+                fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',transition:'all 0.15s',
               }}>{cl}</button>
             ))}
           </div>
         </div>
         <div style={{marginTop:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-          <Tag label={`TONO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono?.toUpperCase()}`} color={GOLD}/>
-          <Tag label={`ESTILO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.estilo?.toUpperCase()}`} color={PURPLE}/>
-          <Tag label={`PÚBLICO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.publico?.toUpperCase()}`} color={BLUE}/>
+          <Tag label={`TONO: ${getFilosofia(clienteCtx).tono?.toUpperCase()}`} color={GOLD}/>
+          <Tag label={`ESTILO: ${getFilosofia(clienteCtx).estilo?.toUpperCase()}`} color={PURPLE}/>
+          <Tag label={`PÚBLICO: ${getFilosofia(clienteCtx).publico?.toUpperCase()}`} color={BLUE}/>
         </div>
       </Card>
 
@@ -210,28 +315,44 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       {tab==='chat'&&(
         <Card t={t} style={{padding:'0',overflow:'hidden'}}>
-          <div style={{padding:'18px 22px',borderBottom:`1px solid ${c.border}`,display:'flex',alignItems:'center',gap:'10px'}}>
-            <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
-            <div>
-              <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteCtx}</div>
-              <div style={{fontSize:'11px',color:GREEN,display:'flex',alignItems:'center',gap:'4px'}}>
-                <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
-                Activo · Modo demo
+          <div style={{padding:'18px 22px',borderBottom:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px'}}>
+            <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+              <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
+              <div>
+                <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteCtx}</div>
+                <div style={{fontSize:'11px',color:GREEN,display:'flex',alignItems:'center',gap:'4px'}}>
+                  <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
+                  Gemini activo · Historial guardado
+                </div>
               </div>
             </div>
+            <button onClick={limpiarChat} style={{background:'transparent',color:RED,border:`1px solid ${RED}35`,borderRadius:'8px',padding:'6px 10px',cursor:'pointer',fontSize:'11px',fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'4px'}}>
+              {I.trash} Limpiar
+            </button>
           </div>
-          <div ref={chatRef} style={{height:'380px',overflowY:'auto',padding:'20px',display:'grid',gap:'16px',alignContent:'start'}}>
+          <div ref={chatRef} style={{height:'420px',overflowY:'auto',padding:'20px',display:'grid',gap:'16px',alignContent:'start'}}>
             {mensajes.map(m=>(
-              <div key={m.id} style={{display:'flex',gap:'10px',justifyContent:m.rol==='user'?'flex-end':'flex-start'}}>
-                {m.rol==='ia'&&<div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>}
-                <div style={{maxWidth:'75%',padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:m.rol==='user'?'#050510':c.text,fontSize:'13px',lineHeight:'1.6',border:m.rol==='ia'?`1px solid ${c.border}`:'none'}}>
-                  {m.texto}
+              <div key={m.id} style={{display:'flex',gap:'10px',justifyContent:m.rol==='user'?'flex-end':'flex-start',alignItems:'flex-end'}}>
+                {m.rol==='ia'&&(
+                  <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
+                )}
+                <div style={{maxWidth:'75%',display:'grid',gap:'4px'}}>
+                  <div style={{padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:m.rol==='user'?'#050510':c.text,fontSize:'13px',lineHeight:'1.7',border:m.rol==='ia'?`1px solid ${c.border}`:'none',whiteSpace:'pre-wrap'}}>
+                    {m.texto}
+                  </div>
+                  {m.rol==='ia'&&(
+                    <button onClick={()=>copiarTexto(m.texto)} style={{background:'transparent',border:'none',color:c.text3,cursor:'pointer',fontSize:'10px',display:'flex',alignItems:'center',gap:'4px',padding:'2px 4px',fontFamily:'Rajdhani,sans-serif'}}>
+                      {I.copy} Copiar
+                    </button>
+                  )}
                 </div>
-                {m.rol==='user'&&<div style={{width:'30px',height:'30px',background:c.s2,borderRadius:'8px',border:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:c.text3,flexShrink:0}}>{I.user}</div>}
+                {m.rol==='user'&&(
+                  <div style={{width:'30px',height:'30px',background:c.s2,borderRadius:'8px',border:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:c.text3,flexShrink:0}}>{I.user}</div>
+                )}
               </div>
             ))}
             {escribiendo&&tab==='chat'&&(
-              <div style={{display:'flex',gap:'10px'}}>
+              <div style={{display:'flex',gap:'10px',alignItems:'flex-end'}}>
                 <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
                 <div style={{padding:'12px 16px',borderRadius:'14px 14px 14px 4px',background:c.s2,border:`1px solid ${c.border}`,display:'flex',gap:'4px',alignItems:'center'}}>
                   {[0,1,2].map(i=><div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
@@ -240,8 +361,17 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
             )}
           </div>
           <div style={{padding:'16px 22px',borderTop:`1px solid ${c.border}`,display:'flex',gap:'10px'}}>
-            <input value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&enviarMensaje()} placeholder={`Preguntale algo al Cerebro IA sobre ${clienteCtx}...`} style={{...inputSt,flex:1}}/>
-            <Btn v="primary" t={t} onClick={enviarMensaje} disabled={escribiendo}>{I.send} Enviar</Btn>
+            <input
+              value={input}
+              onChange={e=>setInput(e.target.value)}
+              onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&enviarMensaje()}
+              placeholder={`Preguntale algo sobre ${clienteCtx}...`}
+              style={{...inputSt,flex:1}}
+              disabled={escribiendo}
+            />
+            <Btn v="primary" t={t} onClick={enviarMensaje} disabled={escribiendo||!input.trim()}>
+              {I.send} Enviar
+            </Btn>
           </div>
         </Card>
       )}
@@ -251,14 +381,36 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           <Card t={t}>
             <Eb text={`SHADOW — ${clienteCtx.toUpperCase()}`} t={t}/>
             <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>¿Esto representa a {clienteCtx}?</h3>
-            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>Describí un diseño, copy o idea y la IA lo analiza desde la filosofía de {clienteCtx}.</div>
-            <textarea value={shadowTexto} onChange={e=>setShadowTexto(e.target.value)} placeholder={`Ej: Quiero publicar un carrusel para ${clienteCtx} con fondo blanco...`} style={{...inputSt,height:'120px',resize:'none',marginBottom:'14px'}}/>
-            <Btn v="primary" t={t} onClick={analizarShadow} disabled={escribiendo||!shadowTexto.trim()}>{I.eye} Analizar desde filosofía de {clienteCtx}</Btn>
+            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>
+              Describí un diseño, copy, idea o estrategia y Gemini lo analiza desde la filosofía de {clienteCtx}.
+            </div>
+            <textarea
+              value={shadowTexto}
+              onChange={e=>setShadowTexto(e.target.value)}
+              placeholder={`Ej: Quiero publicar un carrusel para ${clienteCtx} con fondo blanco y texto en negro...`}
+              style={{...inputSt,height:'140px',resize:'none',marginBottom:'14px'}}
+            />
+            <Btn v="primary" t={t} onClick={analizarShadow} disabled={escribiendo||!shadowTexto.trim()}>
+              {I.eye} Analizar desde filosofía de {clienteCtx}
+            </Btn>
           </Card>
-          {shadowRespuesta&&(
+          {escribiendo&&tab==='shadow'&&(
+            <Card t={t} style={{padding:'20px',textAlign:'center'}}>
+              <div style={{display:'flex',gap:'4px',justifyContent:'center',alignItems:'center'}}>
+                {[0,1,2].map(i=><div key={i} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
+                <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Analizando...</span>
+              </div>
+            </Card>
+          )}
+          {shadowRespuesta&&!escribiendo&&(
             <Card t={t} style={{borderLeft:`3px solid ${GOLD}`}}>
-              <Eb text="ANÁLISIS CHAR IA" t={t}/>
-              <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.8',marginTop:'8px'}}>{shadowRespuesta}</div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'12px'}}>
+                <Eb text="ANÁLISIS GEMINI IA" t={t}/>
+                <button onClick={()=>copiarTexto(shadowRespuesta)} style={{background:'transparent',border:'none',color:c.text3,cursor:'pointer',fontSize:'11px',display:'flex',alignItems:'center',gap:'4px',fontFamily:'Rajdhani,sans-serif'}}>
+                  {I.copy} Copiar
+                </button>
+              </div>
+              <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.8',whiteSpace:'pre-wrap'}}>{shadowRespuesta}</div>
             </Card>
           )}
         </div>
@@ -269,7 +421,9 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           <Card t={t}>
             <Eb text="AUTO-PITCH" t={t}/>
             <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>Generá una propuesta en segundos</h3>
-            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>Completá los datos del lead y el Cerebro IA genera una propuesta profesional lista para enviar.</div>
+            <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>
+              Completá los datos del lead y Gemini genera una propuesta profesional lista para enviar.
+            </div>
             <div className="g2" style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px',marginBottom:'14px'}}>
               <input value={pitchData.empresa} onChange={e=>setPitchData({...pitchData,empresa:e.target.value})} placeholder="Nombre de la empresa / lead" style={inputSt}/>
               <input value={pitchData.rubro} onChange={e=>setPitchData({...pitchData,rubro:e.target.value})} placeholder="Rubro o industria" style={inputSt}/>
@@ -278,62 +432,87 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
               </select>
               <textarea value={pitchData.problema} onChange={e=>setPitchData({...pitchData,problema:e.target.value})} placeholder="¿Cuál es el problema principal del lead?" style={{...inputSt,resize:'none',height:'48px'}}/>
             </div>
-            <Btn v="primary" t={t} onClick={generarPitch} disabled={escribiendo||!pitchData.empresa.trim()}>{I.target} Generar propuesta ahora</Btn>
+            <Btn v="primary" t={t} onClick={generarPitch} disabled={escribiendo||!pitchData.empresa.trim()}>
+              {I.target} Generar propuesta ahora
+            </Btn>
           </Card>
-          {pitchGenerado&&(
-            <Card t={t} style={{borderLeft:`3px solid ${GOLD}`}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-                <Eb text="PROPUESTA GENERADA" t={t}/>
-                <Tag label="LISTA PARA ENVIAR" color={GREEN}/>
+          {escribiendo&&tab==='autopitch'&&(
+            <Card t={t} style={{padding:'20px',textAlign:'center'}}>
+              <div style={{display:'flex',gap:'4px',justifyContent:'center',alignItems:'center'}}>
+                {[0,1,2].map(i=><div key={i} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
+                <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Generando propuesta...</span>
               </div>
-              <pre style={{fontSize:'12px',color:c.text2,lineHeight:'1.8',whiteSpace:'pre-wrap',fontFamily:'Rajdhani,sans-serif'}}>{pitchGenerado}</pre>
             </Card>
           )}
-        </div>
-      )}
-
-      {tab==='sugerencias'&&(
-        <div style={{display:'grid',gap:'14px'}}>
-          <Card t={t} style={{padding:'16px 20px'}}>
-            <Eb text="IDEAS GENERADAS POR IA" t={t}/>
-            <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:'0 0 4px'}}>Sugerencias de contenido</h3>
-            <div style={{fontSize:'12px',color:c.text3}}>Basadas en tendencias actuales y el estilo CHAR</div>
-          </Card>
-          {SUGERENCIAS_INICIALES.map((s,i)=>(
-            <Card key={i} t={t} style={{padding:'18px',borderLeft:`3px solid ${s.prioridad==='alta'?RED:s.prioridad==='media'?AMBER:BLUE}`}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px',marginBottom:'8px'}}>
-                <div style={{fontSize:'14px',fontWeight:700,color:c.text,lineHeight:'1.4',flex:1}}>{s.idea}</div>
-                <Tag label={s.prioridad.toUpperCase()} color={s.prioridad==='alta'?RED:s.prioridad==='media'?AMBER:BLUE}/>
+          {pitchGenerado&&!escribiendo&&(
+            <Card t={t} style={{borderLeft:`3px solid ${GOLD}`}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'10px'}}>
+                <div>
+                  <Eb text="PROPUESTA GENERADA POR GEMINI" t={t}/>
+                  <Tag label="LISTA PARA ENVIAR" color={GREEN}/>
+                </div>
+                <button onClick={()=>copiarTexto(pitchGenerado)} style={{background:GOLD+'20',color:GOLD,border:`1px solid ${GOLD}55`,borderRadius:'8px',padding:'6px 12px',cursor:'pointer',fontSize:'12px',fontFamily:'Rajdhani,sans-serif',fontWeight:700,display:'flex',alignItems:'center',gap:'6px'}}>
+                  {I.copy} Copiar propuesta
+                </button>
               </div>
-              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                <Tag label={s.cliente.toUpperCase()} color={GOLD}/>
-                <Tag label={s.red.toUpperCase()} color={GREEN}/>
-                <Tag label={s.tipo.toUpperCase()} color={PURPLE}/>
-              </div>
+              <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.8',whiteSpace:'pre-wrap'}}>{pitchGenerado}</div>
             </Card>
-          ))}
+          )}
         </div>
       )}
 
       {tab==='filosofia'&&(
         <Card t={t}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px'}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px',flexWrap:'wrap',gap:'10px'}}>
             <div>
               <Eb text={`ADN DE ${clienteCtx.toUpperCase()}`} t={t}/>
               <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de {clienteCtx}</h3>
             </div>
-            <Btn v="outline" t={t} onClick={()=>setEditandoFilosofia(!editandoFilosofia)}>{editandoFilosofia?I.save:I.pen} {editandoFilosofia?'Guardar':'Editar'}</Btn>
+            <div style={{display:'flex',gap:'8px'}}>
+              {editandoFilosofia&&(
+                <Btn v="primary" t={t} onClick={guardarFilosofia} disabled={guardando}>
+                  {I.save} {guardando?'Guardando...':'Guardar en Supabase'}
+                </Btn>
+              )}
+              <Btn v="outline" t={t} onClick={()=>setEditandoFilosofia(!editandoFilosofia)}>
+                {editandoFilosofia?'Cancelar':(<>{I.pen} Editar</>)}
+              </Btn>
+            </div>
           </div>
-          <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>El Cerebro IA aprende de este texto para responder siempre alineado con la identidad de {clienteCtx}.</div>
-          {editandoFilosofia?(
-            <textarea value={filosofia} onChange={e=>setFilosofia(e.target.value)} style={{...inputSt,height:'200px',resize:'none'}}/>
-          ):(
-            <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'12px',padding:'18px',fontSize:'13px',color:c.text2,lineHeight:'1.8'}}>{filosofia}</div>
-          )}
-          <div style={{marginTop:'16px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-            <Tag label={`TONO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.tono?.toUpperCase()}`} color={GOLD}/>
-            <Tag label={`ESTILO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.estilo?.toUpperCase()}`} color={PURPLE}/>
-            <Tag label={`PÚBLICO: ${FILOSOFIAS_CLIENTES[clienteCtx]?.publico?.toUpperCase()}`} color={BLUE}/>
+          <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>
+            Gemini aprende de este texto para responder siempre alineado con la identidad de {clienteCtx}.
+          </div>
+          <div style={{display:'grid',gap:'12px',marginBottom:'16px'}}>
+            {(['tono','estilo','publico'] as const).map(campo=>(
+              <div key={campo}>
+                <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>{campo.toUpperCase()}</div>
+                {editandoFilosofia?(
+                  <input
+                    value={getFilosofia(clienteCtx)[campo]||''}
+                    onChange={e=>setFilosofias(prev=>({...prev,[clienteCtx]:{...getFilosofia(clienteCtx),[campo]:e.target.value}}))}
+                    style={inputSt}
+                  />
+                ):(
+                  <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'10px 14px',fontSize:'13px',color:c.text2}}>
+                    {getFilosofia(clienteCtx)[campo]||'—'}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div>
+              <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>DESCRIPCIÓN COMPLETA</div>
+              {editandoFilosofia?(
+                <textarea
+                  value={getFilosofia(clienteCtx).descripcion||''}
+                  onChange={e=>setFilosofias(prev=>({...prev,[clienteCtx]:{...getFilosofia(clienteCtx),descripcion:e.target.value}}))}
+                  style={{...inputSt,height:'160px',resize:'none'}}
+                />
+              ):(
+                <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'12px',padding:'18px',fontSize:'13px',color:c.text2,lineHeight:'1.8'}}>
+                  {getFilosofia(clienteCtx).descripcion||'—'}
+                </div>
+              )}
+            </div>
           </div>
         </Card>
       )}
@@ -346,7 +525,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                 <Eb text="INTELIGENCIA DE MERCADO" t={t}/>
                 <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:0}}>Marketing Daily Blog</h3>
               </div>
-              <Tag label="SCRAPING REAL + IA EN MÓDULO 8" color={AMBER}/>
+              <Tag label="ACTUALIZACIÓN MANUAL POR AHORA" color={AMBER}/>
             </div>
           </Card>
           {BLOG_NOTICIAS.map((n,i)=>(
