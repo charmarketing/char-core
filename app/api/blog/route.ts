@@ -142,3 +142,62 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { noticia } = await req.json()
+    const apiKey = process.env.GEMINI_API_KEY
+
+    if(!apiKey){
+      return NextResponse.json({ error: 'Sin API key' }, { status: 500 })
+    }
+
+    const prompt = `Sos el Cerebro IA de CHAR, agencia de marketing digital argentina.
+    
+Desarrollá esta noticia en profundidad: "${noticia.titulo}"
+Resumen base: ${noticia.resumen}
+Fuente: ${noticia.fuente}
+
+Escribí un análisis completo con este formato exacto:
+
+**¿Qué pasó?**
+[2-3 oraciones explicando la noticia en detalle]
+
+**¿Por qué importa para tu agencia?**
+[2-3 oraciones sobre el impacto real en agencias latinoamericanas]
+
+**Datos clave**
+[3 puntos concretos con números o datos relevantes]
+
+**Qué hacer esta semana**
+[2-3 acciones concretas que una agencia puede tomar ahora mismo]
+
+**Perspectiva CHAR**
+[1 párrafo con la visión de CHAR sobre esta tendencia]
+
+Respondé en español argentino, directo y profesional.`
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          }
+        })
+      }
+    )
+
+    const data = await response.json()
+    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo generar el análisis.'
+
+    return NextResponse.json({ analisis: texto })
+
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
