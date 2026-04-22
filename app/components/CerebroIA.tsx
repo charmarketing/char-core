@@ -63,12 +63,7 @@ const FILOSOFIAS_DEFAULT:Record<string,{tono:string;estilo:string;publico:string
   },
 }
 
-const BLOG_NOTICIAS = [
-  {titulo:'El algoritmo de Instagram 2026: Todo lo que necesitás saber',fuente:'Social Media Today',tiempo:'hace 2h',resumen:'Instagram ahora prioriza el tiempo de visualización completa en Reels. Las cuentas con más del 80% de retención tienen 3x más alcance orgánico.'},
-  {titulo:'Google Ads lanza IA predictiva para optimización automática',fuente:'Search Engine Journal',tiempo:'hace 4h',resumen:'La nueva función permite que el sistema ajuste pujas en tiempo real. Los early adopters reportan un 40% de mejora en ROAS.'},
-  {titulo:'TikTok supera a YouTube en tiempo de visualización en Latinoamérica',fuente:'Marketing Dive',tiempo:'hace 6h',resumen:'El promedio de sesión en TikTok alcanzó los 52 minutos en Argentina. Las marcas que migraron contenido tienen un CTR 2.3x superior.'},
-  {titulo:'LinkedIn: El contenido de video crece 120% en publicaciones B2B',fuente:'LinkedIn Insights',tiempo:'hace 8h',resumen:'Los videos cortos de 60-90 segundos tienen un alcance 5x mayor que los posts de texto.'},
-]
+const BLOG_NOTICIAS:any[] = []
 
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
@@ -88,11 +83,67 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const [pitchData,setPitchData]=useState({empresa:'',rubro:'',problema:'',red:'Instagram'})
   const [pitchGenerado,setPitchGenerado]=useState('')
   const [guardando,setGuardando]=useState(false)
+  const [noticiasIA,setNoticiasIA]=useState<any[]>([])
+const [cargandoNoticias,setCargandoNoticias]=useState(false)
+const [blogPosts,setBlogPosts]=useState<any[]>([])
+const [mostrarFormPost,setMostrarFormPost]=useState(false)
+const [nuevoPost,setNuevoPost]=useState({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
+const [guardandoPost,setGuardandoPost]=useState(false)
+const [blogTab,setBlogTab]=useState<'feed'|'noticias'|'nuevo'>('feed')
   const chatRef=useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
     if(chatRef.current) chatRef.current.scrollTop=chatRef.current.scrollHeight
   },[mensajes,escribiendo])
+  useEffect(()=>{
+  if(tab==='blog'){
+    cargarBlogPosts()
+    generarNoticiasIA()
+  }
+},[tab])
+
+const cargarBlogPosts=async()=>{
+  const {data}=await supabase.from('blog_posts').select('*').eq('publicado',true).order('created_at',{ascending:false})
+  if(data) setBlogPosts(data)
+}
+
+const generarNoticiasIA=async()=>{
+  if(noticiasIA.length>0) return
+  setCargandoNoticias(true)
+  try{
+    const res=await fetch('/api/blog')
+    const data=await res.json()
+    if(data.noticias) setNoticiasIA(data.noticias)
+  }catch(err){
+    console.error('Error noticias IA:',err)
+  }
+  setCargandoNoticias(false)
+}
+
+const publicarPost=async()=>{
+  if(!nuevoPost.titulo.trim()||!nuevoPost.contenido.trim()) return
+  setGuardandoPost(true)
+  try{
+    const res=await fetch('/api/blog',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        ...nuevoPost,
+        tags:nuevoPost.tags.split(',').map(t=>t.trim()).filter(Boolean),
+        autor:'Adri'
+      })
+    })
+    const data=await res.json()
+    if(data.post){
+      setBlogPosts(prev=>[data.post,...prev])
+      setNuevoPost({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
+      setBlogTab('feed')
+    }
+  }catch(err){
+    console.error('Error publicar:',err)
+  }
+  setGuardandoPost(false)
+}
 
   useEffect(()=>{
     cargarFilosofia(clienteCtx)
@@ -517,31 +568,174 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
         </Card>
       )}
 
-      {tab==='blog'&&(
-        <div style={{display:'grid',gap:'14px'}}>
-          <Card t={t} style={{padding:'16px 20px'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
-              <div>
-                <Eb text="INTELIGENCIA DE MERCADO" t={t}/>
-                <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:0}}>Marketing Daily Blog</h3>
+    {tab==='blog'&&(
+  <div style={{display:'grid',gap:'16px'}}>
+
+    <Card t={t} style={{padding:'16px 20px'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
+        <div>
+          <Eb text="CHAR MEDIA" t={t}/>
+          <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Daily Blog</h3>
+          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>Posts de CHAR + Noticias IA en tiempo real</div>
+        </div>
+        <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+          <Tag label="GEMINI ACTIVO ✅" color={GREEN}/>
+          <a href="/blog" target="_blank" style={{padding:'6px 12px',borderRadius:'8px',background:BLUE+'20',color:BLUE,border:`1px solid ${BLUE}55`,fontSize:'11px',fontWeight:700,textDecoration:'none',letterSpacing:'0.5px'}}>
+            🌐 VER BLOG PÚBLICO
+          </a>
+        </div>
+      </div>
+    </Card>
+
+    <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+      {([
+        {id:'feed',label:'📋 Posts de CHAR'},
+        {id:'noticias',label:'🤖 Noticias IA'},
+        {id:'nuevo',label:'✏️ Nuevo Post'},
+      ] as const).map(bt=>(
+        <button key={bt.id} onClick={()=>setBlogTab(bt.id)} className="char-btn" style={{
+          background:blogTab===bt.id?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+          color:blogTab===bt.id?'#050510':c.text2,
+          border:blogTab===bt.id?'none':`1px solid ${c.border}`,
+          borderRadius:'10px',padding:'8px 16px',cursor:'pointer',
+          fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',transition:'all 0.15s',
+        }}>{bt.label}</button>
+      ))}
+    </div>
+
+    {blogTab==='feed'&&(
+      <div style={{display:'grid',gap:'14px'}}>
+        {blogPosts.length===0&&(
+          <Card t={t} style={{textAlign:'center',padding:'40px'}}>
+            <div style={{fontSize:'32px',marginBottom:'12px'}}>✏️</div>
+            <div style={{color:c.text2,fontSize:'14px',marginBottom:'16px'}}>Todavía no hay posts publicados.</div>
+            <Btn v="primary" t={t} onClick={()=>setBlogTab('nuevo')}>Crear primer post</Btn>
+          </Card>
+        )}
+        {blogPosts.map((post:any)=>(
+          <Card key={post.id} t={t} style={{padding:'20px'}}>
+            {post.imagen_url&&(
+              <img src={post.imagen_url} alt={post.titulo} style={{width:'100%',borderRadius:'10px',marginBottom:'14px',maxHeight:'300px',objectFit:'cover'}}/>
+            )}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'10px',flexWrap:'wrap',gap:'8px'}}>
+              <div style={{fontSize:'16px',fontWeight:700,color:c.text,lineHeight:'1.4',flex:1}}>{post.titulo}</div>
+              <Tag label="CHAR" color={GOLD}/>
+            </div>
+            {post.resumen&&<div style={{fontSize:'13px',color:GOLD,marginBottom:'10px',fontStyle:'italic'}}>{post.resumen}</div>}
+            <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.8',marginBottom:'14px',whiteSpace:'pre-wrap'}}>{post.contenido}</div>
+            {post.video_url&&(
+              <div style={{marginBottom:'14px'}}>
+                <a href={post.video_url} target="_blank" style={{color:BLUE,fontSize:'12px',textDecoration:'none'}}>▶ Ver video</a>
               </div>
-              <Tag label="ACTUALIZACIÓN MANUAL POR AHORA" color={AMBER}/>
+            )}
+            {post.tags&&post.tags.length>0&&(
+              <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'14px'}}>
+                {post.tags.map((tag:string,i:number)=>(
+                  <Tag key={i} label={`#${tag}`} color={PURPLE}/>
+                ))}
+              </div>
+            )}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',paddingTop:'12px',borderTop:`1px solid ${c.border}`,flexWrap:'wrap',gap:'8px'}}>
+              <div style={{fontSize:'11px',color:c.text3}}>
+                Por {post.autor} · {new Date(post.created_at).toLocaleDateString('es-AR')}
+              </div>
+              <div style={{display:'flex',gap:'8px'}}>
+                <button onClick={()=>copiarTexto(`${post.titulo}\n\n${post.contenido}`)} style={{background:'transparent',color:c.text3,border:`1px solid ${c.border}`,borderRadius:'6px',padding:'4px 10px',cursor:'pointer',fontSize:'11px',fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'4px'}}>
+                  {I.copy} Copiar
+                </button>
+                <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://project-gpu0d.vercel.app/blog')}`} target="_blank" style={{background:BLUE+'20',color:BLUE,border:`1px solid ${BLUE}55`,borderRadius:'6px',padding:'4px 10px',fontSize:'11px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+                  LinkedIn
+                </a>
+                <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.titulo)}&url=${encodeURIComponent('https://project-gpu0d.vercel.app/blog')}`} target="_blank" style={{background:PURPLE+'20',color:PURPLE,border:`1px solid ${PURPLE}55`,borderRadius:'6px',padding:'4px 10px',fontSize:'11px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+                  X/Twitter
+                </a>
+              </div>
             </div>
           </Card>
-          {BLOG_NOTICIAS.map((n,i)=>(
-            <Card key={i} t={t} style={{padding:'18px'}}>
-              <div style={{display:'flex',gap:'14px',alignItems:'flex-start'}}>
-                <div style={{color:GOLD,flexShrink:0,marginTop:'2px'}}>{I.news}</div>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:'14px',fontWeight:700,color:c.text,lineHeight:'1.4',marginBottom:'8px'}}>{n.titulo}</div>
-                  <div style={{fontSize:'12px',color:c.text2,lineHeight:'1.7',marginBottom:'10px'}}>{n.resumen}</div>
-                  <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · {n.tiempo}</div>
+        ))}
+      </div>
+    )}
+
+    {blogTab==='noticias'&&(
+      <div style={{display:'grid',gap:'14px'}}>
+        {cargandoNoticias&&(
+          <Card t={t} style={{textAlign:'center',padding:'40px'}}>
+            <div style={{display:'flex',gap:'4px',justifyContent:'center',alignItems:'center'}}>
+              {[0,1,2].map(i=><div key={i} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
+              <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Gemini generando noticias...</span>
+            </div>
+          </Card>
+        )}
+        {!cargandoNoticias&&noticiasIA.length===0&&(
+          <Card t={t} style={{textAlign:'center',padding:'40px'}}>
+            <div style={{color:c.text2,fontSize:'14px',marginBottom:'16px'}}>No se pudieron cargar las noticias.</div>
+            <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>Reintentar</Btn>
+          </Card>
+        )}
+        {noticiasIA.map((n:any,i:number)=>(
+          <Card key={i} t={t} style={{padding:'18px'}}>
+            <div style={{display:'flex',gap:'14px',alignItems:'flex-start'}}>
+              <div style={{color:GOLD,flexShrink:0,marginTop:'2px'}}>{I.news}</div>
+              <div style={{flex:1}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'8px',flexWrap:'wrap'}}>
+                  <div style={{fontSize:'14px',fontWeight:700,color:c.text,lineHeight:'1.4',flex:1}}>{n.titulo}</div>
+                  <Tag label={n.categoria||'Marketing'} color={BLUE}/>
                 </div>
+                <div style={{fontSize:'12px',color:c.text2,lineHeight:'1.7',marginBottom:'10px'}}>{n.resumen}</div>
+                <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · Generado por Gemini hoy</div>
               </div>
-            </Card>
-          ))}
+            </div>
+          </Card>
+        ))}
+        <div style={{textAlign:'center'}}>
+          <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>
+            🔄 Regenerar noticias
+          </Btn>
         </div>
-      )}
+      </div>
+    )}
+
+    {blogTab==='nuevo'&&(
+      <Card t={t}>
+        <Eb text="NUEVO POST" t={t}/>
+        <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 20px'}}>Publicar en el Blog de CHAR</h3>
+        <div style={{display:'grid',gap:'14px'}}>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>TÍTULO *</div>
+            <input value={nuevoPost.titulo} onChange={e=>setNuevoPost({...nuevoPost,titulo:e.target.value})} placeholder="Título del post..." style={inputSt}/>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>RESUMEN (opcional)</div>
+            <input value={nuevoPost.resumen} onChange={e=>setNuevoPost({...nuevoPost,resumen:e.target.value})} placeholder="Una línea que describe el post..." style={inputSt}/>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>CONTENIDO *</div>
+            <textarea value={nuevoPost.contenido} onChange={e=>setNuevoPost({...nuevoPost,contenido:e.target.value})} placeholder="Escribí tu post acá..." style={{...inputSt,height:'200px',resize:'none'}}/>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>URL DE IMAGEN (opcional)</div>
+            <input value={nuevoPost.imagen_url} onChange={e=>setNuevoPost({...nuevoPost,imagen_url:e.target.value})} placeholder="https://..." style={inputSt}/>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>URL DE VIDEO (opcional)</div>
+            <input value={nuevoPost.video_url} onChange={e=>setNuevoPost({...nuevoPost,video_url:e.target.value})} placeholder="https://youtube.com/..." style={inputSt}/>
+          </div>
+          <div>
+            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>TAGS (separados por coma)</div>
+            <input value={nuevoPost.tags} onChange={e=>setNuevoPost({...nuevoPost,tags:e.target.value})} placeholder="marketing, instagram, ia..." style={inputSt}/>
+          </div>
+          <div style={{display:'flex',gap:'10px',justifyContent:'flex-end',marginTop:'8px'}}>
+            <Btn v="ghost" t={t} onClick={()=>setBlogTab('feed')}>Cancelar</Btn>
+            <Btn v="primary" t={t} onClick={publicarPost} disabled={guardandoPost||!nuevoPost.titulo.trim()||!nuevoPost.contenido.trim()}>
+              {I.save} {guardandoPost?'Publicando...':'Publicar Post'}
+            </Btn>
+          </div>
+        </div>
+      </Card>
+    )}
+
+  </div>
+)}
 
     </div>
   )
