@@ -654,11 +654,11 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
     </Card>
 
     <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-      {([
-        {id:'feed',label:'📋 Posts de CHAR'},
-        {id:'noticias',label:'🤖 Noticias IA'},
-        {id:'nuevo',label:'✏️ Nuevo Post'},
-      ] as const).map(bt=>(
+     {([
+  {id:'feed',label:'Posts de CHAR'},
+  {id:'noticias',label:'Noticias IA'},
+  {id:'nuevo',label:'Nuevo Post'},
+] as const).map(bt=>(
         <button key={bt.id} onClick={()=>setBlogTab(bt.id)} className="char-btn" style={{
           background:blogTab===bt.id?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
           color:blogTab===bt.id?'#050510':c.text2,
@@ -673,7 +673,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
       <div style={{display:'grid',gap:'14px'}}>
         {blogPosts.length===0&&(
           <Card t={t} style={{textAlign:'center',padding:'40px'}}>
-            <div style={{fontSize:'32px',marginBottom:'12px'}}>✏️</div>
+            <div style={{fontSize:'32px',marginBottom:'12px',color:GOLD}}>{I.pen}</div>
             <div style={{color:c.text2,fontSize:'14px',marginBottom:'16px'}}>Todavía no hay posts publicados.</div>
             <Btn v="primary" t={t} onClick={()=>setBlogTab('nuevo')}>Crear primer post</Btn>
           </Card>
@@ -790,9 +790,9 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
   </Card>
 ))}
         <div style={{textAlign:'center'}}>
-          <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>
-            🔄 Regenerar noticias
-          </Btn>
+         <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>
+  Regenerar noticias
+</Btn>
         </div>
       </div>
     )}
