@@ -1,46 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`
+
+async function llamarGemini(prompt: string, apiKey: string) {
+  const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: 1024,
+        temperature: 0.7,
+      }
+    })
+  })
+  if(!response.ok){
+    const err = await response.text()
+    throw new Error(`Gemini error: ${err}`)
+  }
+  const data = await response.json()
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+}
+
 export async function GET() {
   try {
     const apiKey = process.env.GEMINI_API_KEY
-    
-    if(!apiKey){
-      return NextResponse.json({ 
-        error: 'GEMINI_API_KEY no configurada',
-        noticias: NOTICIAS_FALLBACK 
-      })
-    }
+    if(!apiKey) return NextResponse.json({ noticias: NOTICIAS_FALLBACK })
 
     const prompt = `Generá exactamente 5 noticias de marketing digital actuales y relevantes.
 Respondé ÚNICAMENTE con un array JSON válido, sin markdown, sin texto extra, sin bloques de código.
-Ejemplo exacto del formato requerido:
-[{"titulo":"titulo aqui","resumen":"resumen aqui en una o dos oraciones","fuente":"nombre del medio","categoria":"Instagram"},{"titulo":"...","resumen":"...","fuente":"...","categoria":"..."}]
+Formato exacto:
+[{"titulo":"titulo aqui","resumen":"resumen en una o dos oraciones","fuente":"nombre del medio","categoria":"Instagram"},{"titulo":"...","resumen":"...","fuente":"...","categoria":"..."}]
 Categorías válidas: Instagram, Google Ads, TikTok, LinkedIn, SEO, IA Marketing, Meta Ads, YouTube
-Las noticias deben ser útiles para agencias de marketing de Latinoamérica.`
+Noticias útiles para agencias de marketing de Latinoamérica.`
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-          }
-        })
-      }
-    )
-
-    if(!response.ok){
-      const err = await response.text()
-      console.error('Gemini error:', err)
-      return NextResponse.json({ noticias: NOTICIAS_FALLBACK })
-    }
-
-    const data = await response.json()
-    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || ''
+    const texto = await llamarGemini(prompt, apiKey)
     
     let noticias = []
     try {
@@ -48,24 +42,123 @@ Las noticias deben ser útiles para agencias de marketing de Latinoamérica.`
       const jsonMatch = limpio.match(/$$[\s\S]*$$/)
       if(jsonMatch) noticias = JSON.parse(jsonMatch[0])
     } catch(e) {
-      console.error('Parse error:', e)
       noticias = NOTICIAS_FALLBACK
     }
 
     if(!noticias.length) noticias = NOTICIAS_FALLBACK
 
-    return NextResponse.json({ 
-      noticias, 
-      generado: new Date().toISOString(),
-      fuente: 'gemini'
-    })
+    return NextResponse.json({ noticias, generado: new Date().toISOString() })
 
   } catch (error: any) {
-    console.error('Blog IA error:', error)
+    console.error('GET blog error:', error)
+    return NextResponse.json({ noticias: NOTICIAS_FALLBACK })
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { titulo, contenido, resumen, imagen_url, video_url, tags, autor } = body
+
+    if(!titulo || !contenido){
+      return NextResponse.json({ error: 'Título y contenido requeridos' }, { status: 400 })
+    }
+
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .insert({
+        titulo,
+        contenido,
+        resumen: resumen || '',
+        imagen_url: imagen_url || null,
+        video_url: video_url || null,
+        tags: tags || [],
+        autor: autor || 'Adri',
+        tipo: 'char',
+        publicado: true
+      })
+      .select()
+      .single()
+
+    if(error) throw error
+    return NextResponse.json({ post: data })
+
+  } catch (error: any) {
+    console.error('POST blog error:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const apiKey = process.env.GEMINI_API_KEY
+    if(!apiKey){
+      return NextResponse.json({ 
+        analisis: 'No se pudo conectar con Gemini. Verificá la API key en Vercel.' 
+      })
+    }
+
+    const body = await req.json()
+    const { noticia } = body
+
+    if(!noticia || !noticia.titulo){
+      return NextResponse.json({ 
+        analisis: 'No se recibió la noticia correctamente.' 
+      })
+    }
+
+    const prompt = `Sos el Cerebro IA de CHAR, agencia de marketing digital argentina de élite.
+
+Desarrollá esta noticia en profundidad:
+Título: ${noticia.titulo}
+Resumen: ${noticia.resumen}
+Fuente: ${noticia.fuente}
+Categoría: ${noticia.categoria}
+
+Escribí un análisis completo con este formato:
+
+¿Qué pasó?
+Explicá la noticia en detalle en 2 o 3 oraciones.
+
+¿Por qué importa para tu agencia?
+Explicá el impacto real en agencias latinoamericanas en 2 o 3 oraciones.
+
+Datos clave
+- Punto 1 con número o dato concreto
+- Punto 2 con número o dato concreto  
+- Punto 3 con número o dato concreto
+
+Qué hacer esta semana
+- Acción concreta 1
+- Acción concreta 2
+- Acción concreta 3
+
+Perspectiva CHAR
+Un párrafo con la visión de CHAR sobre esta tendencia y cómo sacarle ventaja.
+
+Respondé en español argentino, directo y accionable. Sin asteriscos ni markdown.`
+
+    const analisis = await llamarGemini(prompt, apiKey)
+
+    if(!analisis){
+      return NextResponse.json({ 
+        analisis: 'Gemini no pudo generar el análisis. Intentá de nuevo.' 
+      })
+    }
+
+    return NextResponse.json({ analisis })
+
+  } catch (error: any) {
+    console.error('PUT blog error:', error)
     return NextResponse.json({ 
-      noticias: NOTICIAS_FALLBACK,
-      error: error.message 
-    })
+      analisis: `Error al generar análisis: ${error.message}` 
+    }, { status: 500 })
   }
 }
 
@@ -101,103 +194,3 @@ const NOTICIAS_FALLBACK = [
     categoria: 'IA Marketing'
   },
 ]
-
-export async function POST(req: NextRequest) {
-  try {
-    const body = await req.json()
-    const { titulo, contenido, resumen, imagen_url, video_url, tags, autor } = body
-
-    if(!titulo || !contenido){
-      return NextResponse.json({ error: 'Título y contenido son requeridos' }, { status: 400 })
-    }
-
-    const { createClient } = await import('@supabase/supabase-js')
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-
-    const { data, error } = await supabase
-      .from('blog_posts')
-      .insert({
-        titulo,
-        contenido,
-        resumen: resumen || '',
-        imagen_url: imagen_url || null,
-        video_url: video_url || null,
-        tags: tags || [],
-        autor: autor || 'Adri',
-        tipo: 'char',
-        publicado: true
-      })
-      .select()
-      .single()
-
-    if(error) throw error
-
-    return NextResponse.json({ post: data })
-
-  } catch (error: any) {
-    console.error('POST blog error:', error)
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
-
-export async function PUT(req: NextRequest) {
-  try {
-    const { noticia } = await req.json()
-    const apiKey = process.env.GEMINI_API_KEY
-
-    if(!apiKey){
-      return NextResponse.json({ error: 'Sin API key' }, { status: 500 })
-    }
-
-    const prompt = `Sos el Cerebro IA de CHAR, agencia de marketing digital argentina.
-    
-Desarrollá esta noticia en profundidad: "${noticia.titulo}"
-Resumen base: ${noticia.resumen}
-Fuente: ${noticia.fuente}
-
-Escribí un análisis completo con este formato exacto:
-
-**¿Qué pasó?**
-[2-3 oraciones explicando la noticia en detalle]
-
-**¿Por qué importa para tu agencia?**
-[2-3 oraciones sobre el impacto real en agencias latinoamericanas]
-
-**Datos clave**
-[3 puntos concretos con números o datos relevantes]
-
-**Qué hacer esta semana**
-[2-3 acciones concretas que una agencia puede tomar ahora mismo]
-
-**Perspectiva CHAR**
-[1 párrafo con la visión de CHAR sobre esta tendencia]
-
-Respondé en español argentino, directo y profesional.`
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: prompt }] }],
-          generationConfig: {
-            maxOutputTokens: 1024,
-            temperature: 0.7,
-          }
-        })
-      }
-    )
-
-    const data = await response.json()
-    const texto = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No se pudo generar el análisis.'
-
-    return NextResponse.json({ analisis: texto })
-
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
-}
