@@ -93,6 +93,9 @@ const [subiendoVideo,setSubiendoVideo]=useState(false)
 const [previewImagen,setPreviewImagen]=useState('')
 const [guardandoPost,setGuardandoPost]=useState(false)
 const [blogTab,setBlogTab]=useState<'feed'|'noticias'|'nuevo'>('feed')
+const [noticiaAbierta,setNoticiaAbierta]=useState<any>(null)
+const [analizandoNoticia,setAnalizandoNoticia]=useState(false)
+const [analisisNoticia,setAnalisisNoticia]=useState<Record<number,string>>({})
   const chatRef=useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
@@ -121,6 +124,30 @@ const generarNoticiasIA=async()=>{
     console.error('Error noticias IA:',err)
   }
   setCargandoNoticias(false)
+}
+
+  const expandirNoticia=async(noticia:any, index:number)=>{
+  if(noticiaAbierta===index){
+    setNoticiaAbierta(null)
+    return
+  }
+  setNoticiaAbierta(index)
+  if(analisisNoticia[index]) return
+  setAnalizandoNoticia(true)
+  try{
+    const res=await fetch('/api/blog',{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({noticia})
+    })
+    const data=await res.json()
+    if(data.analisis){
+      setAnalisisNoticia(prev=>({...prev,[index]:data.analisis}))
+    }
+  }catch(err){
+    console.error('Error expandir:',err)
+  }
+  setAnalizandoNoticia(false)
 }
 
 const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
@@ -701,21 +728,57 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>Reintentar</Btn>
           </Card>
         )}
-        {noticiasIA.map((n:any,i:number)=>(
-          <Card key={i} t={t} style={{padding:'18px'}}>
-            <div style={{display:'flex',gap:'14px',alignItems:'flex-start'}}>
-              <div style={{color:GOLD,flexShrink:0,marginTop:'2px'}}>{I.news}</div>
-              <div style={{flex:1}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'8px',flexWrap:'wrap'}}>
-                  <div style={{fontSize:'14px',fontWeight:700,color:c.text,lineHeight:'1.4',flex:1}}>{n.titulo}</div>
-                  <Tag label={n.categoria||'Marketing'} color={BLUE}/>
-                </div>
-                <div style={{fontSize:'12px',color:c.text2,lineHeight:'1.7',marginBottom:'10px'}}>{n.resumen}</div>
-                <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · Generado por Gemini hoy</div>
+       {noticiasIA.map((n:any,i:number)=>(
+  <Card key={i} t={t} style={{padding:'0',overflow:'hidden',cursor:'pointer',border:noticiaAbierta===i?`1px solid ${GOLD}55`:`1px solid ${c.border}`,transition:'border-color 0.2s'}}>
+    <div onClick={()=>expandirNoticia(n,i)} style={{padding:'18px',display:'flex',gap:'14px',alignItems:'flex-start'}}>
+      <div style={{color:GOLD,flexShrink:0,marginTop:'2px'}}>{I.news}</div>
+      <div style={{flex:1}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',marginBottom:'8px',flexWrap:'wrap'}}>
+          <div style={{fontSize:'14px',fontWeight:700,color:c.text,lineHeight:'1.4',flex:1}}>{n.titulo}</div>
+          <div style={{display:'flex',gap:'6px',alignItems:'center'}}>
+            <Tag label={n.categoria||'Marketing'} color={BLUE}/>
+            <span style={{fontSize:'16px',color:GOLD,transition:'transform 0.2s',display:'inline-block',transform:noticiaAbierta===i?'rotate(180deg)':'rotate(0deg)'}}>▼</span>
+          </div>
+        </div>
+        <div style={{fontSize:'12px',color:c.text2,lineHeight:'1.7',marginBottom:'8px'}}>{n.resumen}</div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+          <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · Gemini</div>
+          <span style={{fontSize:'11px',color:GOLD,fontWeight:700}}>
+            {noticiaAbierta===i ? 'Cerrar análisis ↑' : 'Ver análisis completo →'}
+          </span>
+        </div>
+      </div>
+    </div>
+    {noticiaAbierta===i&&(
+      <div style={{borderTop:`1px solid ${c.border}`,padding:'20px',background:c.s2}}>
+        {analizandoNoticia&&!analisisNoticia[i]?(
+          <div style={{display:'flex',gap:'8px',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+            {[0,1,2].map(j=>(
+              <div key={j} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${j*0.2}s infinite`}}/>
+            ))}
+            <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Gemini analizando en profundidad...</span>
+          </div>
+        ):(
+          <div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
+                <span style={{fontSize:'11px',color:GREEN,fontWeight:700,letterSpacing:'1px'}}>ANÁLISIS GENERADO POR GEMINI</span>
               </div>
+              <button onClick={(e)=>{e.stopPropagation();copiarTexto(analisisNoticia[i]||'')}}
+                style={{background:'transparent',color:c.text3,border:`1px solid ${c.border}`,borderRadius:'6px',padding:'4px 10px',cursor:'pointer',fontSize:'11px',fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'4px'}}>
+                {I.copy} Copiar
+              </button>
             </div>
-          </Card>
-        ))}
+            <div style={{fontSize:'13px',color:c.text2,lineHeight:'1.9',whiteSpace:'pre-wrap'}}>
+              {(analisisNoticia[i]||'').replace(/\*\*(.*?)\*\*/g,'\$1')}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+  </Card>
+))}
         <div style={{textAlign:'center'}}>
           <Btn v="outline" t={t} onClick={()=>{setNoticiasIA([]);generarNoticiasIA()}}>
             🔄 Regenerar noticias
