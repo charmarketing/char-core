@@ -88,6 +88,9 @@ const [cargandoNoticias,setCargandoNoticias]=useState(false)
 const [blogPosts,setBlogPosts]=useState<any[]>([])
 const [mostrarFormPost,setMostrarFormPost]=useState(false)
 const [nuevoPost,setNuevoPost]=useState({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
+const [subiendoImagen,setSubiendoImagen]=useState(false)
+const [subiendoVideo,setSubiendoVideo]=useState(false)
+const [previewImagen,setPreviewImagen]=useState('')
 const [guardandoPost,setGuardandoPost]=useState(false)
 const [blogTab,setBlogTab]=useState<'feed'|'noticias'|'nuevo'>('feed')
   const chatRef=useRef<HTMLDivElement>(null)
@@ -120,7 +123,33 @@ const generarNoticiasIA=async()=>{
   setCargandoNoticias(false)
 }
 
-const publicarPost=async()=>{
+const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
+  if(tipo==='imagen') setSubiendoImagen(true)
+  else setSubiendoVideo(true)
+  
+  try{
+    const form=new FormData()
+    form.append('file',file)
+    const res=await fetch('/api/upload',{method:'POST',body:form})
+    const data=await res.json()
+    if(data.url){
+      if(tipo==='imagen'){
+        setNuevoPost(prev=>({...prev,imagen_url:data.url}))
+        setPreviewImagen(data.url)
+      } else {
+        setNuevoPost(prev=>({...prev,video_url:data.url}))
+      }
+    } else {
+      alert('Error al subir: '+data.error)
+    }
+  }catch(err:any){
+    alert('Error: '+err.message)
+  }
+  
+  if(tipo==='imagen') setSubiendoImagen(false)
+  else setSubiendoVideo(false)
+}
+  const publicarPost=async()=>{
   if(!nuevoPost.titulo.trim()||!nuevoPost.contenido.trim()) return
   setGuardandoPost(true)
   try{
@@ -713,13 +742,64 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             <textarea value={nuevoPost.contenido} onChange={e=>setNuevoPost({...nuevoPost,contenido:e.target.value})} placeholder="Escribí tu post acá..." style={{...inputSt,height:'200px',resize:'none'}}/>
           </div>
           <div>
-            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>URL DE IMAGEN (opcional)</div>
-            <input value={nuevoPost.imagen_url} onChange={e=>setNuevoPost({...nuevoPost,imagen_url:e.target.value})} placeholder="https://..." style={inputSt}/>
-          </div>
-          <div>
-            <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>URL DE VIDEO (opcional)</div>
-            <input value={nuevoPost.video_url} onChange={e=>setNuevoPost({...nuevoPost,video_url:e.target.value})} placeholder="https://youtube.com/..." style={inputSt}/>
-          </div>
+  <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>IMAGEN (opcional)</div>
+  <div style={{display:'grid',gap:'10px'}}>
+    <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',background:c.s2,border:`2px dashed ${c.border}`,borderRadius:'10px',padding:'20px',cursor:'pointer',transition:'border-color 0.2s',color:c.text2,fontSize:'13px',fontFamily:'Rajdhani,sans-serif'}}>
+      {subiendoImagen?(
+        <span style={{color:GOLD}}>Subiendo imagen...</span>
+      ):(
+        <>
+          <span style={{fontSize:'20px'}}>🖼️</span>
+          <span>Clickeá para subir imagen desde tu computadora</span>
+          <span style={{fontSize:'11px',color:c.text3}}>(JPG, PNG, WebP · Máx 50MB)</span>
+        </>
+      )}
+      <input type="file" accept="image/*" style={{display:'none'}} onChange={e=>{
+        const f=e.target.files?.[0]
+        if(f) subirArchivo(f,'imagen')
+      }}/>
+    </label>
+    {previewImagen&&(
+      <div style={{position:'relative'}}>
+        <img src={previewImagen} alt="preview" style={{width:'100%',maxHeight:'200px',objectFit:'cover',borderRadius:'10px',border:`1px solid ${c.border}`}}/>
+        <button onClick={()=>{setPreviewImagen('');setNuevoPost(prev=>({...prev,imagen_url:''}))}}
+          style={{position:'absolute',top:'8px',right:'8px',background:'#f87171',color:'#fff',border:'none',borderRadius:'6px',padding:'4px 8px',cursor:'pointer',fontSize:'11px',fontFamily:'Rajdhani,sans-serif',fontWeight:700}}>
+          ✕ Quitar
+        </button>
+      </div>
+    )}
+  </div>
+</div>
+<div>
+  <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>VIDEO (opcional)</div>
+  <div style={{display:'grid',gap:'10px'}}>
+    <label style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',background:c.s2,border:`2px dashed ${c.border}`,borderRadius:'10px',padding:'20px',cursor:'pointer',color:c.text2,fontSize:'13px',fontFamily:'Rajdhani,sans-serif'}}>
+      {subiendoVideo?(
+        <span style={{color:GOLD}}>Subiendo video...</span>
+      ):(
+        <>
+          <span style={{fontSize:'20px'}}>🎬</span>
+          <span>Clickeá para subir video desde tu computadora</span>
+          <span style={{fontSize:'11px',color:c.text3}}>(MP4, MOV · Máx 50MB)</span>
+        </>
+      )}
+      <input type="file" accept="video/*" style={{display:'none'}} onChange={e=>{
+        const f=e.target.files?.[0]
+        if(f) subirArchivo(f,'video')
+      }}/>
+    </label>
+    {nuevoPost.video_url&&!subiendoVideo&&(
+      <div style={{display:'flex',alignItems:'center',gap:'8px',background:c.s2,border:`1px solid ${GREEN}35`,borderRadius:'8px',padding:'10px 14px'}}>
+        <span style={{color:GREEN,fontSize:'16px'}}>✅</span>
+        <span style={{fontSize:'12px',color:c.text2,flex:1}}>Video subido correctamente</span>
+        <button onClick={()=>setNuevoPost(prev=>({...prev,video_url:''}))}
+          style={{background:'transparent',color:RED,border:'none',cursor:'pointer',fontSize:'12px',fontFamily:'Rajdhani,sans-serif'}}>
+          Quitar
+        </button>
+      </div>
+    )}
+  </div>
+</div>
           <div>
             <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>TAGS (separados por coma)</div>
             <input value={nuevoPost.tags} onChange={e=>setNuevoPost({...nuevoPost,tags:e.target.value})} placeholder="marketing, instagram, ia..." style={inputSt}/>
