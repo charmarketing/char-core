@@ -14,6 +14,21 @@ export default function BlogPublico(){
   const [scroll,setScroll]=useState(0)
   const [reacciones,setReacciones]=useState<Record<string,Record<string,number>>>({})
   const [misReacciones,setMisReacciones]=useState<Record<string,string>>({})
+  const AVATARES = [
+  {inicial:'M',color:'#4f8fff'},
+  {inicial:'S',color:'#3dd68c'},
+  {inicial:'R',color:'#a78bfa'},
+  {inicial:'L',color:'#f59e0b'},
+  {inicial:'C',color:'#f87171'},
+  {inicial:'P',color:'#c9a96e'},
+  {inicial:'A',color:'#4f8fff'},
+  {inicial:'D',color:'#3dd68c'},
+  {inicial:'F',color:'#a78bfa'},
+  {inicial:'J',color:'#f59e0b'},
+  {inicial:'V',color:'#f87171'},
+  {inicial:'N',color:'#c9a96e'},
+]
+const [avataresVisibles,setAvataresVisibles]=useState([0,1,2,3])
 
   useEffect(()=>{
     cargarPosts()
@@ -37,17 +52,23 @@ export default function BlogPublico(){
     setCargando(false)
   }
 
-  const iniciarContador=()=>{
-    const guardado=localStorage.getItem('char_blog_usuarios')
-    const base=guardado?parseInt(guardado):BASE_USUARIOS
-    setUsuarios(base)
-    localStorage.setItem('char_blog_usuarios',(base+1).toString())
-    setUsuarios(base+1)
-    const intervalo=setInterval(()=>{
-      setUsuarios(prev=>prev+Math.floor(Math.random()*2))
-    },8000)
-    return()=>clearInterval(intervalo)
-  }
+const iniciarContador=()=>{
+  const guardado=localStorage.getItem('char_blog_usuarios')
+  const base=guardado?parseInt(guardado):BASE_USUARIOS
+  setUsuarios(base)
+  localStorage.setItem('char_blog_usuarios',(base+1).toString())
+  setUsuarios(base+1)
+  const intervalo=setInterval(()=>{
+    setUsuarios(prev=>prev+Math.floor(Math.random()*2))
+    setAvataresVisibles(prev=>{
+      const siguiente=[...prev]
+      const nuevo=Math.floor(Math.random()*AVATARES.length)
+      siguiente[Math.floor(Math.random()*4)]=nuevo
+      return siguiente
+    })
+  },5000)
+  return()=>clearInterval(intervalo)
+}
 
   const reaccionar=(postId:string,emoji:string)=>{
     if(misReacciones[postId]===emoji) return
@@ -89,13 +110,42 @@ export default function BlogPublico(){
             </div>
           </div>
           <div style={{display:'flex',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
-            <div style={{background:'#0b0b18',border:'1px solid #16163a',borderRadius:'12px',padding:'8px 16px',display:'flex',alignItems:'center',gap:'8px'}}>
-              <div style={{width:'8px',height:'8px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 10px ${GREEN}`,animation:'pulse 2s infinite',flexShrink:0}}/>
-              <div>
-                <div style={{fontSize:'18px',fontWeight:800,color:'#f0f0ff',lineHeight:1}}>{usuarios.toLocaleString('es-AR')}</div>
-                <div style={{fontSize:'9px',color:'#4a4a6a',letterSpacing:'1px'}}>EN LA COMUNIDAD</div>
-              </div>
-            </div>
+           <div style={{background:'#0b0b18',border:'1px solid #16163a',borderRadius:'12px',padding:'8px 16px',display:'flex',alignItems:'center',gap:'10px'}}>
+  <div style={{display:'flex',alignItems:'center'}}>
+    {avataresVisibles.map((idx,i)=>(
+      <div key={`${idx}-${i}`} style={{
+        width:'26px',height:'26px',borderRadius:'50%',
+        background:`linear-gradient(135deg,${AVATARES[idx%AVATARES.length].color},${AVATARES[idx%AVATARES.length].color}88)`,
+        border:'2px solid #0b0b18',
+        marginLeft:i===0?'0px':'-8px',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:'10px',fontWeight:800,color:'#fff',
+        transition:'all 0.5s ease',
+        zIndex:4-i,
+        position:'relative',
+        boxShadow:`0 2px 8px ${AVATARES[idx%AVATARES.length].color}40`
+      }}>
+        {AVATARES[idx%AVATARES.length].inicial}
+      </div>
+    ))}
+    <div style={{
+      width:'26px',height:'26px',borderRadius:'50%',
+      background:'#1e1e3a',border:'2px solid #0b0b18',
+      marginLeft:'-8px',display:'flex',alignItems:'center',
+      justifyContent:'center',fontSize:'9px',color:'#6060a0',
+      fontWeight:700,position:'relative',zIndex:0
+    }}>
+      +{(usuarios-4).toLocaleString('es-AR')}
+    </div>
+  </div>
+  <div>
+    <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+      <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 8px ${GREEN}`,animation:'pulse 2s infinite'}}/>
+      <div style={{fontSize:'16px',fontWeight:800,color:'#f0f0ff',lineHeight:1}}>{usuarios.toLocaleString('es-AR')}</div>
+    </div>
+    <div style={{fontSize:'9px',color:'#4a4a6a',letterSpacing:'1px'}}>EN LA COMUNIDAD</div>
+  </div>
+</div>
             <a href="https://project-gpu0d.vercel.app" style={{padding:'8px 16px',borderRadius:'10px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',fontSize:'12px',fontWeight:800,textDecoration:'none',letterSpacing:'0.5px'}}>
               USAR CHAR CORE →
             </a>
@@ -120,12 +170,28 @@ export default function BlogPublico(){
             Ideas, herramientas y tendencias para agencias que quieren resultados reales. Sin humo.
           </p>
           <div style={{display:'flex',gap:'12px',justifyContent:'center',flexWrap:'wrap'}}>
-            <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'#0b0b18',border:`1px solid ${GREEN}30`,borderRadius:'20px',padding:'10px 20px'}}>
-              <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 8px ${GREEN}`}}/>
-              <span style={{fontSize:'13px',color:'#9090b8'}}>
-                <strong style={{color:'#f0f0ff'}}>{usuarios.toLocaleString('es-AR')} personas</strong> ya leen este blog
-              </span>
-            </div>
+            <div style={{display:'inline-flex',alignItems:'center',gap:'12px',background:'#0b0b18',border:`1px solid ${GREEN}30`,borderRadius:'20px',padding:'10px 20px'}}>
+  <div style={{display:'flex',alignItems:'center'}}>
+    {avataresVisibles.map((idx,i)=>(
+      <div key={`hero-${idx}-${i}`} style={{
+        width:'28px',height:'28px',borderRadius:'50%',
+        background:`linear-gradient(135deg,${AVATARES[idx%AVATARES.length].color},${AVATARES[idx%AVATARES.length].color}88)`,
+        border:'2px solid #0b0b18',
+        marginLeft:i===0?'0px':'-10px',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        fontSize:'11px',fontWeight:800,color:'#fff',
+        transition:'all 0.5s ease',
+        zIndex:4-i,position:'relative'
+      }}>
+        {AVATARES[idx%AVATARES.length].inicial}
+      </div>
+    ))}
+  </div>
+  <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 8px ${GREEN}`}}/>
+  <span style={{fontSize:'13px',color:'#9090b8'}}>
+    <strong style={{color:'#f0f0ff'}}>{usuarios.toLocaleString('es-AR')} personas</strong> ya leen este blog
+  </span>
+</div>
             <div style={{display:'inline-flex',alignItems:'center',gap:'8px',background:'#0b0b18',border:`1px solid ${BLUE}30`,borderRadius:'20px',padding:'10px 20px'}}>
               <span style={{fontSize:'13px',color:'#9090b8'}}>
                 <strong style={{color:'#f0f0ff'}}>{posts.length}</strong> artículos publicados
