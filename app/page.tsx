@@ -18,7 +18,7 @@ type Theme = 'dark'|'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
 const L = { bg:'#eef0f8',surface:'#ffffff',s2:'#f4f6ff',border:'#dde0f0',b2:'#c8cbdf',text:'#0d0d20',text2:'#2a2a4a',text3:'#606088',muted:'#9090aa' }
 const th = (t:Theme) => t==='dark'?D:L
-const GOLD='#c9a96e', BLUE='#4f8fff', GREEN='#3dd68c', RED='#f87171', AMBER='#f59e0b', PURPLE='#a78bfa'
+const GOLD='#ffcd38', BLUE='#4f8fff', GREEN='#3dd68c', RED='#f87171', AMBER='#f59e0b', PURPLE='#a78bfa'
 
 // ── CSV EXPORT (separador ; para Excel latinoamérica) ─────────────────────
 function exportCSV(name:string, headers:string[], rows:(string|number)[][]) {
@@ -132,7 +132,7 @@ function Tag({label,color}:{label:string;color:string}){
 function Btn({children,onClick,v='ghost',t}:{children:React.ReactNode;onClick?:()=>void;v?:'primary'|'ghost'|'outline'|'danger';t:Theme}){
   const c=th(t)
   const vs:Record<string,React.CSSProperties>={
-    primary:{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
+    primary:{background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
     ghost:  {background:c.s2,color:c.text2,border:`1px solid ${c.border}`,fontWeight:500},
     outline:{background:'transparent',color:GOLD,border:`1px solid ${GOLD}55`,fontWeight:600},
     danger: {background:'transparent',color:RED,border:`1px solid ${RED}55`,fontWeight:600},
