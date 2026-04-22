@@ -225,7 +225,7 @@ onSelect(nombre)
         <div style={{width:'52px',height:'52px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
           {I.bolt}
         </div>
-        <div style={{fontWeight:800,fontSize:'22px',letterSpacing:'3px',color:c.text}}>CHAR CORE</div>
+        <div style={{fontWeight:800,fontSize:'22px',letterSpacing:'3px',color:c.text}}></div>
         <div style={{fontSize:'11px',color:c.muted,letterSpacing:'2.5px',marginTop:'4px'}}>SISTEMA OPERATIVO</div>
       </div>
 
@@ -1003,9 +1003,9 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       }}>
         <div style={{padding:'26px 20px 22px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-            <div className="char-logo" style={{width:'32px',height:'32px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>
-              {I.bolt}
-            </div>
+           <div className="char-logo" style={{width:'32px',height:'32px',background:`linear-gradient(135deg,#1a1a2e,#0d0d1f)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',overflow:'hidden',padding:'3px',boxShadow:`0 2px 10px #ffcd3840`}}>
+  <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'100%',height:'100%',objectFit:'contain'}}/>
+</div>
             <div>
               <div style={{fontWeight:800,fontSize:'15px',letterSpacing:'2px',color:c.text}}>CHAR CORE</div>
               <div style={{fontSize:'8px',color:c.muted,letterSpacing:'2.5px',marginTop:'1px'}}>SISTEMA OPERATIVO</div>
