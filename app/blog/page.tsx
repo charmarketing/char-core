@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 
-const GOLD='#c9a96e',BLUE='#4f8fff',PURPLE='#a78bfa',GREEN='#3dd68c',RED='#f87171'
+const GOLD='#ffcd38',BLUE='#4f8fff',PURPLE='#a78bfa',GREEN='#3dd68c',RED='#f87171'
 const BASE_USUARIOS = 50
 
 export default function BlogPublico(){
