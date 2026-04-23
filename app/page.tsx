@@ -223,7 +223,7 @@ onSelect(nombre)
     <div className="char-slide" style={{minHeight:'100vh',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
       <div style={{textAlign:'center',marginBottom:'32px'}}>
         <div style={{width:'52px',height:'52px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-          {I.bolt}
+          <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'20px',height:'20px',objectFit:'cont
         </div>
         <div style={{fontWeight:800,fontSize:'22px',letterSpacing:'3px',color:c.text}}></div>
         <div style={{fontSize:'11px',color:c.muted,letterSpacing:'2.5px',marginTop:'4px'}}>SISTEMA OPERATIVO</div>
@@ -1003,9 +1003,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       }}>
         <div style={{padding:'26px 20px 22px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-           <div className="char-logo" style={{width:'32px',height:'32px',display:'flex',alignItems:'center',justifyContent:'center',background:'transparent',border:'none'}}>
-  <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'28px',height:'28px',objectFit:'contain'}}/>
-</div>
+           <<img src="/fonts/logo-char.png" alt="CHAR" style={{width:'32px',height:'32px',objectFit:'contain'}}/>
             <div>
               <div style={{fontWeight:800,fontSize:'15px',letterSpacing:'2px',color:c.text}}>CHAR CORE</div>
               <div style={{fontSize:'8px',color:c.muted,letterSpacing:'2.5px',marginTop:'1px'}}>SISTEMA OPERATIVO</div>
@@ -1063,7 +1061,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
         {mobile&&(
           <div style={{padding:'14px 16px',background:c.surface,borderBottom:`1px solid ${c.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:50}}>
             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-              <div style={{width:'26px',height:'26px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>{I.bolt}</div>
+              <div style={{width:'26px',height:'26px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}><img src="/fonts/logo-char.png" alt="CHAR" style={{width:'20px',height:'20px',objectFit:'cont</div>
               <span style={{fontWeight:800,fontSize:'14px',letterSpacing:'1.5px',color:c.text}}>CHAR CORE</span>
             </div>
             <div style={{display:'flex',gap:'8px'}}>
