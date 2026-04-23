@@ -1061,7 +1061,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
         {mobile&&(
           <div style={{padding:'14px 16px',background:c.surface,borderBottom:`1px solid ${c.border}`,display:'flex',justifyContent:'space-between',alignItems:'center',position:'sticky',top:0,zIndex:50}}>
             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-              <div style={{width:'26px',height:'26px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'6px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff'}}>{I.bolt}</div>
+              <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'26px',height:'26px',objectFit:'contain'}}/>
               <span style={{fontWeight:800,fontSize:'14px',letterSpacing:'1.5px',color:c.text}}>CHAR CORE</span>
             </div>
             <div style={{display:'flex',gap:'8px'}}>
