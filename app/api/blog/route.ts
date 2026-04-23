@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent`
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent'
 
 function getSupabase(){
   return createClient(
@@ -10,10 +11,37 @@ function getSupabase(){
   )
 }
 
+async function llamarGroq(prompt: string) {
+  const apiKey = process.env.GROQ_API_KEY
+  if(!apiKey) throw new Error('Sin GROQ_API_KEY')
+
+  const response = await fetch(GROQ_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'llama3-8b-8192',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 1024,
+      temperature: 0.7
+    })
+  })
+
+  if(!response.ok){
+    const err = await response.text()
+    throw new Error(`Groq error: ${err}`)
+  }
+
+  const data = await response.json()
+  return data.choices?.[0]?.message?.content || ''
+}
+
 async function llamarGemini(prompt: string) {
   const apiKey = process.env.GEMINI_API_KEY
-  if(!apiKey) throw new Error('Sin API key')
-  
+  if(!apiKey) throw new Error('Sin GEMINI_API_KEY')
+
   const response = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -22,12 +50,12 @@ async function llamarGemini(prompt: string) {
       generationConfig: { maxOutputTokens: 1024, temperature: 0.7 }
     })
   })
-  
+
   if(!response.ok){
     const err = await response.text()
-    throw new Error(err)
+    throw new Error(`Gemini error: ${err}`)
   }
-  
+
   const data = await response.json()
   return data.candidates?.[0]?.content?.parts?.[0]?.text || ''
 }
@@ -36,16 +64,16 @@ export async function GET() {
   try {
     const supabase = getSupabase()
     const hoy = new Date().toISOString().split('T')[0]
-    
+
     const { data: existentes } = await supabase
       .from('noticias_ia')
       .select('*')
       .eq('fecha', hoy)
       .order('created_at', { ascending: true })
-    
+
     if(existentes && existentes.length >= 5){
-      return NextResponse.json({ 
-        noticias: existentes, 
+      return NextResponse.json({
+        noticias: existentes,
         fuente: 'cache',
         fecha: hoy
       })
@@ -60,26 +88,27 @@ Noticias útiles para agencias de marketing de Latinoamérica.`
 
     let noticias = []
     try {
-      const texto = await llamarGemini(prompt)
+      const texto = await llamarGroq(prompt)
       const limpio = texto.replace(/```json/g,'').replace(/```/g,'').trim()
       const jsonMatch = limpio.match(/$$[\s\S]*$$/)
       if(jsonMatch) noticias = JSON.parse(jsonMatch[0])
     } catch(e) {
+      console.error('Groq error, usando fallback:', e)
       noticias = NOTICIAS_FALLBACK
     }
 
     if(!noticias.length) noticias = NOTICIAS_FALLBACK
 
     await supabase.from('noticias_ia').delete().eq('fecha', hoy)
-    
+
     const { data: guardadas } = await supabase
       .from('noticias_ia')
       .insert(noticias.map((n:any) => ({ ...n, fecha: hoy })))
       .select()
 
-    return NextResponse.json({ 
-      noticias: guardadas || noticias, 
-      fuente: 'gemini',
+    return NextResponse.json({
+      noticias: guardadas || noticias,
+      fuente: 'groq',
       fecha: hoy
     })
 
@@ -133,7 +162,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ analisis: 'Noticia no recibida.' })
     }
 
-    if(noticia.id && noticia.analisis){
+    if(noticia.analisis){
       return NextResponse.json({ analisis: noticia.analisis })
     }
 
@@ -145,7 +174,7 @@ export async function PUT(req: NextRequest) {
         .select('analisis')
         .eq('id', noticia.id)
         .single()
-      
+
       if(existente?.analisis){
         return NextResponse.json({ analisis: existente.analisis })
       }
@@ -182,7 +211,19 @@ Un párrafo con la visión de CHAR sobre esta tendencia.
 
 Respondé en español argentino, directo y accionable.`
 
-    const analisis = await llamarGemini(prompt)
+    let analisis = ''
+    try {
+      analisis = await llamarGroq(prompt)
+    } catch(e) {
+      console.error('Groq falló, intentando Gemini:', e)
+      try {
+        analisis = await llamarGemini(prompt)
+      } catch(e2) {
+        return NextResponse.json({
+          analisis: 'No se pudo generar el análisis en este momento. Intentá de nuevo más tarde.'
+        })
+      }
+    }
 
     if(noticia.id && analisis){
       await supabase
@@ -191,12 +232,12 @@ Respondé en español argentino, directo y accionable.`
         .eq('id', noticia.id)
     }
 
-    return NextResponse.json({ analisis: analisis || 'No se pudo generar el análisis.' })
+    return NextResponse.json({ analisis })
 
   } catch (error: any) {
     console.error('PUT error:', error)
-    return NextResponse.json({ 
-      analisis: 'Gemini no está disponible en este momento. Intentá en unos segundos.' 
+    return NextResponse.json({
+      analisis: 'Error inesperado. Intentá de nuevo.'
     })
   }
 }
