@@ -1001,9 +1001,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       }}>
         <div style={{padding:'26px 20px 22px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-           <div className="char-logo" style={{width:'32px',height:'32px',display:'flex',alignItems:'center',justifyContent:'center',background:'transparent',border:'none'}}>
-  <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'28px',height:'28px',objectFit:'contain'}}/>
-</div>
+           <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'32px',height:'32px',objectFit:'contain'}}/>
             <div>
               <div style={{fontWeight:800,fontSize:'15px',letterSpacing:'2px',color:c.text}}>CHAR CORE</div>
               <div style={{fontSize:'8px',color:c.muted,letterSpacing:'2.5px',marginTop:'1px'}}>SISTEMA OPERATIVO</div>
