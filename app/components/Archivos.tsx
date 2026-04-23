@@ -6,7 +6,7 @@ type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
 const L = { bg:'#eef0f8',surface:'#ffffff',s2:'#f4f6ff',border:'#dde0f0',b2:'#c8cbdf',text:'#0d0d20',text2:'#2a2a4a',text3:'#606088',muted:'#9090aa' }
 const th = (t:Theme) => t==='dark'?D:L
-const GOLD='#c9a96e',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa',PINK='#ec4899'
+const GOLD='#ffcd38',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa',PINK='#ec4899'
 
 function Eb({text,t}:{text:string;t:Theme}){
   return <div style={{fontSize:'9px',color:th(t).text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>{text}</div>
@@ -312,7 +312,7 @@ export default function Archivos({t,clientes=[]}:{t:Theme,clientes:any[]}){
             </div>
             <div style={{display:'flex',gap:'10px'}}>
               <button onClick={()=>{setModalSubir(false);setArchivosPendientes([])}} style={{flex:1,background:'transparent',color:c.text2,border:`1px solid ${c.border}`,borderRadius:'10px',padding:'11px',cursor:'pointer',fontSize:'13px',fontWeight:700,fontFamily:'Rajdhani,sans-serif'}}>Cancelar</button>
-              <button onClick={subirArchivos} disabled={subiendo} style={{flex:2,background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',borderRadius:'10px',padding:'11px',cursor:subiendo?'not-allowed':'pointer',fontSize:'13px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',opacity:subiendo?0.7:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
+              <button onClick={subirArchivos} disabled={subiendo} style={{flex:2,background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',borderRadius:'10px',padding:'11px',cursor:subiendo?'not-allowed':'pointer',fontSize:'13px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',opacity:subiendo?0.7:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'8px'}}>
                 {subiendo?'Subiendo...':'↑ Subir a Supabase'}
               </button>
             </div>
@@ -384,7 +384,7 @@ export default function Archivos({t,clientes=[]}:{t:Theme,clientes:any[]}){
           <button onClick={()=>setModalLink(true)} style={{background:`linear-gradient(135deg,${BLUE},#2255cc)`,color:'#fff',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',cursor:'pointer',fontFamily:'Rajdhani,sans-serif',fontWeight:700,display:'flex',alignItems:'center',gap:'6px'}}>
             🔗 Agregar Link
           </button>
-          <button onClick={()=>inputRef.current?.click()} style={{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',cursor:'pointer',fontFamily:'Rajdhani,sans-serif',fontWeight:700,display:'flex',alignItems:'center',gap:'6px'}}>
+          <button onClick={()=>inputRef.current?.click()} style={{background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',borderRadius:'8px',padding:'8px 16px',fontSize:'12px',cursor:'pointer',fontFamily:'Rajdhani,sans-serif',fontWeight:700,display:'flex',alignItems:'center',gap:'6px'}}>
             {I.upload} Subir Archivo
           </button>
           <input ref={inputRef} type="file" multiple style={{display:'none'}} onChange={e=>handleFiles(e.target.files)}/>
