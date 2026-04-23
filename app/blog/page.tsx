@@ -84,14 +84,14 @@ const iniciarContador=()=>{
 
   const tiempoLectura=(texto:string)=>Math.max(1,Math.ceil(texto.split(' ').length/200))
 
-  if(cargando) return(
-    <div style={{minHeight:'100vh',background:'#05050f',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Rajdhani,sans-serif'}}>
-      <div style={{textAlign:'center'}}>
-        <div style={{fontSize:'32px',marginBottom:'12px'}}>⚡</div>
-        <div style={{color:GOLD,fontSize:'16px',letterSpacing:'2px'}}>CARGANDO...</div>
-      </div>
+ if(cargando) return(
+  <div style={{minHeight:'100vh',background:'#05050f',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'Rajdhani,sans-serif'}}>
+    <div style={{textAlign:'center'}}>
+      <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'48px',height:'48px',objectFit:'contain',marginBottom:'12px'}}/>
+      <div style={{color:GOLD,fontSize:'16px',letterSpacing:'2px'}}>CARGANDO...</div>
     </div>
-  )
+  </div>
+)
 
   return(
     <div style={{minHeight:'100vh',background:'#05050f',fontFamily:'Rajdhani,sans-serif',color:'#f0f0ff'}}>
