@@ -323,7 +323,7 @@ export default function BlogPublico(){
                       Facebook
                     </a>
                     <button onClick={()=>{navigator.clipboard.writeText('https://project-gpu0d.vercel.app/blog');alert('Link copiado — pegalo en Instagram ✅')}}
-                      style={{padding:'7px 12px',borderRadius:'10px',background:'#e104764 0',color:'#e1047d',border:'1px solid #e1047d55',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'Rajdhani,sans-serif',background:'#e1047d20' as any}}>
+                      style={{padding:'7px 12px',borderRadius:'10px',background:'#e1047d20',color:'#e1047d',border:'1px solid #e1047d55',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'Rajdhani,sans-serif'}}>
                       Instagram
                     </button>
                   </div>
