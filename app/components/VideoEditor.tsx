@@ -5,7 +5,7 @@ type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
 const L = { bg:'#eef0f8',surface:'#ffffff',s2:'#f4f6ff',border:'#dde0f0',b2:'#c8cbdf',text:'#0d0d20',text2:'#2a2a4a',text3:'#606088',muted:'#9090aa' }
 const th = (t:Theme) => t==='dark'?D:L
-const GOLD='#c9a96e',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa'
+const GOLD='#ffcd38',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa'
 
 function Eb({text,t}:{text:string;t:Theme}){
   return <div style={{fontSize:'9px',color:th(t).text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>{text}</div>
@@ -24,7 +24,7 @@ function Card({children,style={},t}:{children:React.ReactNode;style?:React.CSSPr
 function Btn({children,onClick,v='ghost',t,disabled=false}:{children:React.ReactNode;onClick?:()=>void;v?:'primary'|'ghost'|'outline'|'danger';t:Theme;disabled?:boolean}){
   const c=th(t)
   const vs:Record<string,React.CSSProperties>={
-    primary:{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
+    primary:{background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
     ghost:{background:c.s2,color:c.text2,border:`1px solid ${c.border}`,fontWeight:500},
     outline:{background:'transparent',color:GOLD,border:`1px solid ${GOLD}55`,fontWeight:600},
     danger:{background:'transparent',color:RED,border:`1px solid ${RED}55`,fontWeight:600},
@@ -111,7 +111,7 @@ const FORMATOS_EXPORT = ['MP4 (recomendado)','MOV','WebM']
 const COLORES_SUB = [
   {nombre:'Blanco',valor:'#ffffff'},
   {nombre:'Amarillo',valor:'#FFE600'},
-  {nombre:'Dorado CHAR',valor:'#c9a96e'},
+  {nombre:'Dorado CHAR',valor:'#ffcd38'},
   {nombre:'Cyan',valor:'#00E5FF'},
   {nombre:'Verde',valor:'#3dd68c'},
   {nombre:'Rojo',valor:'#f87171'},
@@ -232,7 +232,7 @@ function BarraProceso({paso,t}:{paso:number;t:Theme}){
         const activo=i+1===paso
         return(
           <div key={p.id} style={{display:'flex',alignItems:'center',gap:'14px',padding:'12px 16px',borderRadius:'10px',background:activo?GOLD+'12':completado?GREEN+'08':c.s2,border:`1px solid ${activo?GOLD+'40':completado?GREEN+'30':c.border}`,transition:'all 0.3s'}}>
-            <div style={{width:'32px',height:'32px',borderRadius:'50%',background:activo?`linear-gradient(135deg,${GOLD},#8b6010)`:completado?GREEN+'25':c.s2,border:`1px solid ${activo?GOLD:completado?GREEN:c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:activo?'#050510':completado?GREEN:c.text3,flexShrink:0,transition:'all 0.3s'}}>
+            <div style={{width:'32px',height:'32px',borderRadius:'50%',background:activo?`linear-gradient(135deg,${GOLD},#cc8800)`:completado?GREEN+'25':c.s2,border:`1px solid ${activo?GOLD:completado?GREEN:c.border}`,display:'flex',alignItems:'center',justifyContent:'center',color:activo?'#050510':completado?GREEN:c.text3,flexShrink:0,transition:'all 0.3s'}}>
               {completado?I.check:p.icono}
             </div>
             <div style={{flex:1}}>
@@ -297,7 +297,7 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
           <Tag label={formato+' ✓'} color={BLUE}/>
         </div>
         <div style={{display:'flex',gap:'8px'}}>
-          <button className="char-btn" onClick={()=>alert('Descarga real disponible en Módulo 8')} style={{flex:1,background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',borderRadius:'8px',padding:'8px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif'}}>
+          <button className="char-btn" onClick={()=>alert('Descarga real disponible en Módulo 8')} style={{flex:1,background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',borderRadius:'8px',padding:'8px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:'6px',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif'}}>
             {I.dl} Descargar
           </button>
           <button className="char-btn" onClick={()=>alert('Compartir real disponible en Módulo 8')} style={{background:c.s2,color:c.text2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>
@@ -403,10 +403,10 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       </div>
 
       <div style={{display:'flex',gap:'8px'}}>
-        <button onClick={()=>setTab('procesar')} className="char-btn" style={{background:tab==='procesar'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:tab==='procesar'?'#050510':c.text2,border:tab==='procesar'?'none':`1px solid ${c.border}`,borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'6px'}}>
+        <button onClick={()=>setTab('procesar')} className="char-btn" style={{background:tab==='procesar'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,color:tab==='procesar'?'#050510':c.text2,border:tab==='procesar'?'none':`1px solid ${c.border}`,borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'6px'}}>
           {I.film} Procesar Video
         </button>
-        <button onClick={()=>setTab('historial')} className="char-btn" style={{background:tab==='historial'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:tab==='historial'?'#050510':c.text2,border:tab==='historial'?'none':`1px solid ${c.border}`,borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'6px'}}>
+        <button onClick={()=>setTab('historial')} className="char-btn" style={{background:tab==='historial'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,color:tab==='historial'?'#050510':c.text2,border:tab==='historial'?'none':`1px solid ${c.border}`,borderRadius:'10px',padding:'10px 16px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'6px'}}>
           {I.history} Historial de Sesiones
         </button>
       </div>
