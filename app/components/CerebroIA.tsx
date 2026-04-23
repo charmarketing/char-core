@@ -385,7 +385,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
         <div>
           <Eb text="INTELIGENCIA ARTIFICIAL" t={t}/>
           <h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>Cerebro IA</h1>
-          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>Powered by Google Gemini · Gratis · Historial en Supabase</div>
+          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>Powered by Groq + Gemini · Gratis · Historial en Supabase</div>
         </div>
         <Tag label="GEMINI ACTIVO ✅" color={GREEN}/>
       </div>
@@ -728,7 +728,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
           <Card t={t} style={{textAlign:'center',padding:'40px'}}>
             <div style={{display:'flex',gap:'4px',justifyContent:'center',alignItems:'center'}}>
               {[0,1,2].map(i=><div key={i} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
-              <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Gemini generando noticias...</span>
+              <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Generando noticias con IA...</span>
             </div>
           </Card>
         )}
@@ -752,7 +752,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
         </div>
         <div style={{fontSize:'12px',color:c.text2,lineHeight:'1.7',marginBottom:'8px'}}>{n.resumen}</div>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
-          <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · Gemini</div>
+          <div style={{fontSize:'11px',color:c.text3}}>{n.fuente} · IA</div>
           <span style={{fontSize:'11px',color:GOLD,fontWeight:700}}>
             {noticiaAbierta===i ? 'Cerrar análisis ↑' : 'Ver análisis completo →'}
           </span>
@@ -766,14 +766,14 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             {[0,1,2].map(j=>(
               <div key={j} style={{width:'8px',height:'8px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${j*0.2}s infinite`}}/>
             ))}
-            <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Gemini analizando en profundidad...</span>
+            <span style={{marginLeft:'8px',color:c.text3,fontSize:'13px'}}>Analizando con IA...</span>
           </div>
         ):(
           <div>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',flexWrap:'wrap',gap:'8px'}}>
               <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
                 <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
-                <span style={{fontSize:'11px',color:GREEN,fontWeight:700,letterSpacing:'1px'}}>ANÁLISIS GENERADO POR GEMINI</span>
+                <span style={{fontSize:'11px',color:GREEN,fontWeight:700,letterSpacing:'1px'}}>ANÁLISIS GENERADO POR IA</span>
               </div>
               <button onClick={(e)=>{e.stopPropagation();copiarTexto(analisisNoticia[i]||'')}}
                 style={{background:'transparent',color:c.text3,border:`1px solid ${c.border}`,borderRadius:'6px',padding:'4px 10px',cursor:'pointer',fontSize:'11px',fontFamily:'Rajdhani,sans-serif',display:'flex',alignItems:'center',gap:'4px'}}>
