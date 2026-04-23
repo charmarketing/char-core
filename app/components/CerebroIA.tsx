@@ -6,7 +6,7 @@ type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
 const L = { bg:'#eef0f8',surface:'#ffffff',s2:'#f4f6ff',border:'#dde0f0',b2:'#c8cbdf',text:'#0d0d20',text2:'#2a2a4a',text3:'#606088',muted:'#9090aa' }
 const th = (t:Theme) => t==='dark'?D:L
-const GOLD='#c9a96e',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa'
+const GOLD='#ffcd38',BLUE='#4f8fff',GREEN='#3dd68c',RED='#f87171',AMBER='#f59e0b',PURPLE='#a78bfa'
 
 function Eb({text,t}:{text:string;t:Theme}){
   return <div style={{fontSize:'9px',color:th(t).text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>{text}</div>
@@ -25,7 +25,7 @@ function Card({children,style={},t}:{children:React.ReactNode;style?:React.CSSPr
 function Btn({children,onClick,v='ghost',t,disabled=false}:{children:React.ReactNode;onClick?:()=>void;v?:'primary'|'ghost'|'outline';t:Theme;disabled?:boolean}){
   const c=th(t)
   const vs:Record<string,React.CSSProperties>={
-    primary:{background:`linear-gradient(135deg,${GOLD},#8b6010)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
+    primary:{background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
     ghost:{background:c.s2,color:c.text2,border:`1px solid ${c.border}`,fontWeight:500},
     outline:{background:'transparent',color:GOLD,border:`1px solid ${GOLD}55`,fontWeight:600},
   }
@@ -399,7 +399,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
             {clientesNombres.map(cl=>(
               <button key={cl} onClick={()=>setClienteCtx(cl)} className="char-btn" style={{
-                background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+                background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
                 color:clienteCtx===cl?'#050510':c.text2,
                 border:clienteCtx===cl?'none':`1px solid ${c.border}`,
                 borderRadius:'8px',padding:'8px 14px',cursor:'pointer',
@@ -418,7 +418,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
         {tabs.map(tb=>(
           <button key={tb.id} onClick={()=>setTab(tb.id)} className="char-btn" style={{
-            background:tab===tb.id?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+            background:tab===tb.id?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
             color:tab===tb.id?'#050510':c.text2,
             border:tab===tb.id?'none':`1px solid ${c.border}`,
             borderRadius:'10px',padding:'10px 16px',cursor:'pointer',
@@ -434,7 +434,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
         <Card t={t} style={{padding:'0',overflow:'hidden'}}>
           <div style={{padding:'18px 22px',borderBottom:`1px solid ${c.border}`,display:'flex',alignItems:'center',justifyContent:'space-between',gap:'10px'}}>
             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-              <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
+              <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#cc8800)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
               <div>
                 <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteCtx}</div>
                 <div style={{fontSize:'11px',color:GREEN,display:'flex',alignItems:'center',gap:'4px'}}>
@@ -451,10 +451,10 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             {mensajes.map(m=>(
               <div key={m.id} style={{display:'flex',gap:'10px',justifyContent:m.rol==='user'?'flex-end':'flex-start',alignItems:'flex-end'}}>
                 {m.rol==='ia'&&(
-                  <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
+                  <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#cc8800)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
                 )}
                 <div style={{maxWidth:'75%',display:'grid',gap:'4px'}}>
-                  <div style={{padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,color:m.rol==='user'?'#050510':c.text,fontSize:'13px',lineHeight:'1.7',border:m.rol==='ia'?`1px solid ${c.border}`:'none',whiteSpace:'pre-wrap'}}>
+                  <div style={{padding:'12px 16px',borderRadius:m.rol==='user'?'14px 14px 4px 14px':'14px 14px 14px 4px',background:m.rol==='user'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,color:m.rol==='user'?'#050510':c.text,fontSize:'13px',lineHeight:'1.7',border:m.rol==='ia'?`1px solid ${c.border}`:'none',whiteSpace:'pre-wrap'}}>
                     {m.texto}
                   </div>
                   {m.rol==='ia'&&(
@@ -470,7 +470,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             ))}
             {escribiendo&&tab==='chat'&&(
               <div style={{display:'flex',gap:'10px',alignItems:'flex-end'}}>
-                <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#8b6010)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
+                <div style={{width:'30px',height:'30px',background:`linear-gradient(135deg,${GOLD},#cc8800)`,borderRadius:'8px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',flexShrink:0}}>{I.bolt}</div>
                 <div style={{padding:'12px 16px',borderRadius:'14px 14px 14px 4px',background:c.s2,border:`1px solid ${c.border}`,display:'flex',gap:'4px',alignItems:'center'}}>
                   {[0,1,2].map(i=><div key={i} style={{width:'6px',height:'6px',borderRadius:'50%',background:GOLD,animation:`glow 1s ease-in-out ${i*0.2}s infinite`}}/>)}
                 </div>
@@ -660,7 +660,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
   {id:'nuevo',label:'Nuevo Post'},
 ] as const).map(bt=>(
         <button key={bt.id} onClick={()=>setBlogTab(bt.id)} className="char-btn" style={{
-          background:blogTab===bt.id?`linear-gradient(135deg,${GOLD},#8b6010)`:c.s2,
+          background:blogTab===bt.id?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
           color:blogTab===bt.id?'#050510':c.text2,
           border:blogTab===bt.id?'none':`1px solid ${c.border}`,
           borderRadius:'10px',padding:'8px 16px',cursor:'pointer',
