@@ -222,9 +222,7 @@ onSelect(nombre)
   return(
     <div className="char-slide" style={{minHeight:'100vh',background:c.bg,display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column'}}>
       <div style={{textAlign:'center',marginBottom:'32px'}}>
-        <div style={{width:'52px',height:'52px',background:`linear-gradient(135deg,${GOLD},#7a5010)`,borderRadius:'14px',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-          {I.bolt}
-        </div>
+        <img src="/fonts/logo-char.png" alt="CHAR" style={{width:'52px',height:'52px',objectFit:'contain',margin:'0 auto 16px',display:'block'}}/>
         <div style={{fontWeight:800,fontSize:'22px',letterSpacing:'3px',color:c.text}}></div>
         <div style={{fontSize:'11px',color:c.muted,letterSpacing:'2.5px',marginTop:'4px'}}>SISTEMA OPERATIVO</div>
       </div>
