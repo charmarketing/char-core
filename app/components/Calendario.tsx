@@ -19,7 +19,7 @@ const L = {
 }
 const th = (t: Theme) => (t === 'dark' ? D : L)
 
-const GOLD = '#c9a96e'
+const GOLD = '#ffcd38'
 const BLUE = '#4f8fff'
 const GREEN = '#3dd68c'
 const RED = '#f87171'
@@ -117,7 +117,7 @@ function inputStyle(t: Theme): React.CSSProperties {
 
 function toggleStyle(t: Theme, active: boolean): React.CSSProperties {
   const c = th(t)
-  return { background: active ? `linear-gradient(135deg,${GOLD},#8b6010)` : c.s2, color: active ? '#050510' : c.text2, border: active ? 'none' : `1px solid ${c.border}`, borderRadius: '8px', padding: '9px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, fontFamily: 'Rajdhani,sans-serif', letterSpacing: '0.3px' }
+  return { background: active ? `linear-gradient(135deg,${GOLD},#cc8800)` : c.s2, color: active ? '#050510' : c.text2, border: active ? 'none' : `1px solid ${c.border}`, borderRadius: '8px', padding: '9px 14px', cursor: 'pointer', fontSize: '12px', fontWeight: 700, fontFamily: 'Rajdhani,sans-serif', letterSpacing: '0.3px' }
 }
 
 export default function Calendario({ t }: { t: Theme }) {
