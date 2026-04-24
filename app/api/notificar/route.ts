@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
             'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            from: 'CHAR CORE <onboarding@resend.dev>',
+            from: 'CHAR CORE <alertas@char.marketing>',
             to: email,
             subject: template.asunto,
             html: template.html
