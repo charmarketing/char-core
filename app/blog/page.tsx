@@ -92,18 +92,35 @@ export default function BlogPublico(){
   }
 
   const enviarComentario=async(postId:string)=>{
-    const c=nuevoComentario[postId]
-    if(!c?.nombre?.trim()||!c?.contenido?.trim()) return
-    setEnviandoComentario(prev=>({...prev,[postId]:true}))
-    const {data}=await supabase.from('blog_comentarios')
-      .insert({post_id:postId,nombre:c.nombre,contenido:c.contenido})
-      .select().single()
-    if(data){
-      setComentarios(prev=>({...prev,[postId]:[...(prev[postId]||[]),data]}))
-      setNuevoComentario(prev=>({...prev,[postId]:{nombre:'',contenido:''}}))
-    }
-    setEnviandoComentario(prev=>({...prev,[postId]:false}))
+  const c=nuevoComentario[postId]
+  if(!c?.nombre?.trim()||!c?.contenido?.trim()) return
+  setEnviandoComentario(prev=>({...prev,[postId]:true}))
+  
+  const {data}=await supabase.from('blog_comentarios')
+    .insert({post_id:postId,nombre:c.nombre,contenido:c.contenido})
+    .select().single()
+  
+  if(data){
+    setComentarios(prev=>({...prev,[postId]:[...(prev[postId]||[]),data]}))
+    setNuevoComentario(prev=>({...prev,[postId]:{nombre:'',contenido:''}}))
+    
+    const post=posts.find((p:any)=>p.id===postId)
+    await fetch('/api/notificar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        tipo:'comentario_blog',
+        datos:{
+          post:post?.titulo||'Post del blog',
+          post_id:postId,
+          nombre:c.nombre,
+          comentario:c.contenido
+        }
+      })
+    })
   }
+  setEnviandoComentario(prev=>({...prev,[postId]:false}))
+}
 
   const abrirPost=(postId:string)=>{
     if(postAbierto===postId){
