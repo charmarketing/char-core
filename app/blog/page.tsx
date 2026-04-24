@@ -303,30 +303,35 @@ export default function BlogPublico(){
                     )}
                   </div>
 
-                  {/* ACCIONES */}
-                  <div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
-                    <button onClick={()=>abrirPost(post.id)} style={{padding:'7px 16px',borderRadius:'10px',cursor:'pointer',fontSize:'12px',fontFamily:'Rajdhani,sans-serif',fontWeight:700,background:postAbierto===post.id?'#1e1e3a':GOLD+'20',color:postAbierto===post.id?'#9090b8':GOLD,border:`1px solid ${postAbierto===post.id?'#1e1e3a':GOLD+'55'}`}}>
-                      {postAbierto===post.id?'Cerrar ↑':'Leer completo →'}
-                    </button>
-
-                    {/* COMPARTIR */}
-                    <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${compartirURL}`} target="_blank"
-                      style={{padding:'7px 12px',borderRadius:'10px',background:BLUE+'20',color:BLUE,border:`1px solid ${BLUE}55`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
-                      LinkedIn
-                    </a>
-                    <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.titulo)}&url=${compartirURL}`} target="_blank"
-                      style={{padding:'7px 12px',borderRadius:'10px',background:PURPLE+'20',color:PURPLE,border:`1px solid ${PURPLE}55`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
-                      X
-                    </a>
-                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${compartirURL}`} target="_blank"
-                      style={{padding:'7px 12px',borderRadius:'10px',background:'#1877f220',color:'#1877f2',border:'1px solid #1877f255',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
-                      Facebook
-                    </a>
-                    <button onClick={()=>{navigator.clipboard.writeText('https://project-gpu0d.vercel.app/blog');alert('Link copiado — pegalo en Instagram ✅')}}
-                      style={{padding:'7px 12px',borderRadius:'10px',background:'#e1047d20',color:'#e1047d',border:'1px solid #e1047d55',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'Rajdhani,sans-serif'}}>
-                      Instagram
-                    </button>
-                  </div>
+                    {/* ACCIONES */}
+<div style={{display:'flex',gap:'8px',alignItems:'center',flexWrap:'wrap'}}>
+  <button onClick={()=>abrirPost(post.id)} style={{padding:'7px 16px',borderRadius:'10px',cursor:'pointer',fontSize:'12px',fontFamily:'Rajdhani,sans-serif',fontWeight:700,background:postAbierto===post.id?'#1e1e3a':GOLD+'20',color:postAbierto===post.id?'#9090b8':GOLD,border:`1px solid ${postAbierto===post.id?'#1e1e3a':GOLD+'55'}`}}>
+    {postAbierto===post.id?'Cerrar ↑':'Leer completo →'}
+  </button>
+  <a href={`/blog/${post.id}`} style={{padding:'7px 14px',borderRadius:'10px',background:GOLD+'15',color:GOLD,border:`1px solid ${GOLD}35`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+    🔗 Ver post
+  </a>
+  <a href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`https://project-gpu0d.vercel.app/blog/${post.id}`)}`} target="_blank"
+    style={{padding:'7px 12px',borderRadius:'10px',background:BLUE+'20',color:BLUE,border:`1px solid ${BLUE}55`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+    LinkedIn
+  </a>
+  <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(post.titulo)}&url=${encodeURIComponent(`https://project-gpu0d.vercel.app/blog/${post.id}`)}`} target="_blank"
+    style={{padding:'7px 12px',borderRadius:'10px',background:PURPLE+'20',color:PURPLE,border:`1px solid ${PURPLE}55`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+    X
+  </a>
+  <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(`https://project-gpu0d.vercel.app/blog/${post.id}`)}`} target="_blank"
+    style={{padding:'7px 12px',borderRadius:'10px',background:'#1877f220',color:'#1877f2',border:'1px solid #1877f255',fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+    Facebook
+  </a>
+  <a href={`https://wa.me/?text=${encodeURIComponent(`${post.titulo}\n${post.resumen||''}\nhttps://project-gpu0d.vercel.app/blog/${post.id}`)}`} target="_blank"
+    style={{padding:'7px 12px',borderRadius:'10px',background:GREEN+'20',color:GREEN,border:`1px solid ${GREEN}55`,fontSize:'12px',fontWeight:700,textDecoration:'none',fontFamily:'Rajdhani,sans-serif'}}>
+    WhatsApp
+  </a>
+  <button onClick={()=>{navigator.clipboard.writeText(`https://project-gpu0d.vercel.app/blog/${post.id}`);alert('Link copiado — pegalo en Instagram ✅')}}
+    style={{padding:'7px 12px',borderRadius:'10px',background:'#e1047d20',color:'#e1047d',border:'1px solid #e1047d55',fontSize:'12px',fontWeight:700,cursor:'pointer',fontFamily:'Rajdhani,sans-serif'}}>
+    Instagram
+  </button>
+</div>
                 </div>
 
                 {/* COMENTARIOS */}
