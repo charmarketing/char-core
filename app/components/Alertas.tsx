@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -97,17 +98,20 @@ export default function Alertas({t,onActualizar,alertasIniciales,onCambio,client
   const [mostrarForm,setMostrarForm]=useState(false)
   const [nueva,setNueva]=useState({titulo:'',descripcion:'',tipo:'info' as Alerta['tipo'],cliente:clientes[0]?.nombre||'',rol:'CEO'})
 
-const marcarLeida=(id:number)=>{
+const marcarLeida=async(id:number)=>{
+  await supabase.from('alertas').update({leida:true}).eq('id',id)
   const nueva=alertas.map(a=>a.id===id?{...a,leida:true}:a)
   setAlertas(nueva)
   onCambio?.(nueva)
 }
-const marcarTodasLeidas=()=>{
+const marcarTodasLeidas=async()=>{
+  await supabase.from('alertas').update({leida:true}).eq('leida',false)
   const nueva=alertas.map(a=>({...a,leida:true}))
   setAlertas(nueva)
   onCambio?.(nueva)
 }
-const eliminar=(id:number)=>{
+const eliminar=async(id:number)=>{
+  await supabase.from('alertas').delete().eq('id',id)
   const nueva=alertas.filter(a=>a.id!==id)
   setAlertas(nueva)
   onCambio?.(nueva)
@@ -115,32 +119,45 @@ const eliminar=(id:number)=>{
 
   const crearAlerta=async()=>{
   if(!nueva.titulo.trim()) return
-  setAlertas(prev=>[{
-    id:Date.now(),
-    tipo:nueva.tipo,
-    titulo:nueva.titulo,
-    descripcion:nueva.descripcion,
-    cliente:nueva.cliente,
-    rol:nueva.rol,
-    tiempo:'ahora',
-    leida:false,
-    origen:'manual',
-  },...prev])
 
-  try{
-    await fetch('/api/notificar',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        tipo:'alerta_cliente',
-        datos:{
-          cliente:nueva.cliente,
-          mensaje:`${nueva.titulo}${nueva.descripcion?' — '+nueva.descripcion:''}`,
-        }
+  const clienteData=clientes?.find((c:any)=>c.nombre===nueva.cliente)
+  
+  const {data,error}=await supabase.from('alertas').insert({
+    cliente_id:clienteData?.id||null,
+    mensaje:nueva.titulo,
+    tipo:nueva.tipo,
+    leida:false,
+  }).select('*, clientes(nombre)').single()
+
+  if(data){
+    const alertaNueva:Alerta={
+      id:data.id,
+      tipo:data.tipo||'info',
+      titulo:data.mensaje,
+      descripcion:nueva.descripcion||'',
+      cliente:data.clientes?.nombre||nueva.cliente,
+      rol:nueva.rol,
+      tiempo:'ahora',
+      leida:false,
+      origen:'manual',
+    }
+    setAlertas(prev=>[alertaNueva,...prev])
+
+    try{
+      await fetch('/api/notificar',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          tipo:'alerta_cliente',
+          datos:{
+            cliente:nueva.cliente,
+            mensaje:nueva.titulo,
+          }
+        })
       })
-    })
-  }catch(err){
-    console.error('Error notificando:',err)
+    }catch(err){
+      console.error('Error notificando:',err)
+    }
   }
 
   setNueva({titulo:'',descripcion:'',tipo:'info',cliente:'Cliente Alfa',rol:'CEO'})
@@ -151,6 +168,29 @@ const eliminar=(id:number)=>{
     .filter(a=>soloNoLeidas?!a.leida:true)
 
   const noLeidas=alertas.filter(a=>!a.leida).length
+  useEffect(()=>{
+  cargarAlertas()
+},[])
+
+const cargarAlertas=async()=>{
+  const {data}=await supabase.from('alertas')
+    .select('*, clientes(nombre)')
+    .order('created_at',{ascending:false})
+    .limit(50)
+  if(data&&data.length>0){
+    setAlertas(data.map((a:any)=>({
+      id:a.id,
+      tipo:a.tipo||'info',
+      titulo:a.mensaje,
+      descripcion:'',
+      cliente:a.clientes?.nombre||'General',
+      rol:'CEO',
+      tiempo:new Date(a.created_at).toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'}),
+      leida:a.leida||false,
+      origen:'automatica'
+    })))
+  }
+}
   useEffect(()=>{
   onActualizar?.(alertas.filter(a=>!a.leida).length)
 },[alertas])
