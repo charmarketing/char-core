@@ -113,23 +113,39 @@ const eliminar=(id:number)=>{
   onCambio?.(nueva)
 }
 
-  const crearAlerta=()=>{
-    if(!nueva.titulo.trim()) return
-    setAlertas(prev=>[{
-      id:Date.now(),
-      tipo:nueva.tipo,
-      titulo:nueva.titulo,
-      descripcion:nueva.descripcion,
-      cliente:nueva.cliente,
-      rol:nueva.rol,
-      tiempo:'ahora',
-      leida:false,
-      origen:'manual',
-    },...prev])
-    setNueva({titulo:'',descripcion:'',tipo:'info',cliente:'Cliente Alfa',rol:'CEO'})
-    setMostrarForm(false)
+  const crearAlerta=async()=>{
+  if(!nueva.titulo.trim()) return
+  setAlertas(prev=>[{
+    id:Date.now(),
+    tipo:nueva.tipo,
+    titulo:nueva.titulo,
+    descripcion:nueva.descripcion,
+    cliente:nueva.cliente,
+    rol:nueva.rol,
+    tiempo:'ahora',
+    leida:false,
+    origen:'manual',
+  },...prev])
+
+  try{
+    await fetch('/api/notificar',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        tipo:'alerta_cliente',
+        datos:{
+          cliente:nueva.cliente,
+          mensaje:`${nueva.titulo}${nueva.descripcion?' — '+nueva.descripcion:''}`,
+        }
+      })
+    })
+  }catch(err){
+    console.error('Error notificando:',err)
   }
 
+  setNueva({titulo:'',descripcion:'',tipo:'info',cliente:'Cliente Alfa',rol:'CEO'})
+  setMostrarForm(false)
+}
   const alertasFiltradas=alertas
     .filter(a=>filtro==='todas'||a.tipo===filtro)
     .filter(a=>soloNoLeidas?!a.leida:true)
