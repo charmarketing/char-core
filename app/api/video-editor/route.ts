@@ -56,7 +56,7 @@ async function transcriptAudio(base64: string, mime: string): Promise<string> {
 // ── Analizar clips virales con LLaMA ─────────────────────────────────────
 async function detectClips(transcript: string, cfg: {
   cantidad: number; tipo: string; formato: string; idioma: string
-}): Promise<any[]> {
+}): Promise<any> {
   const prompt = `Sos un experto mundial en marketing viral y contenido para redes sociales.
 Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos virales.
 
