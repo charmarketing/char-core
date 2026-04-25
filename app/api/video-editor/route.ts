@@ -104,10 +104,11 @@ Respondé SOLO con JSON válido, sin texto extra:
     throw new Error(err?.error?.message || 'Error al analizar con Groq LLaMA')
   }
 
-  const data    = await res.json()
-  const content = JSON.parse(data.choices[0].message.content)
-  return { clips: content.clips || [], resumen: content.resumen || '' }
-}
+const data    = await res.json()
+      const content = JSON.parse(data.choices[0].message.content)
+      const clips   = content.clips || []
+      const resumen = content.resumen || ''
+      return { clips, resumen }
 
 // ── HANDLER ───────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
