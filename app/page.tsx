@@ -710,12 +710,28 @@ const agregarCliente=async()=>{
         red: data[0].red_social,
         horas: 0,
         tareas: 0,
-        campañas: 0,
+        campanas: 0,
         color: COLORES_CLIENTE[clientes.length % COLORES_CLIENTE.length]
       }
       setClientes([...clientes, nuevo])
+
+      try{
+        await fetch('/api/notificar',{
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            tipo:'alerta_cliente',
+            datos:{
+              cliente:nuevoNombre,
+              mensaje:`Nuevo cliente agregado a CHAR CORE — Red: ${nuevoRed}`
+            }
+          })
+        })
+      }catch(err){
+        console.error('Error notificando nuevo cliente:',err)
+      }
     }
-  } catch(e){
+  }catch(e){
     console.log('Error agregando cliente:', e)
   }
   setNuevoNombre('')
