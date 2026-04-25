@@ -93,7 +93,7 @@ Respondé SOLO con JSON válido, sin texto extra:
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
-      max_tokens: 3000,
+      max_tokens: 3000, 
       response_format: { type: 'json_object' },
       messages: [{ role: 'user', content: prompt }]
     })
