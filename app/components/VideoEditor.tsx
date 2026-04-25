@@ -295,8 +295,19 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
         {clip.gancho&&<div style={{fontSize:'12px',color:GOLD,fontWeight:700,fontStyle:'italic'}}>"{clip.gancho}"</div>}
         <div style={{fontSize:'11px',color:c.text3,lineHeight:'1.5'}}>{clip.motivo}</div>
         {clip.red_recomendada&&<div style={{fontSize:'11px',color:BLUE}}>📱 {clip.red_recomendada}</div>}
-        {clip.copy_caption&&(
-          <div style={{fontSize:'10px',color:c.text3,background:c.s2,padding:'8px',borderRadius:'8px',lineHeight:'1.5',borderLeft:`2px solid ${GOLD}`}}>{clip.copy_caption}</div>
+       {clip.copy_caption&&(
+          <div style={{fontSize:'10px',color:c.text3,background:c.s2,padding:'8px',borderRadius:'8px',lineHeight:'1.5',borderLeft:`2px solid ${GOLD}`}}>
+            <div style={{fontSize:'9px',color:GOLD,letterSpacing:'1px',fontWeight:700,marginBottom:'4px'}}>COPY PARA REDES</div>
+            {clip.copy_caption}
+            <div onClick={()=>navigator.clipboard.writeText(clip.copy_caption)} style={{marginTop:'6px',cursor:'pointer',fontSize:'9px',color:BLUE,fontWeight:700}}>📋 Copiar texto</div>
+          </div>
+        )}
+        {clip.subtitulos&&clip.subtitulos.length>0&&(
+          <div style={{fontSize:'10px',color:c.text3,background:c.s2,padding:'8px',borderRadius:'8px',borderLeft:`2px solid ${PURPLE}`}}>
+            <div style={{fontSize:'9px',color:PURPLE,letterSpacing:'1px',fontWeight:700,marginBottom:'4px'}}>SUBTÍTULOS PARA CAPCUT</div>
+            {clip.subtitulos.map((s,i)=><div key={i} style={{marginBottom:'2px'}}>— {s}</div>)}
+            <div onClick={()=>navigator.clipboard.writeText(clip.subtitulos.join('\n'))} style={{marginTop:'6px',cursor:'pointer',fontSize:'9px',color:BLUE,fontWeight:700}}>📋 Copiar subtítulos</div>
+          </div>
         )}
         <div style={{fontSize:'10px',color:c.text3}}>
           Tipografía: <span style={{color:GOLD,fontFamily:tipografia+',sans-serif',fontWeight:700}}>{tipografia}</span>
@@ -366,7 +377,10 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
         body.tipo_input='youtube'
         body.youtube_url=urlYoutube
       } else {
+        if(!archivoBase64){setErrorMsg('El archivo todavía se está cargando, esperá un momento');setEstado('idle');return}
         body.tipo_input='audio'
+        body.audio_base64=archivoBase64
+        body.audio_mime=archivoMime
       }
       setEstado('detectando')
       setPasoActual(3)
@@ -400,11 +414,24 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     }
   }
 
+const [archivoBase64,setArchivoBase64]=useState('')
+  const [archivoMime,setArchivoMime]=useState('')
+
   const handleFile=(e:React.ChangeEvent<HTMLInputElement>)=>{
     const file=e.target.files?.[0]
     if(file){
+      if(file.size>25*1024*1024){setErrorMsg('El archivo supera 25MB. Cortalo en partes o usá MP3.');return}
       setVideoInfo({nombre:file.name,tamaño:`${(file.size/1024/1024).toFixed(1)} MB`})
+      setArchivoMime(file.type||'audio/mpeg')
       setEstado('idle')
+      setErrorMsg('')
+      const reader=new FileReader()
+      reader.onload=ev=>{
+        const result=ev.target?.result as string
+        setArchivoBase64(result.split(',')[1])
+      }
+      reader.readAsDataURL(file)
+      setTipoInput('archivo')
     }
   }
 
