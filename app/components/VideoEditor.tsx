@@ -60,11 +60,16 @@ type Tab = 'procesar'|'historial'
 type Clip = {
   id:number
   titulo:string
+  gancho:string
   duracion:string
   inicio:string
+  fin:string
   score:number
   motivo:string
   cliente:string
+  red_recomendada:string
+  copy_caption:string
+  subtitulos:string[]
 }
 
 type Sesion = {
@@ -287,7 +292,12 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
       </div>
       <div style={{padding:'14px 16px',display:'grid',gap:'10px'}}>
         <div style={{fontSize:'13px',fontWeight:700,color:c.text,lineHeight:'1.3'}}>{clip.titulo}</div>
+        {clip.gancho&&<div style={{fontSize:'12px',color:GOLD,fontWeight:700,fontStyle:'italic'}}>"{clip.gancho}"</div>}
         <div style={{fontSize:'11px',color:c.text3,lineHeight:'1.5'}}>{clip.motivo}</div>
+        {clip.red_recomendada&&<div style={{fontSize:'11px',color:BLUE}}>📱 {clip.red_recomendada}</div>}
+        {clip.copy_caption&&(
+          <div style={{fontSize:'10px',color:c.text3,background:c.s2,padding:'8px',borderRadius:'8px',lineHeight:'1.5',borderLeft:`2px solid ${GOLD}`}}>{clip.copy_caption}</div>
+        )}
         <div style={{fontSize:'10px',color:c.text3}}>
           Tipografía: <span style={{color:GOLD,fontFamily:tipografia+',sans-serif',fontWeight:700}}>{tipografia}</span>
         </div>
@@ -333,20 +343,53 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     posicionLogo:'Arriba derecha',
   })
   const inputRef=useRef<HTMLInputElement>(null)
+  const [urlYoutube,setUrlYoutube]=useState('')
+  const [tipoInput,setTipoInput]=useState<'youtube'|'archivo'>('youtube')
+  const [transcriptPreview,setTranscriptPreview]=useState('')
+  const [resumen,setResumen]=useState('')
+  const [errorMsg,setErrorMsg]=useState('')
 
-  const simularProceso=()=>{
-    setEstado('subiendo')
-    setPasoActual(1)
-    const pasos:EstadoProceso[]=['subiendo','analizando','detectando','cortando','completado']
-    pasos.forEach((p,i)=>{
-      setTimeout(()=>{
-        setEstado(p)
-        setPasoActual(i+1)
-        if(p==='completado') setClips(CLIPS_DEMO.slice(0,parseInt(config.clipsCantidad)))
-      },(i+1)*2000)
-    })
+ const procesarVideo=async()=>{
+    setErrorMsg('')
+    setClips([])
+    setTranscriptPreview('')
+    setResumen('')
+    if(tipoInput==='youtube'&&!urlYoutube.trim()){setErrorMsg('Ingresá una URL de YouTube válida');return}
+    if(tipoInput==='archivo'&&!videoInfo){setErrorMsg('Subí un archivo de audio primero');return}
+    setEstado('analizando')
+    setPasoActual(2)
+    try{
+      const body:any={
+        config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}
+      }
+      if(tipoInput==='youtube'){
+        body.tipo_input='youtube'
+        body.youtube_url=urlYoutube
+      } else {
+        body.tipo_input='audio'
+      }
+      setEstado('detectando')
+      setPasoActual(3)
+      const res=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      const data=await res.json()
+      if(!res.ok||!data.ok) throw new Error(data.error||'Error al procesar')
+      setTranscriptPreview(data.transcript_preview||'')
+      setResumen(data.resumen||'')
+      const clipsFormateados:Clip[]=(data.clips||[]).map((cl:any)=>({
+        id:cl.numero,titulo:cl.titulo,gancho:cl.gancho,
+        duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,
+        score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,
+        red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[],
+      }))
+      setClips(clipsFormateados)
+      setEstado('completado')
+      setPasoActual(5)
+    }catch(err:any){
+      setErrorMsg(err.message||'Error al procesar')
+      setEstado('idle')
+      setPasoActual(0)
+    }
   }
-
   const handleDrop=(e:React.DragEvent)=>{
     e.preventDefault()
     setDragOver(false)
@@ -464,7 +507,24 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                   </div>
                 )}
               </div>
-              <input ref={inputRef} type="file" accept="video/*" style={{display:'none'}} onChange={handleFile}/>
+              <input ref={inputRef} type="file" accept="audio/*,video/*" style={{display:'none'}} onChange={handleFile}/>
+            </Card>
+
+            <Card t={t}>
+              <Eb text="O PEGÁ LINK DE YOUTUBE" t={t}/>
+              <h3 style={{fontSize:'16px',fontWeight:700,color:c.text,margin:'0 0 12px'}}>Link de YouTube / Drive</h3>
+              <div style={{display:'flex',gap:'8px',marginBottom:'12px'}}>
+                <button onClick={()=>setTipoInput('youtube')} className="char-btn" style={{flex:1,background:tipoInput==='youtube'?GOLD+'20':c.s2,color:tipoInput==='youtube'?GOLD:c.text2,border:`1px solid ${tipoInput==='youtube'?GOLD+'55':c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif'}}>
+                  🔗 YouTube
+                </button>
+                <button onClick={()=>setTipoInput('archivo')} className="char-btn" style={{flex:1,background:tipoInput==='archivo'?GOLD+'20':c.s2,color:tipoInput==='archivo'?GOLD:c.text2,border:`1px solid ${tipoInput==='archivo'?GOLD+'55':c.border}`,borderRadius:'8px',padding:'8px',cursor:'pointer',fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif'}}>
+                  📁 Archivo
+                </button>
+              </div>
+              {tipoInput==='youtube'&&(
+                <input value={urlYoutube} onChange={e=>setUrlYoutube(e.target.value)} placeholder="https://youtube.com/watch?v=..." style={{...inputSt,border:`1px solid ${urlYoutube?GOLD+'55':c.border}`}}/>
+              )}
+              {errorMsg&&<div style={{marginTop:'10px',padding:'10px 14px',background:RED+'15',border:`1px solid ${RED}40`,borderRadius:'8px',fontSize:'12px',color:RED}}>{errorMsg}</div>}
             </Card>
 
             <Card t={t}>
@@ -569,8 +629,8 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
               </div>
             </Card>
 
-            <Btn v="primary" t={t} onClick={simularProceso} disabled={estado!=='idle'&&estado!=='completado'}>
-              {I.bolt} {estado==='completado'?'Procesar otro video':'Detectar clips virales ahora'}
+            <Btn v="primary" t={t} onClick={procesarVideo} disabled={estado!=='idle'&&estado!=='completado'}>
+              {I.bolt} {estado==='completado'?'Procesar otro video':'Detectar clips virales con IA'}
             </Btn>
           </div>
 
@@ -598,8 +658,9 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
                     <Eb text="PROCESO COMPLETADO" t={t}/>
                     <h3 style={{fontSize:'16px',fontWeight:700,color:GREEN,margin:0}}>{I.check} {clips.length} clips detectados</h3>
                   </div>
-                  <Tag label="LISTOS PARA DESCARGAR" color={GREEN}/>
+                  <Tag label="ANALIZADOS CON GROQ IA" color={GREEN}/>
                 </div>
+                {resumen&&<div style={{marginTop:'12px',fontSize:'12px',color:c.text2,lineHeight:'1.6',padding:'10px 14px',background:BLUE+'10',borderRadius:'8px',borderLeft:`2px solid ${BLUE}`}}>{resumen}</div>}
                 <div style={{marginTop:'12px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
                   <Tag label={`FORMATO: ${config.formato}`} color={BLUE}/>
                   <Tag label={`FUENTE: ${config.tipografia.toUpperCase()}`} color={PURPLE}/>
