@@ -388,13 +388,16 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
         return
       }
       // ARCHIVO LOCAL
-      setEstado('subiendo');setPasoActual(1)
-      const ext=archivoFile!.name.split('.').pop()||'mp4'
-      const path=`temp/${Date.now()}.${ext}`
-     const {error:upErr}=await supabase.storage.from('archivos').upload(path,archivoFile!,{upsert:true})
-if(upErr) throw new Error('Error subiendo archivo: '+upErr.message)
-const {data:urlData}=supabase.storage.from('archivos').getPublicUrl(path)
-      const publicUrl=urlData.publicUrl
+      setEstado('analizando')
+setPasoActual(2)
+
+const formData = new FormData()
+formData.append('file', archivoFile)
+
+const dgRes = await fetch('/api/deepgram', {
+  method: 'POST',
+  body: formData
+})
       // DEEPGRAM
       setEstado('analizando');setPasoActual(2)
       const dgRes=await fetch('/api/deepgram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:publicUrl})})
