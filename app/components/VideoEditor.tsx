@@ -2,6 +2,8 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
+const [youtubeUrl, setYoutubeUrl] = useState('')
+
 let ffmpeg: any = null
 
 async function loadFFmpeg() {
@@ -601,7 +603,11 @@ const [archivoBase64,setArchivoBase64]=useState('')
                 </button>
               </div>
               {tipoInput==='youtube'&&(
-                <input value={urlYoutube} onChange={e=>setUrlYoutube(e.target.value)} placeholder="https://youtube.com/watch?v=..." style={{...inputSt,border:`1px solid ${urlYoutube?GOLD+'55':c.border}`}}/>
+                <input
+value={youtubeUrl}
+onChange={(e) => setYoutubeUrl(e.target.value)}
+placeholder="https://youtube.com/watch?v=..."
+/>
               )}
               {errorMsg&&<div style={{marginTop:'10px',padding:'10px 14px',background:RED+'15',border:`1px solid ${RED}40`,borderRadius:'8px',fontSize:'12px',color:RED}}>{errorMsg}</div>}
             </Card>
