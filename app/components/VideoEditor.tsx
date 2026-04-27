@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -128,11 +129,11 @@ const CLIPS_DEMO:Clip[] = []
 const HISTORIAL_DEMO:Sesion[] = []
 
 const PASOS_PROCESO = [
-  {id:1,label:'Subiendo video',desc:'Cargando archivo al servidor',icono:I.upload},
-  {id:2,label:'Analizando audio',desc:'AssemblyAI detecta momentos clave',icono:I.bolt},
-  {id:3,label:'Detectando clips virales',desc:'IA identifica los mejores momentos',icono:I.film},
-  {id:4,label:'Cortando al formato seleccionado',desc:'Shotstack renderiza el formato elegido',icono:I.crop},
-  {id:5,label:'Aplicando logo y subtítulos',desc:'Estampando identidad del cliente',icono:I.logo},
+  {id:1,label:'Subiendo archivo',desc:'Guardando en servidor temporalmente',icono:I.upload},
+  {id:2,label:'Transcribiendo audio',desc:'Deepgram convierte audio a texto',icono:I.bolt},
+  {id:3,label:'Detectando clips virales',desc:'Groq IA analiza los mejores momentos',icono:I.film},
+  {id:4,label:'Generando subtítulos y copy',desc:'Preparando todo listo para redes',icono:I.sub},
+  {id:5,label:'Completado',desc:'Clips listos para descargar',icono:I.check},
 ]
 
 function ColorPickerCustom({valor,onChange,t,coloresRapidos}:{valor:string,onChange:(v:string)=>void,t:Theme,coloresRapidos:{valor:string,nombre:string}[]}){
@@ -306,7 +307,13 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
           <div style={{fontSize:'10px',color:c.text3,background:c.s2,padding:'8px',borderRadius:'8px',borderLeft:`2px solid ${PURPLE}`}}>
             <div style={{fontSize:'9px',color:PURPLE,letterSpacing:'1px',fontWeight:700,marginBottom:'4px'}}>SUBTÍTULOS PARA CAPCUT</div>
             {clip.subtitulos.map((s,i)=><div key={i} style={{marginBottom:'2px'}}>— {s}</div>)}
-            <div onClick={()=>navigator.clipboard.writeText(clip.subtitulos.join('\n'))} style={{marginTop:'6px',cursor:'pointer',fontSize:'9px',color:BLUE,fontWeight:700}}>📋 Copiar subtítulos</div>
+            <div style={{display:'flex',gap:'8px',marginTop:'6px'}}>
+              <div onClick={()=>navigator.clipboard.writeText(clip.subtitulos.join('\n'))} style={{cursor:'pointer',fontSize:'9px',color:BLUE,fontWeight:700}}>📋 Copiar</div>
+              <div onClick={()=>{
+                const srt=clip.subtitulos.map((s,i)=>`${i+1}\n00:00:${String(i*3).padStart(2,'0')},000 --> 00:00:${String(i*3+3).padStart(2,'0')},000\n${s}`).join('\n\n')
+                const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(srt);a.download=`${clip.titulo.slice(0,20)}.srt`;a.click()
+              }} style={{cursor:'pointer',fontSize:'9px',color:GREEN,fontWeight:700}}>⬇ Descargar SRT</div>
+            </div>
           </div>
         )}
         <div style={{fontSize:'10px',color:c.text3}}>
@@ -366,72 +373,78 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     setTranscriptPreview('')
     setResumen('')
     if(tipoInput==='youtube'&&!urlYoutube.trim()){setErrorMsg('Ingresá una URL de YouTube válida');return}
-    if(tipoInput==='archivo'&&!videoInfo){setErrorMsg('Subí un archivo de audio primero');return}
-    setEstado('analizando')
-    setPasoActual(2)
+    if(tipoInput==='archivo'&&!archivoFile){setErrorMsg('Subí un archivo primero');return}
     try{
-      const body:any={
-        config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}
-      }
+      let transcript=''
       if(tipoInput==='youtube'){
-        body.tipo_input='youtube'
-        body.youtube_url=urlYoutube
-      } else {
-        if(!archivoBase64){setErrorMsg('El archivo todavía se está cargando, esperá un momento');setEstado('idle');return}
-        body.tipo_input='audio'
-        body.audio_base64=archivoBase64
-        body.audio_mime=archivoMime
+        setEstado('analizando');setPasoActual(2)
+        const res=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo_input:'youtube',youtube_url:urlYoutube,config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}})})
+        const data=await res.json()
+        if(!res.ok||!data.ok) throw new Error(data.error||'Error al procesar YouTube')
+        setTranscriptPreview(data.transcript_preview||'')
+        setResumen(data.resumen||'')
+        const clipsF:Clip[]=(data.clips||[]).map((cl:any,i:number)=>({id:i+1,titulo:cl.titulo,gancho:cl.gancho,duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[]}))
+        setClips(clipsF);setEstado('completado');setPasoActual(5)
+        return
       }
-      setEstado('detectando')
-      setPasoActual(3)
-      const res=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
-      const data=await res.json()
-      if(!res.ok||!data.ok) throw new Error(data.error||'Error al procesar')
-      setTranscriptPreview(data.transcript_preview||'')
-      setResumen(data.resumen||'')
-      const clipsFormateados:Clip[]=(data.clips||[]).map((cl:any)=>({
-        id:cl.numero,titulo:cl.titulo,gancho:cl.gancho,
-        duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,
-        score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,
-        red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[],
-      }))
-      setClips(clipsFormateados)
-      setEstado('completado')
-      setPasoActual(5)
+      // ARCHIVO LOCAL
+      setEstado('subiendo');setPasoActual(1)
+      const ext=archivoFile!.name.split('.').pop()||'mp4'
+      const path=`temp/${Date.now()}.${ext}`
+      const {error:upErr}=await supabase.storage.from('video-temp').upload(path,archivoFile!,{upsert:true})
+      if(upErr) throw new Error('Error subiendo archivo: '+upErr.message)
+      const {data:urlData}=supabase.storage.from('video-temp').getPublicUrl(path)
+      const publicUrl=urlData.publicUrl
+      // DEEPGRAM
+      setEstado('analizando');setPasoActual(2)
+      const dgRes=await fetch('/api/deepgram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:publicUrl})})
+      const dgData=await dgRes.json()
+      if(!dgRes.ok||!dgData.ok) throw new Error(dgData.error||'Error al transcribir')
+      transcript=dgData.transcript
+      setTranscriptPreview(transcript.slice(0,300)+'...')
+      // GROQ
+      setEstado('detectando');setPasoActual(3)
+      const grRes=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo_input:'transcript',transcript,config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}})})
+      const grData=await grRes.json()
+      if(!grRes.ok||!grData.ok) throw new Error(grData.error||'Error al analizar con IA')
+      setResumen(grData.resumen||'')
+      const clipsF:Clip[]=(grData.clips||[]).map((cl:any,i:number)=>({id:i+1,titulo:cl.titulo,gancho:cl.gancho,duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[]}))
+      setClips(clipsF);setPasoActual(5);setEstado('completado')
+      // Limpiar archivo temporal
+      await supabase.storage.from('video-temp').remove([path])
     }catch(err:any){
       setErrorMsg(err.message||'Error al procesar')
-      setEstado('idle')
-      setPasoActual(0)
+      setEstado('idle');setPasoActual(0)
     }
   }
+  const [archivoFile,setArchivoFile]=useState<File|null>(null)
+
   const handleDrop=(e:React.DragEvent)=>{
     e.preventDefault()
     setDragOver(false)
     const file=e.dataTransfer.files[0]
     if(file){
+      if(file.size>500*1024*1024){setErrorMsg('El archivo supera 500MB. Dividilo en partes.');return}
       setVideoInfo({nombre:file.name,tamaño:`${(file.size/1024/1024).toFixed(1)} MB`})
+      setArchivoFile(file)
+      setTipoInput('archivo')
       setEstado('idle')
+      setErrorMsg('')
     }
   }
 
 const [archivoBase64,setArchivoBase64]=useState('')
   const [archivoMime,setArchivoMime]=useState('')
 
-  const handleFile=(e:React.ChangeEvent<HTMLInputElement>)=>{
+ const handleFile=(e:React.ChangeEvent<HTMLInputElement>)=>{
     const file=e.target.files?.[0]
     if(file){
-      if(file.size>25*1024*1024){setErrorMsg('El archivo supera 25MB. Cortalo en partes o usá MP3.');return}
+      if(file.size>500*1024*1024){setErrorMsg('El archivo supera 500MB. Dividilo en partes.');return}
       setVideoInfo({nombre:file.name,tamaño:`${(file.size/1024/1024).toFixed(1)} MB`})
-      setArchivoMime(file.type||'audio/mpeg')
+      setArchivoFile(file)
+      setTipoInput('archivo')
       setEstado('idle')
       setErrorMsg('')
-      const reader=new FileReader()
-      reader.onload=ev=>{
-        const result=ev.target?.result as string
-        setArchivoBase64(result.split(',')[1])
-      }
-      reader.readAsDataURL(file)
-      setTipoInput('archivo')
     }
   }
 
