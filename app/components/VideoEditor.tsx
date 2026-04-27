@@ -1,9 +1,10 @@
 'use client'
 import { useState, useRef } from 'react'
-import { createFFmpeg, fetchFile } from '@ffmpeg/ffmpeg'
+import { FFmpeg } from '@ffmpeg/ffmpeg'
+import { fetchFile } from '@ffmpeg/util'
 import { supabase } from '../lib/supabase'
 
-const ffmpeg = createFFmpeg({ log: true })
+const ffmpeg = new FFmpeg()
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
