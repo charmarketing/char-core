@@ -16,6 +16,30 @@ async function loadFFmpeg() {
 
   return ffmpeg
 }
+async function detectarClips() {
+
+  const res = await fetch("/api/video-editor", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      tipo_input: "youtube",
+      youtube_url: youtubeUrl,
+      config: {
+        cantidad: 3,
+        tipo: "Podcast",
+        formato: "9:16 Vertical",
+        idioma: "Español"
+      }
+    })
+  })
+
+  const data = await res.json()
+
+  console.log("Clips detectados:", data)
+
+}
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -381,6 +405,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const [transcriptPreview,setTranscriptPreview]=useState('')
   const [resumen,setResumen]=useState('')
   const [errorMsg,setErrorMsg]=useState('')
+  const [youtubeUrl, setYoutubeUrl] = useState("")
 
  const procesarVideo=async()=>{
     setErrorMsg('')
