@@ -353,26 +353,26 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
 }
 async function detectarClips() {
 
-  const res = await fetch("/api/video-editor", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      tipo_input: "youtube",
-      youtube_url: youtubeUrl,
-      config: {
-        cantidad: 3,
-        tipo: "Podcast",
-        formato: "9:16 Vertical",
-        idioma: "Español"
-      }
-    })
-  })
+const res = await fetch("/api/video-editor", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify({
+tipo_input: "youtube",
+youtube_url: urlYoutube,
+config: {
+cantidad: 3,
+tipo: "Podcast",
+formato: "9:16 Vertical",
+idioma: "Español"
+}
+})
+})
 
-  const data = await res.json()
+const data = await res.json()
 
-  console.log("Clips detectados:", data)
+console.log("Clips detectados:", data)
 
 }
 
@@ -602,8 +602,9 @@ const [archivoBase64,setArchivoBase64]=useState('')
               </div>
               {tipoInput==='youtube'&&(
                 <input
-value={youtubeUrl}
-onChange={(e) => setYoutubeUrl(e.target.value)}
+type="text"
+value={urlYoutube}
+onChange={(e)=>setUrlYoutube(e.target.value)}
 placeholder="https://youtube.com/watch?v=..."
 />
               )}
