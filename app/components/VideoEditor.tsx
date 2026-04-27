@@ -1,7 +1,6 @@
 'use client'
 import { useState, useRef } from 'react'
 import { FFmpeg } from '@ffmpeg/ffmpeg'
-import { fetchFile } from '@ffmpeg/util'
 import { supabase } from '../lib/supabase'
 
 const ffmpeg = new FFmpeg()
