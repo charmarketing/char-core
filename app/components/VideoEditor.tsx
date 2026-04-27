@@ -411,8 +411,6 @@ const dgRes = await fetch('/api/deepgram', {
       setResumen(grData.resumen||'')
       const clipsF:Clip[]=(grData.clips||[]).map((cl:any,i:number)=>({id:i+1,titulo:cl.titulo,gancho:cl.gancho,duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[]}))
       setClips(clipsF);setPasoActual(5);setEstado('completado')
-      // Limpiar archivo temporal
-      await supabase.storage.from('archivos').remove([path])
     }catch(err:any){
       setErrorMsg(err.message||'Error al procesar')
       setEstado('idle');setPasoActual(0)
