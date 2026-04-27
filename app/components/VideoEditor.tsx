@@ -2,8 +2,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
-const [youtubeUrl, setYoutubeUrl] = useState('')
-
 let ffmpeg: any = null
 
 async function loadFFmpeg() {
@@ -17,30 +15,6 @@ async function loadFFmpeg() {
   }
 
   return ffmpeg
-}
-async function detectarClips() {
-
-  const res = await fetch("/api/video-editor", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      tipo_input: "youtube",
-      youtube_url: youtubeUrl,
-      config: {
-        cantidad: 3,
-        tipo: "Podcast",
-        formato: "9:16 Vertical",
-        idioma: "Español"
-      }
-    })
-  })
-
-  const data = await res.json()
-
-  console.log("Clips detectados:", data)
-
 }
 
 type Theme = 'dark' | 'light'
@@ -377,9 +351,34 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
     </Card>
   )
 }
+async function detectarClips() {
+
+  const res = await fetch("/api/video-editor", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      tipo_input: "youtube",
+      youtube_url: youtubeUrl,
+      config: {
+        cantidad: 3,
+        tipo: "Podcast",
+        formato: "9:16 Vertical",
+        idioma: "Español"
+      }
+    })
+  })
+
+  const data = await res.json()
+
+  console.log("Clips detectados:", data)
+
+}
 
 export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
+  const [youtubeUrl, setYoutubeUrl] = useState("")
   const clientesNombres=clientes.map((cl:any)=>cl.nombre)
   const [tab,setTab]=useState<Tab>('procesar')
   const [estado,setEstado]=useState<EstadoProceso>('idle')
@@ -407,7 +406,6 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const [transcriptPreview,setTranscriptPreview]=useState('')
   const [resumen,setResumen]=useState('')
   const [errorMsg,setErrorMsg]=useState('')
-  const [youtubeUrl, setYoutubeUrl] = useState("")
 
  const procesarVideo=async()=>{
     setErrorMsg('')
