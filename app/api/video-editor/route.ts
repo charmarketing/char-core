@@ -125,8 +125,11 @@ export async function POST(req: NextRequest) {
     } else if (tipo_input === 'audio') {
       if (!audio_base64) return NextResponse.json({ error: 'Archivo de audio requerido' }, { status: 400 })
       transcript = await transcriptAudio(audio_base64, audio_mime || 'audio/mpeg')
+    } else if (tipo_input === 'transcript') {
+      transcript = body.transcript || ''
+      if (!transcript) return NextResponse.json({ error: 'transcript requerido' }, { status: 400 })
     } else {
-      return NextResponse.json({ error: 'tipo_input debe ser "youtube" o "audio"' }, { status: 400 })
+      return NextResponse.json({ error: 'tipo_input debe ser "youtube", "audio" o "transcript"' }, { status: 400 })
     }
 
     // 2. Detectar clips virales
