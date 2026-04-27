@@ -391,9 +391,9 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       setEstado('subiendo');setPasoActual(1)
       const ext=archivoFile!.name.split('.').pop()||'mp4'
       const path=`temp/${Date.now()}.${ext}`
-      const {error:upErr}=await supabase.storage.from('video-temp').upload(path,archivoFile!,{upsert:true})
-      if(upErr) throw new Error('Error subiendo archivo: '+upErr.message)
-      const {data:urlData}=supabase.storage.from('video-temp').getPublicUrl(path)
+     const {error:upErr}=await supabase.storage.from('archivos').upload(path,archivoFile!,{upsert:true})
+if(upErr) throw new Error('Error subiendo archivo: '+upErr.message)
+const {data:urlData}=supabase.storage.from('archivos').getPublicUrl(path)
       const publicUrl=urlData.publicUrl
       // DEEPGRAM
       setEstado('analizando');setPasoActual(2)
@@ -411,7 +411,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       const clipsF:Clip[]=(grData.clips||[]).map((cl:any,i:number)=>({id:i+1,titulo:cl.titulo,gancho:cl.gancho,duracion:`${cl.duracion_seg}s`,inicio:cl.timestamp_inicio,fin:cl.timestamp_fin,score:cl.score_viral,motivo:cl.por_que_viral,cliente:config.cliente,red_recomendada:cl.red_recomendada,copy_caption:cl.copy_caption,subtitulos:cl.subtitulos||[]}))
       setClips(clipsF);setPasoActual(5);setEstado('completado')
       // Limpiar archivo temporal
-      await supabase.storage.from('video-temp').remove([path])
+      await supabase.storage.from('archivos').remove([path])
     }catch(err:any){
       setErrorMsg(err.message||'Error al procesar')
       setEstado('idle');setPasoActual(0)
