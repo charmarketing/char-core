@@ -57,36 +57,51 @@ async function transcriptAudio(base64: string, mime: string): Promise<string> {
 async function detectClips(transcript: string, cfg: {
   cantidad: number; tipo: string; formato: string; idioma: string
 }): Promise<any> {
-  const prompt = `Sos un experto mundial en marketing viral y contenido para redes sociales.
-Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos virales.
+ const prompt = `Sos un estratega mundial de contenido viral para redes sociales.
 
-TIPO DE CONTENIDO: ${cfg.tipo}
-FORMATO DESTINO: ${cfg.formato}
-IDIOMA ORIGINAL: ${cfg.idioma}
+Tu trabajo es analizar una transcripción y detectar los momentos con MAYOR potencial viral.
 
-TRANSCRIPCIÓN (primeros 4000 caracteres):
-${transcript.slice(0, 4000)}
+Buscá momentos que tengan:
 
-Respondé SOLO con JSON válido, sin texto extra:
+- frases polémicas
+- aprendizajes poderosos
+- storytelling fuerte
+- cambios emocionales
+- frases tipo "nadie te dice esto"
+- ideas contraintuitivas
+- datos impactantes
+
+Elegí exactamente ${cfg.cantidad} clips.
+
+Cada clip debe:
+- durar entre 20 y 60 segundos
+- empezar con un hook fuerte
+- funcionar como video independiente
+
+CONTEXTO:
+Tipo de contenido: ${cfg.tipo}
+Formato destino: ${cfg.formato}
+Idioma: ${cfg.idioma}
+
+TRANSCRIPCIÓN:
+${transcript.slice(0,4000)}
+
+Respondé SOLO con JSON válido.
+
 {
-  "clips": [
-    {
-      "numero": 1,
-      "titulo": "Título gancho corto y poderoso",
-      "gancho": "Primera línea que engancha en los primeros 2 segundos",
-      "timestamp_inicio": "00:00",
-      "timestamp_fin": "00:45",
-      "duracion_seg": 45,
-      "por_que_viral": "Razón concreta de por qué este momento funciona en redes",
-      "red_recomendada": "Instagram Reels",
-      "copy_caption": "Caption sugerido listo para publicar con hashtags",
-      "subtitulos": ["Línea de subtítulo 1", "Línea 2", "Línea 3", "Línea 4"],
-      "score_viral": 94
-    }
-  ],
-  "resumen": "Análisis general del contenido en 2 oraciones"
+ "clips":[
+  {
+   "numero":1,
+   "titulo":"titulo corto viral",
+   "gancho":"frase que engancha en los primeros 2 segundos",
+   "timestamp_inicio":"00:00",
+   "timestamp_fin":"00:45",
+   "duracion_seg":45,
+   "score_viral":95,
+   "copy_caption":"caption listo para redes"
+  }
+ ]
 }`
-
   const res = await fetch(`${GROQ}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${KEY()}`, 'Content-Type': 'application/json' },
