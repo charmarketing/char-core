@@ -399,8 +399,6 @@ const dgRes = await fetch('/api/deepgram', {
   body: formData
 })
       // DEEPGRAM
-      setEstado('analizando');setPasoActual(2)
-      const dgRes=await fetch('/api/deepgram',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({url:publicUrl})})
       const dgData=await dgRes.json()
       if(!dgRes.ok||!dgData.ok) throw new Error(dgData.error||'Error al transcribir')
       transcript=dgData.transcript
