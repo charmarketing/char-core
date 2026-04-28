@@ -501,8 +501,8 @@ const [archivoBase64,setArchivoBase64]=useState('')
   width: '100%'
 }
 
-  return(
-    <div className="char-fade" style={{display:'grid',gap:'28px'}}>
+return (
+  <div className="char-fade" style={{display:'grid',gap:'28px'}}>
 
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px'}}>
         <div>
