@@ -352,7 +352,7 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
   )
 }
 
-export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
+export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}) {
   const c=th(t)
   const [youtubeUrl, setyoutubeUrl] = useState("")
   const [clips,setClips] = useState<Clip[]>([])
@@ -499,7 +499,8 @@ const [archivoBase64,setArchivoBase64]=useState('')
   fontSize: '13px',
   outline: 'none',
   width: '100%'
-}
+  }
+  }
 
 return (
   <div className="char-fade" style={{display:'grid',gap:'28px'}}>
