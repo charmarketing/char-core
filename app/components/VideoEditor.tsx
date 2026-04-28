@@ -291,20 +291,20 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       setResumen(grData.resumen || '')
 
-      const clipsF:Clip[]=(grData.clips || []).map((cl:any,i:number)=>({
-        id:i+1,
-        titulo:cl.titulo,
-        gancho:cl.gancho,
-        duracion:`${cl.duracion_seg}s`,
-        inicio:cl.timestamp_inicio,
-        fin:cl.timestamp_fin,
-        score:cl.score_viral,
-        motivo:cl.por_que_viral,
-        cliente:config.cliente,
-        red_recomendada:cl.red_recomendada,
-        copy_caption:cl.copy_caption,
-        subtitulos:cl.subtitulos || []
-      }))
+     const clipsF: Clip[] = (grData.clips || []).map((c:any, i:number) => ({
+  id: i,
+  titulo: c.titulo,
+  gancho: c.gancho,
+  duracion: `${c.duracion_seg}s`,
+  inicio: c.timestamp_inicio,
+  final: c.timestamp_fin,
+  score: c.score_viral,
+  motivo: c.por_que_viral,
+  cliente: config.cliente,
+  red_recomendada: c.red_recomendada,
+  copy_caption: c.copy_caption,
+  subtitulos: c.subtitulos || []
+}))
 
       setClips(clipsF)
 
