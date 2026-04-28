@@ -1009,7 +1009,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       case 'archivos': return <Archivos t={theme} clientes={clientes}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData} clientes={clientes}/>
       case 'ia': return <CerebroIA t={theme} clientes={clientes}/>
-        case 'video': return <VideoEditor t={theme} clientes={clientes} onUpload={subirVideo}/>
+        case 'video': return <VideoEditor theme={theme} clientes={clientes} onUpload={subirVideo}/>
         case 'perfil': return <VPerfil key="perfil" t={theme} usuario={usuario||''} onLogout={handleLogout}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
