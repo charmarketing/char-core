@@ -1,8 +1,7 @@
-import { uploadToR2 } from "@/app/lib/r2.ts"
+import { uploadToR2 } from "../../lib/r2"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
-
   const formData = await req.formData()
   const file = formData.get("file") as File
 
