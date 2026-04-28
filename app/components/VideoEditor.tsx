@@ -355,6 +355,7 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
 export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
   const [youtubeUrl, setyoutubeUrl] = useState("")
+  const [clips,setClips] = useState<Clip[]>([])
   async function detectarClips() {
 
 const res = await fetch("/api/video-editor", {
@@ -378,6 +379,8 @@ const data = await res.json()
 
 console.log("Clips detectados:", data)
 
+if(data?.clips){
+  setClips(data.clips)
 }
   const clientesNombres=clientes.map((cl:any)=>cl.nombre)
   const [tab,setTab]=useState<Tab>('procesar')
@@ -606,6 +609,10 @@ const [archivoBase64,setArchivoBase64]=useState('')
  onChange={(e)=>setyoutubeUrl(e.target.value)}
  placeholder="https://youtube.com/watch?v=..."
 />
+          
+          <Btn t={t} v="primary" onClick={detectarClips}>
+  Analizar Video
+</Btn>
               )}
               {errorMsg&&<div style={{marginTop:'10px',padding:'10px 14px',background:RED+'15',border:`1px solid ${RED}40`,borderRadius:'8px',fontSize:'12px',color:RED}}>{errorMsg}</div>}
             </Card>
@@ -781,7 +788,7 @@ const [archivoBase64,setArchivoBase64]=useState('')
             </div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}>
-            {clips.map(clip=>(
+            clips.map((clip)=>(
               <ClipCard key={clip.id} clip={clip} t={t} formato={config.formato} tipografia={config.tipografia} colorSub={config.colorSub} posicionSub={config.posicionSub} posicionLogo={config.posicionLogo}/>
             ))}
           </div>
