@@ -311,7 +311,8 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       setPasoActual(5)
       setEstado('completado')
 
-    }catch(err:any){
+    }
+    catch(err:any){
 
       setErrorMsg(err.message || 'Error al procesar')
 
