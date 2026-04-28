@@ -291,7 +291,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       setResumen(grData.resumen || '')
 
-     const clipsF: Clip[] = (grData.clips || []).map((c:any, i:number) => ({
+     const clipsF:Clip[]=(grData.clips || []).map((c:any,i:number)=>({
   id: i,
   titulo: c.titulo,
   gancho: c.gancho,
