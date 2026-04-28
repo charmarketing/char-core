@@ -2,20 +2,6 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 
-let ffmpeg: any = null
-
-async function loadFFmpeg() {
-  if (typeof window === "undefined") return null
-  const { FFmpeg } = await import("@ffmpeg/ffmpeg")
-
-  if (!ffmpeg) {
-    ffmpeg = new FFmpeg()
-    await ffmpeg.load()
-  }
-
-  return ffmpeg
-}
-
 type Theme = 'dark' | 'light'
 
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -23,55 +9,19 @@ const L = { bg:'#eef0f8',surface:'#ffffff',s2:'#f4f6ff',border:'#dde0f0',b2:'#c8
 const th = (t:Theme)=> t==='dark'?D:L
 
 const GOLD='#ffcd38'
-const BLUE='#4f8fff'
-const GREEN='#3dd68c'
 const RED='#f87171'
 const AMBER='#f59e0b'
-const PURPLE='#a78bfa'
 
 function Eb({text,t}:{text:string;t:Theme}){
   return <div style={{fontSize:'9px',color:th(t).text3,letterSpacing:'3px',fontWeight:700,marginBottom:'4px'}}>{text}</div>
 }
 
-function Tag({label,color}:{label:string;color:string}){
-  return <span style={{padding:'2px 9px',borderRadius:'20px',background:color+'18',border:`1px solid ${color}45`,fontSize:'9px',color,fontWeight:700,letterSpacing:'1px',whiteSpace:'nowrap'}}>{label}</span>
-}
-
 function Card({children,style={},t}:{children:React.ReactNode;style?:React.CSSProperties;t:Theme}){
   const c=th(t)
   return(
-    <div className={`char-card char-surface ${t}`} style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px',boxShadow:'0 2px 16px #00000015',transition:'border-color 0.2s,box-shadow 0.2s',...style}}>
+    <div style={{background:c.surface,border:`1px solid ${c.border}`,borderRadius:'14px',padding:'22px',...style}}>
       {children}
     </div>
-  )
-}
-
-function Btn({children,onClick,v='ghost',t,disabled=false}:{children:React.ReactNode;onClick?:()=>void;v?:'primary'|'ghost'|'outline'|'danger';t:Theme;disabled?:boolean}){
-  const c=th(t)
-  const vs:Record<string,React.CSSProperties>={
-    primary:{background:`linear-gradient(135deg,${GOLD},#cc8800)`,color:'#050510',border:'none',fontWeight:700,boxShadow:`0 4px 16px ${GOLD}40`},
-    ghost:{background:c.s2,color:c.text2,border:`1px solid ${c.border}`,fontWeight:500},
-    outline:{background:'transparent',color:GOLD,border:`1px solid ${GOLD}55`,fontWeight:600},
-    danger:{background:'transparent',color:RED,border:`1px solid ${RED}55`,fontWeight:600},
-  }
-  return(
-    <button className="char-btn" onClick={onClick} disabled={disabled}
-      style={{
-        ...vs[v],
-        padding:'8px 16px',
-        borderRadius:'8px',
-        fontSize:'12px',
-        cursor:disabled?'not-allowed':'pointer',
-        display:'flex',
-        alignItems:'center',
-        gap:'6px',
-        letterSpacing:'0.3px',
-        transition:'all 0.15s',
-        fontFamily:'Rajdhani,sans-serif',
-        opacity:disabled?0.5:1
-      }}>
-      {children}
-    </button>
   )
 }
 
@@ -108,13 +58,9 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const [resumen,setResumen]=useState("")
   const [transcriptPreview,setTranscriptPreview]=useState("")
 
-  const [tipoInput,setTipoInput]=useState<'youtube'|'archivo'>('youtube')
-
   const [archivoFile,setArchivoFile]=useState<File|null>(null)
 
   const inputRef=useRef<HTMLInputElement>(null)
-
-  const clientesNombres=clientes.map((cl:any)=>cl.nombre)
 
   const [config,setConfig]=useState({
     cliente:'',
@@ -131,63 +77,60 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     posicionLogo:'Arriba derecha',
   })
 
-  async function detectarClips(){
+async function procesarVideo(){
 
-    if(!youtubeUrl.trim()){
-      setErrorMsg("Ingresá una URL válida")
-      return
-    }
-
-    try{
-
-      setEstado('analizando')
-      setPasoActual(2)
-
-      const res=await fetch("/api/video-editor",{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body:JSON.stringify({
-          tipo_input:"youtube",
-          youtube_url:youtubeUrl,
-          config:{
-            cantidad:3,
-            tipo:"Podcast",
-            formato:"9:16",
-            idioma:"Español"
-          }
-        })
-      })
-
-      const data=await res.json()
-
-      if(data?.clips){
-        setClips(data.clips)
-      }
-
-      setEstado('completado')
-      setPasoActual(5)
-
-    }catch(err:any){
-      setErrorMsg(err.message || "Error procesando")
-      setEstado('idle')
-      setPasoActual(0)
-    }
-
-  }
-
-const procesarVideo = async () => {
-
-  try {
+  try{
 
     setEstado('analizando')
+    setPasoActual(2)
+
+    const res=await fetch("/api/video-editor",{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        tipo_input:"youtube",
+        youtube_url:youtubeUrl,
+        config:{
+          cantidad:3,
+          tipo:"Podcast",
+          formato:"9:16",
+          idioma:"Español"
+        }
+      })
+    })
+
+    const data=await res.json()
+
+    if(!res.ok){
+      throw new Error(data.error || "Error al procesar")
+    }
+
+    setTranscriptPreview(data.transcript_preview || "")
+    setResumen(data.resumen || "")
+
+    const clipsF:Clip[]=(data.clips || []).map((cl:any,i:number)=>({
+      id:i+1,
+      titulo:cl.titulo,
+      gancho:cl.gancho,
+      duracion:`${cl.duracion_seg}s`,
+      inicio:cl.timestamp_inicio,
+      fin:cl.timestamp_fin,
+      score:cl.score_viral,
+      motivo:cl.por_que_viral,
+      cliente:config.cliente,
+      red_recomendada:cl.red_recomendada,
+      copy_caption:cl.copy_caption,
+      subtitulos:cl.subtitulos || []
+    }))
 
     setClips(clipsF)
 
-    setPasoActual(5)
     setEstado('completado')
+    setPasoActual(5)
 
-  } catch(err:any){
-    setErrorMsg(err.message || 'Error al procesar')
+  }catch(err:any){
+
+    setErrorMsg(err.message || "Error al procesar")
     setEstado('idle')
     setPasoActual(0)
 
@@ -195,305 +138,166 @@ const procesarVideo = async () => {
 
 }
 
-        const data=await res.json()
-
-        if(!res.ok){
-          throw new Error(data.error || 'Error al procesar YouTube')
-        }
-
-        setTranscriptPreview(data.transcript_preview || '')
-        setResumen(data.resumen || '')
-
-        const clipsF:Clip[]=(data.clips || []).map((cl:any,i:number)=>({
-          id:i+1,
-          titulo:cl.titulo,
-          gancho:cl.gancho,
-          duracion:`${cl.duracion_seg}s`,
-          inicio:cl.timestamp_inicio,
-          fin:cl.timestamp_fin,
-          score:cl.score_viral,
-          motivo:cl.por_que_viral,
-          cliente:config.cliente,
-          red_recomendada:cl.red_recomendada,
-          copy_caption:cl.copy_caption,
-          subtitulos:cl.subtitulos || []
-        }))
-
-        setClips(clipsF)
-        setEstado('completado')
-        setPasoActual(5)
-
-        return
-      }
-
-      setEstado('analizando')
-      setPasoActual(2)
-
-      const formData=new FormData()
-      formData.append('file',archivoFile!)
-
-      const dgRes=await fetch('/api/deepgram',{method:'POST',body:formData})
-
-      const dgData=await dgRes.json()
-
-      if(!dgRes.ok){
-        throw new Error(dgData.error || 'Error al transcribir')
-      }
-
-      transcript=dgData.transcript
-
-      setTranscriptPreview(transcript.slice(0,300)+'...')
-
-      setEstado('detectando')
-      setPasoActual(3)
-
-      const grRes=await fetch('/api/video-editor',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          tipo_input:'transcript',
-          transcript,
-          config:{
-            cantidad:parseInt(config.clipsCantidad),
-            tipo:config.tipoContenido,
-            formato:config.formato,
-            idioma:'Español'
-          }
-        })
-      })
-
-      const grData=await grRes.json()
-
-      if(!grRes.ok){
-        throw new Error(grData.error || 'Error al analizar con IA')
-      }
-
-      setResumen(grData.resumen || '')
-
-     const clipsF:Clip[]=(grData.clips || []).map((c:any,i:number)=>({
-  id: i,
-  titulo: c.titulo,
-  gancho: c.gancho,
-  duracion: `${c.duracion_seg}s`,
-  inicio: c.timestamp_inicio,
-  final: c.timestamp_fin,
-  score: c.score_viral,
-  motivo: c.por_que_viral,
-  cliente: config.cliente,
-  red_recomendada: c.red_recomendada,
-  copy_caption: c.copy_caption,
-  subtitulos: c.subtitulos || []
-}))
-
-      setClips(clipsF)
-
-      setPasoActual(5)
-      setEstado('completado')
-}
-    
-    catch(err:any){
-  setErrorMsg(err.message || 'Error al procesar')
-
-  setEstado('idle')
-  setPasoActual(0)
-};
-
 const inputSt: React.CSSProperties = {
-    background: c.s2,
-    color: c.text,
-    border: `1px solid ${c.border}`,
-    borderRadius: '10px',
-    padding: '10px 14px',
-    fontFamily: 'Rajdhani, sans-serif',
-    fontSize: '13px',
-    outline: 'none',
-    width: '100%'
-  }
+  background: c.s2,
+  color: c.text,
+  border: `1px solid ${c.border}`,
+  borderRadius: '10px',
+  padding: '10px 14px',
+  fontFamily: 'Rajdhani, sans-serif',
+  fontSize: '13px',
+  outline: 'none',
+  width: '100%'
+}
+
 return (
 
-    <div className="char-fade" style={{display:'grid',gap:'28px'}}>
+<div className="char-fade" style={{display:'grid',gap:'28px'}}>
 
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px'}}>
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',gap:'12px'}}>
 
-        <div>
-          <Eb text="INTELIGENCIA ARTIFICIAL" t={t}/>
-          <h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>
-            Video Editor IA
-          </h1>
-          <div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>
-            Convertí cualquier video largo en clips virales automáticamente
-          </div>
-        </div>
+<div>
+<Eb text="INTELIGENCIA ARTIFICIAL" t={t}/>
+<h1 style={{fontSize:'28px',fontWeight:800,margin:0,color:c.text}}>
+Video Editor IA
+</h1>
 
-      <div style={{
-  fontSize:'11px',
-  padding:'4px 8px',
-  borderRadius:'6px',
-  background:AMBER,
-  color:'#000',
-  fontWeight:600
-}}>
-  MODO DEMO
+<div style={{fontSize:'12px',color:c.text3,marginTop:'4px'}}>
+Convertí cualquier video largo en clips virales automáticamente
 </div>
 
-      </div>
+</div>
 
-      <div style={{display:'flex',gap:'8px'}}>
+<div style={{
+fontSize:'11px',
+padding:'4px 8px',
+borderRadius:'6px',
+background:AMBER,
+color:'#000',
+fontWeight:600
+}}>
+MODO DEMO
+</div>
 
-        <button
-          onClick={()=>setTab('procesar')}
-          className="char-btn"
-          style={{
-            background:tab==='procesar'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
-            color:tab==='procesar'?'#050510':c.text2,
-            border:tab==='procesar'?'none':`1px solid ${c.border}`,
-            borderRadius:'10px',
-            padding:'10px 16px',
-            cursor:'pointer',
-            fontSize:'12px',
-            fontWeight:700,
-            fontFamily:'Rajdhani,sans-serif'
-          }}
-        >
-          Procesar Video
-        </button>
+</div>
 
-        <button
-          onClick={()=>setTab('historial')}
-          className="char-btn"
-          style={{
-            background:tab==='historial'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
-            color:tab==='historial'?'#050510':c.text2,
-            border:tab==='historial'?'none':`1px solid ${c.border}`,
-            borderRadius:'10px',
-            padding:'10px 16px',
-            cursor:'pointer',
-            fontSize:'12px',
-            fontWeight:700,
-            fontFamily:'Rajdhani,sans-serif'
-          }}
-        >
-          Historial
-        </button>
+<div style={{display:'flex',gap:'8px'}}>
 
-      </div>
+<button
+onClick={()=>setTab('procesar')}
+className="char-btn"
+style={{
+background:tab==='procesar'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
+color:tab==='procesar'?'#050510':c.text2,
+border:tab==='procesar'?'none':`1px solid ${c.border}`,
+borderRadius:'10px',
+padding:'10px 16px',
+cursor:'pointer',
+fontSize:'12px',
+fontWeight:700,
+fontFamily:'Rajdhani,sans-serif'
+}}>
+Procesar Video
+</button>
 
-      {tab==='procesar' && (
+<button
+onClick={()=>setTab('historial')}
+className="char-btn"
+style={{
+background:tab==='historial'?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
+color:tab==='historial'?'#050510':c.text2,
+border:tab==='historial'?'none':`1px solid ${c.border}`,
+borderRadius:'10px',
+padding:'10px 16px',
+cursor:'pointer',
+fontSize:'12px',
+fontWeight:700,
+fontFamily:'Rajdhani,sans-serif'
+}}>
+Historial
+</button>
 
-        <Card t={t}>
+</div>
 
-          <Eb text="LINK DE YOUTUBE" t={t}/>
+{tab==='procesar' && (
 
-          "use client"
+<Card t={t}>
 
-import { useState } from "react"
+<Eb text="LINK DE YOUTUBE" t={t}/>
 
-export default function VideoUpload() {
+<input
+value={youtubeUrl}
+onChange={(e)=>setYoutubeUrl(e.target.value)}
+placeholder="https://youtube.com/..."
+style={inputSt}
+/>
 
-  const [uploading, setUploading] = useState(false)
-  const [fileName, setFileName] = useState("")
+<button
+onClick={procesarVideo}
+style={{
+marginTop:'12px',
+background:`linear-gradient(135deg,${GOLD},#cc8800)`,
+border:'none',
+padding:'10px 16px',
+borderRadius:'8px',
+fontWeight:700,
+cursor:'pointer'
+}}>
+Procesar
+</button>
 
-  async function handleUpload(file: File) {
+{errorMsg && (
+<div style={{
+marginTop:'10px',
+padding:'10px 14px',
+background:RED+'15',
+border:`1px solid ${RED}40`,
+borderRadius:'8px',
+fontSize:'12px',
+color:RED
+}}>
+{errorMsg}
+</div>
+)}
 
-    setUploading(true)
-    setFileName(file.name)
+</Card>
 
-    const formData = new FormData()
-    formData.append("file", file)
+)}
 
-    const res = await fetch("/api/upload", {
-      method: "POST",
-      body: formData
-    })
+{clips.length>0 && (
 
-    const data = await res.json()
+<Card t={t}>
 
-    console.log("VIDEO URL:", data)
+<Eb text="CLIPS DETECTADOS" t={t}/>
 
-    setUploading(false)
-  }
+<div style={{display:'grid',gap:'8px'}}>
 
-  function handleDrop(e:any){
-    e.preventDefault()
+{clips.map((clip)=>(
+<div key={clip.id} style={{
+padding:'10px',
+border:`1px solid ${c.border}`,
+borderRadius:'8px'
+}}>
 
-    const file = e.dataTransfer.files[0]
+<div style={{fontWeight:700,color:c.text}}>
+{clip.titulo}
+</div>
 
-    if(file){
-      handleUpload(file)
-    }
-  }
+<div style={{fontSize:'12px',color:c.text3}}>
+{clip.motivo}
+</div>
 
-  return (
+</div>
+))}
 
-    <div
-      onDrop={handleDrop}
-      onDragOver={(e)=>e.preventDefault()}
-      className="border-2 border-dashed border-gray-600 rounded-xl p-20 text-center cursor-pointer"
-    >
+</div>
 
-      {uploading ? (
+</Card>
 
-        <p>Subiendo {fileName}...</p>
+)}
 
-      ) : (
+</div>
 
-        <p>Arrastra tu video aquí</p>
+)
 
-      )}
-
-    </div>
-
-  )
-}
-
-          {errorMsg && (
-            <div style={{
-              marginTop:'10px',
-              padding:'10px 14px',
-              background:RED+'15',
-              border:`1px solid ${RED}40`,
-              borderRadius:'8px',
-              fontSize:'12px',
-              color:RED
-            }}>
-              {errorMsg}
-            </div>
-          )}
-
-        </Card>
-
-      )}
-
-      {clips.length>0 && (
-
-        <Card t={t}>
-
-          <Eb text="CLIPS DETECTADOS" t={t}/>
-
-          <div style={{display:'grid',gap:'8px'}}>
-
-            {clips.map((clip)=>(
-              <div key={clip.id} style={{
-                padding:'10px',
-                border:`1px solid ${c.border}`,
-                borderRadius:'8px'
-              }}>
-                <div style={{fontWeight:700,color:c.text}}>
-                  {clip.titulo}
-                </div>
-                <div style={{fontSize:'12px',color:c.text3}}>
-                  {clip.motivo}
-                </div>
-              </div>
-            ))}
-
-          </div>
-
-        </Card>
-
-      )}
-
-    </div>
-
-  )
 }
