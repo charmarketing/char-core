@@ -175,46 +175,27 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
   }
 
-  const procesarVideo=async()=>{
+const procesarVideo = async () => {
 
-    setErrorMsg('')
-    setClips([])
-    setTranscriptPreview('')
-    setResumen('')
+  try {
 
-    if(tipoInput==='youtube' && !youtubeUrl.trim()){
-      setErrorMsg('Ingresá una URL de YouTube válida')
-      return
-    }
+    setEstado('analizando')
 
-    if(tipoInput==='archivo' && !archivoFile){
-      setErrorMsg('Subí un archivo primero')
-      return
-    }
+    ...
+    setClips(clipsF)
 
-    try{
+    setPasoActual(5)
+    setEstado('completado')
 
-      let transcript=''
+  } catch(err:any){
 
-      if(tipoInput==='youtube'){
+    setErrorMsg(err.message || 'Error al procesar')
+    setEstado('idle')
+    setPasoActual(0)
 
-        setEstado('analizando')
-        setPasoActual(2)
+  }
 
-        const res=await fetch('/api/video-editor',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({
-            tipo_input:'youtube',
-            youtube_url:youtubeUrl,
-            config:{
-              cantidad:parseInt(config.clipsCantidad),
-              tipo:config.tipoContenido,
-              formato:config.formato,
-              idioma:'Español'
-            }
-          })
-        })
+}
 
         const data=await res.json()
 
