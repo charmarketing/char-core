@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'tipo_input debe ser "youtube", "audio" o "transcript"' }, { status: 400 })
     }
 
-    async function detectarClipsVirales(transcript: string) {
+    const detectarClipsVirales = async (transcript: string) => {
 
   const prompt = `
 Analizá esta transcripción de un video y detectá los momentos más virales.
