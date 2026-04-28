@@ -13,6 +13,25 @@ import PanelSEM from './components/PanelSEM'
 import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
 
+async function subirVideo(file: File) {
+
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body: formData
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data.error || "Error subiendo video")
+  }
+
+  return data
+}
+
 // ── THEME ─────────────────────────────────────────────────────────────────
 type Theme = 'dark'|'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -990,7 +1009,7 @@ case 'seo': return <PanelSEO t={theme} clientes={clientes}/>
       case 'archivos': return <Archivos t={theme} clientes={clientes}/>
       case 'alertas': return <Alertas t={theme} onActualizar={(n)=>setAlertasNoLeidas(n)} alertasIniciales={alertasData} onCambio={setAlertasData} clientes={clientes}/>
       case 'ia': return <CerebroIA t={theme} clientes={clientes}/>
-        case 'video': return <VideoEditor t={theme} clientes={clientes}/>
+        case 'video': return <VideoEditor t={theme} clientes={clientes} onUpload={subirVideo}/>
         case 'perfil': return <VPerfil key="perfil" t={theme} usuario={usuario||''} onLogout={handleLogout}/>
       default:           return <VDash t={theme} usuario={usuario} irA={irA}/>
     }
