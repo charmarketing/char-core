@@ -147,7 +147,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'tipo_input debe ser "youtube", "audio" o "transcript"' }, { status: 400 })
     }
 
-    const detectarClipsVirales = async (transcript: string) => {
+    const detectarClipsVirales = async (transcript: string, config: any) => {
 
   const prompt = `
 Analizá esta transcripción de un video y detectá los momentos más virales.
@@ -192,15 +192,20 @@ ${transcript}
 }
 
     // 2. Detectar clips virales
-    const resultado = await detectarClipsVirales(transcript, {
+   const resultado = await detectarClipsVirales(transcript, {
+  cantidad: config?.cantidad || 3,
+  tipo: config?.tipo || "Podcast",
+  formato: config?.formato || "9:16 Vertical",
+  idioma: config?.idioma || "Español",
+})
 
-    return NextResponse.json({
-      ok: true,
-      transcript_preview: transcript.slice(0, 300) + '...',
-      clips: resultado,
-resumen: "",
-      palabras: transcript.split(' ').length,
-    })
+return NextResponse.json({
+  ok: true,
+  transcript_preview: transcript.slice(0, 300) + "...",
+  clips: resultado,
+  resumen: "",
+  palabras: transcript.split(" ").length,
+})
 
   } catch (err: any) {
     console.error('[video-editor]', err)
