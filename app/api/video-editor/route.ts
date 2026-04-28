@@ -147,8 +147,52 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'tipo_input debe ser "youtube", "audio" o "transcript"' }, { status: 400 })
     }
 
+    async function detectarClipsVirales(transcript: string) {
+
+  const prompt = `
+Analizá esta transcripción de un video y detectá los momentos más virales.
+
+Devuelve JSON con:
+id
+titulo
+duracion
+inicio
+fin
+score_viral
+por_que_viral
+
+Transcripción:
+${transcript}
+`
+
+  const res = await fetch(`${GROQ}/chat/completions`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${KEY()}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      model: "llama3-70b-8192",
+      messages: [
+        { role: "user", content: prompt }
+      ],
+      temperature: 0.3
+    })
+  })
+
+  const data = await res.json()
+
+  const text = data.choices[0].message.content
+
+  try {
+    return JSON.parse(text)
+  } catch {
+    return []
+  }
+}
+
     // 2. Detectar clips virales
-    const resultado = await detectClips(transcript, {
+    const resultado = await detectarClipsVirales(transcript)
       cantidad: config?.cantidad || 3,
       tipo:     config?.tipo     || 'Podcast',
       formato:  config?.formato  || '9:16 Vertical',
@@ -158,8 +202,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       transcript_preview: transcript.slice(0, 300) + '...',
-      clips: resultado.clips,
-      resumen: resultado.resumen,
+      clips: resultado,
+resumen: "",
       palabras: transcript.split(' ').length,
     })
 
