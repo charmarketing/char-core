@@ -400,21 +400,67 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
           <Eb text="LINK DE YOUTUBE" t={t}/>
 
-          <input
-            type="text"
-            value={youtubeUrl}
-            onChange={(e)=>setYoutubeUrl(e.target.value)}
-            placeholder="https://youtube.com/watch?v=..."
-            style={inputSt}
-          />
+          "use client"
 
-          <div style={{marginTop:'12px'}}>
+import { useState } from "react"
 
-            <Btn t={t} v="primary" onClick={detectarClips}>
-              Analizar Video
-            </Btn>
+export default function VideoUpload() {
 
-          </div>
+  const [uploading, setUploading] = useState(false)
+  const [fileName, setFileName] = useState("")
+
+  async function handleUpload(file: File) {
+
+    setUploading(true)
+    setFileName(file.name)
+
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const res = await fetch("/api/upload", {
+      method: "POST",
+      body: formData
+    })
+
+    const data = await res.json()
+
+    console.log("VIDEO URL:", data)
+
+    setUploading(false)
+  }
+
+  function handleDrop(e:any){
+    e.preventDefault()
+
+    const file = e.dataTransfer.files[0]
+
+    if(file){
+      handleUpload(file)
+    }
+  }
+
+  return (
+
+    <div
+      onDrop={handleDrop}
+      onDragOver={(e)=>e.preventDefault()}
+      className="border-2 border-dashed border-gray-600 rounded-xl p-20 text-center cursor-pointer"
+    >
+
+      {uploading ? (
+
+        <p>Subiendo {fileName}...</p>
+
+      ) : (
+
+        <p>Arrastra tu video aquí</p>
+
+      )}
+
+    </div>
+
+  )
+}
 
           {errorMsg && (
             <div style={{
