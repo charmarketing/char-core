@@ -360,7 +360,7 @@ headers: {
 },
 body: JSON.stringify({
 tipo_input: "youtube",
-youtube_url: urlYoutube,
+youtube_url: youtubeUrl,
 config: {
 cantidad: 3,
 tipo: "Podcast",
