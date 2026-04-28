@@ -499,7 +499,7 @@ const [archivoBase64,setArchivoBase64]=useState('')
   fontSize: '13px',
   outline: 'none',
   width: '100%'
-  }
+};
 
 return (
   <div className="char-fade" style={{display:'grid',gap:'28px'}}>
