@@ -350,7 +350,16 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           </div>
         </div>
 
-        <Tag label="MODO DEMO" color={AMBER}/>
+      <div style={{
+  fontSize:'11px',
+  padding:'4px 8px',
+  borderRadius:'6px',
+  background:AMBER,
+  color:'#000',
+  fontWeight:600
+}}>
+  MODO DEMO
+</div>
 
       </div>
 
