@@ -1,114 +1,69 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const GROQ = 'https://api.groq.com/openai/v1'
+const GROQ = 'https://api.groq.com/openai/v1/chat/completions'
 const KEY  = () => process.env.GROQ_API_KEY!
 
-// ── Extraer transcript de YouTube ─────────────────────────────────────────
-async function transcriptYouTube(url: string): Promise<string> {
+// ── YouTube: obtener transcripción ────────────────────────────────────────
+async function ytTranscript(url: string): Promise<string> {
   const match = url.match(/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
   if (!match) throw new Error('URL de YouTube inválida')
-  const videoId = match[1]
-
-  const page = await fetch(`https://www.youtube.com/watch?v=${videoId}`, {
-    headers: { 'Accept-Language': 'es-AR,es;q=0.9,en;q=0.8' }
-  })
-  const html = await page.text()
-
-  const capMatch = html.match(/"captionTracks":(\[.*?\])/)
-  if (!capMatch) throw new Error('Este video no tiene subtítulos automáticos. Probá con un archivo de audio.')
-
-  const tracks = JSON.parse(capMatch[1])
-  const track  = tracks.find((t: any) => t.languageCode?.startsWith('es')) || tracks[0]
-  if (!track?.baseUrl) throw new Error('No se encontró una pista de subtítulos válida')
-
-  const xml  = await (await fetch(track.baseUrl)).text()
-  const text = xml
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(/&#39;/g, "'")
-    .replace(/\s+/g, ' ').trim()
-
-  if (text.length < 100) throw new Error('Transcripción muy corta. Verificá que el video tenga audio en español.')
-  return text
+  const id = match[1]
+  const html = await (await fetch(`https://www.youtube.com/watch?v=${id}`, {
+    headers: { 'Accept-Language': 'es-AR,es;q=0.9', 'User-Agent': 'Mozilla/5.0' }
+  })).text()
+  const m = html.match(/"captionTracks":(\[.*?\])/)
+  if (!m) throw new Error('El video no tiene subtítulos automáticos. Subí el archivo de audio directamente.')
+  const tracks = JSON.parse(m[1])
+  const track = tracks.find((t: any) => t.languageCode?.startsWith('es')) || tracks[0]
+  if (!track?.baseUrl) throw new Error('No se encontró pista de subtítulos')
+  const xml = await (await fetch(track.baseUrl)).text()
+  return xml.replace(/<[^>]*>/g,' ').replace(/&amp;/g,'&').replace(/&#39;/g,"'").replace(/\s+/g,' ').trim()
 }
 
-// ── Transcribir audio con Groq Whisper ────────────────────────────────────
-async function transcriptAudio(base64: string, mime: string): Promise<string> {
-  const buf  = Buffer.from(base64, 'base64')
-  const blob = new Blob([buf], { type: mime })
-  const form = new FormData()
-  form.append('file', blob, 'audio.mp3')
-  form.append('model', 'whisper-large-v3')
-  form.append('language', 'es')
-  form.append('response_format', 'text')
+// ── Análisis viral con Groq LLaMA ─────────────────────────────────────────
+async function analizarClips(transcript: string, cfg: {
+  cantidad: number; tipo: string; formato: string; idioma: string; traducir: boolean; idiomaDestino: string
+}) {
+  if (!KEY()) throw new Error('GROQ_API_KEY no configurada en Vercel → Settings → Environment Variables')
 
-  const res = await fetch(`${GROQ}/audio/transcriptions`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${KEY()}` },
-    body: form,
-  })
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'Error al transcribir el audio con Groq Whisper')
-  }
-  return await res.text()
-}
+  const prompt = `Sos un experto mundial en marketing viral y contenido para redes sociales.
+Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos virales para redes sociales.
 
-// ── Analizar clips virales con LLaMA ─────────────────────────────────────
-async function detectClips(transcript: string, cfg: {
-  cantidad: number; tipo: string; formato: string; idioma: string
-}): Promise<any> {
- const prompt = `Sos un estratega mundial de contenido viral para redes sociales.
-
-Tu trabajo es analizar una transcripción y detectar los momentos con MAYOR potencial viral.
-
-Buscá momentos que tengan:
-
-- frases polémicas
-- aprendizajes poderosos
-- storytelling fuerte
-- cambios emocionales
-- frases tipo "nadie te dice esto"
-- ideas contraintuitivas
-- datos impactantes
-
-Elegí exactamente ${cfg.cantidad} clips.
-
-Cada clip debe:
-- durar entre 20 y 60 segundos
-- empezar con un hook fuerte
-- funcionar como video independiente
-
-CONTEXTO:
-Tipo de contenido: ${cfg.tipo}
-Formato destino: ${cfg.formato}
-Idioma: ${cfg.idioma}
+TIPO DE CONTENIDO: ${cfg.tipo}
+FORMATO DESTINO: ${cfg.formato}
+IDIOMA: ${cfg.idioma}
+${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
 
 TRANSCRIPCIÓN:
-${transcript.slice(0,4000)}
+${transcript.slice(0, 6000)}
 
-Respondé SOLO con JSON válido.
-
+Respondé SOLO con JSON válido, sin texto adicional, sin markdown:
 {
- "clips":[
-  {
-   "numero":1,
-   "titulo":"titulo corto viral",
-   "gancho":"frase que engancha en los primeros 2 segundos",
-   "timestamp_inicio":"00:00",
-   "timestamp_fin":"00:45",
-   "duracion_seg":45,
-   "score_viral":95,
-   "copy_caption":"caption listo para redes"
-  }
- ]
+  "clips": [
+    {
+      "numero": 1,
+      "titulo": "Título gancho corto y poderoso (max 8 palabras)",
+      "gancho": "Primera línea que engancha en los primeros 3 segundos",
+      "timestamp_inicio": "00:01:30",
+      "timestamp_fin": "00:02:15",
+      "duracion_seg": 45,
+      "por_que_viral": "Razón específica de por qué este momento genera engagement",
+      "red_recomendada": "Instagram Reels",
+      "copy_caption": "Caption completo con emojis y hashtags listo para publicar",
+      "subtitulos": ["Línea 1 del subtítulo", "Línea 2", "Línea 3", "Línea 4", "Línea 5"]${cfg.traducir ? `,\n      "subtitulos_traducidos": ["Line 1 in ${cfg.idiomaDestino}", "Line 2", "Line 3"]` : ''},
+      "score_viral": 92
+    }
+  ],
+  "resumen": "Análisis general del contenido en 2-3 oraciones con recomendaciones estratégicas"
 }`
-  const res = await fetch(`${GROQ}/chat/completions`, {
+
+  const res = await fetch(GROQ, {
     method: 'POST',
     headers: { Authorization: `Bearer ${KEY()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
-      max_tokens: 3000, 
+      max_tokens: 4000,
       response_format: { type: 'json_object' },
       messages: [{ role: 'user', content: prompt }]
     })
@@ -116,99 +71,65 @@ Respondé SOLO con JSON válido.
 
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
-    throw new Error(err?.error?.message || 'Error al analizar con Groq LLaMA')
+    if (res.status === 401) throw new Error('GROQ_API_KEY inválida. Verificá en Vercel → Environment Variables')
+    if (res.status === 429) throw new Error('Límite de Groq alcanzado. Esperá unos minutos e intentá de nuevo.')
+    throw new Error(err?.error?.message || `Error Groq: ${res.status}`)
   }
 
-  const data    = await res.json()
+  const data = await res.json()
   const content = JSON.parse(data.choices[0].message.content)
   return { clips: content.clips || [], resumen: content.resumen || '' }
 }
 
-// ── HANDLER ───────────────────────────────────────────────────────────────
+// ── HANDLER ────────────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { tipo_input, youtube_url, audio_base64, audio_mime, config } = body
+    const {
+      tipo_input,
+      youtube_url,
+      transcript: transcriptDirecto,
+      config = {}
+    } = body
 
-    if (!KEY()) return NextResponse.json({ error: 'GROQ_API_KEY no configurada en Vercel' }, { status: 500 })
-
-    // 1. Obtener transcripción
-    let transcript = ''
-    if (tipo_input === 'youtube') {
-      if (!youtube_url) return NextResponse.json({ error: 'URL de YouTube requerida' }, { status: 400 })
-      transcript = await transcriptYouTube(youtube_url)
-    } else if (tipo_input === 'audio') {
-      if (!audio_base64) return NextResponse.json({ error: 'Archivo de audio requerido' }, { status: 400 })
-      transcript = await transcriptAudio(audio_base64, audio_mime || 'audio/mpeg')
-    } else if (tipo_input === 'transcript') {
-      transcript = body.transcript || ''
-      if (!transcript) return NextResponse.json({ error: 'transcript requerido' }, { status: 400 })
-    } else {
-      return NextResponse.json({ error: 'tipo_input debe ser "youtube", "audio" o "transcript"' }, { status: 400 })
+    const cfg = {
+      cantidad:       config.cantidad       || 3,
+      tipo:           config.tipo           || 'Podcast',
+      formato:        config.formato        || '9:16 Vertical',
+      idioma:         config.idioma         || 'Español',
+      traducir:       config.traducir       || false,
+      idiomaDestino:  config.idiomaDestino  || 'Inglés',
     }
 
-    const detectarClipsVirales = async (transcript: string, config: any) => {
+    let transcript = ''
 
-  const prompt = `
-Analizá esta transcripción de un video y detectá los momentos más virales.
+    // Caso 1: ya viene la transcripción (desde /api/deepgram)
+    if (tipo_input === 'transcript' && transcriptDirecto) {
+      transcript = transcriptDirecto
+    }
+    // Caso 2: YouTube directo (fallback sin Deepgram)
+    else if (tipo_input === 'youtube' && youtube_url) {
+      transcript = await ytTranscript(youtube_url)
+    }
+    else {
+      throw new Error('Parámetros inválidos. Enviá transcript o youtube_url.')
+    }
 
-Devuelve JSON con:
-id
-titulo
-duracion
-inicio
-fin
-score_viral
-por_que_viral
+    if (transcript.length < 50) throw new Error('La transcripción es muy corta para analizar.')
 
-Transcripción:
-${transcript}
-`
+    // Analizar clips virales
+    const resultado = await analizarClips(transcript, cfg)
 
-  const res = await fetch(`${GROQ}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${KEY()}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "llama3-70b-8192",
-      messages: [
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.3
+    return NextResponse.json({
+      ok: true,
+      clips: resultado.clips,
+      resumen: resultado.resumen,
+      palabras: transcript.split(' ').length,
+      transcript_preview: transcript.slice(0, 200) + '...',
     })
-  })
-
-  const data = await res.json()
-
-  const text = data.choices[0].message.content
-
-  try {
-    return JSON.parse(text)
-  } catch {
-    return []
-  }
-}
-
-    // 2. Detectar clips virales
-   const resultado = await detectarClipsVirales(transcript, {
-  cantidad: config?.cantidad || 3,
-  tipo: config?.tipo || "Podcast",
-  formato: config?.formato || "9:16 Vertical",
-  idioma: config?.idioma || "Español",
-})
-
-return NextResponse.json({
-  ok: true,
-  transcript_preview: transcript.slice(0, 300) + "...",
-  clips: resultado,
-  resumen: "",
-  palabras: transcript.split(" ").length,
-})
 
   } catch (err: any) {
-    console.error('[video-editor]', err)
+    console.error('[video-editor]', err.message)
     return NextResponse.json({ error: err.message || 'Error interno' }, { status: 500 })
   }
 }
