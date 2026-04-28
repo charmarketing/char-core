@@ -313,15 +313,13 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 }
     
     catch(err:any){
+  setErrorMsg(err.message || 'Error al procesar')
 
-      setErrorMsg(err.message || 'Error al procesar')
-
-      setEstado('idle')
-      setPasoActual(0)
-}
+  setEstado('idle')
+  setPasoActual(0)
 };
 
-  const inputSt: React.CSSProperties = {
+const inputSt: React.CSSProperties = {
     background: c.s2,
     color: c.text,
     border: `1px solid ${c.border}`,
