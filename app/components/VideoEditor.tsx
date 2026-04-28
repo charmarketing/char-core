@@ -181,14 +181,12 @@ const procesarVideo = async () => {
 
     setEstado('analizando')
 
-    ...
     setClips(clipsF)
 
     setPasoActual(5)
     setEstado('completado')
 
   } catch(err:any){
-
     setErrorMsg(err.message || 'Error al procesar')
     setEstado('idle')
     setPasoActual(0)
