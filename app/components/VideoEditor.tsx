@@ -351,7 +351,11 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
     </Card>
   )
 }
-async function detectarClips() {
+
+export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
+  const c=th(t)
+  const [youtubeUrl, setYoutubeUrl] = useState("")
+  async function detectarClips() {
 
 const res = await fetch("/api/video-editor", {
 method: "POST",
@@ -375,10 +379,6 @@ const data = await res.json()
 console.log("Clips detectados:", data)
 
 }
-
-export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
-  const c=th(t)
-  const [youtubeUrl, setYoutubeUrl] = useState("")
   const clientesNombres=clientes.map((cl:any)=>cl.nombre)
   const [tab,setTab]=useState<Tab>('procesar')
   const [estado,setEstado]=useState<EstadoProceso>('idle')
