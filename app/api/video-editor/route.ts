@@ -192,12 +192,12 @@ ${transcript}
 }
 
     // 2. Detectar clips virales
-    const resultado = await detectarClipsVirales(transcript)
-      cantidad: config?.cantidad || 3,
-      tipo:     config?.tipo     || 'Podcast',
-      formato:  config?.formato  || '9:16 Vertical',
-      idioma:   config?.idioma   || 'Español',
-    })
+    const resultado = await detectarClipsVirales(transcript, {
+  cantidad: config?.cantidad || 3,
+  tipo: config?.tipo || 'Podcast',
+  formato: config?.formato || '9:16 Vertical',
+  idioma: config?.idioma || 'Español',
+})
 
     return NextResponse.json({
       ok: true,
