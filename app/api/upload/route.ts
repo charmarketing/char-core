@@ -1,4 +1,4 @@
-import { uploadToR2 } from "@/lib/r2"
+import { uploadToR2 } from "@/app/lib/r2"
 import { NextResponse } from "next/server"
 
 export async function POST(req: Request) {
@@ -19,5 +19,4 @@ export async function POST(req: Request) {
     success: true,
     key
   })
-
 }
