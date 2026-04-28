@@ -382,13 +382,13 @@ console.log("Clips detectados:", data)
 if(data?.clips){
   setClips(data.clips)
 }
+}
   const clientesNombres=clientes.map((cl:any)=>cl.nombre)
   const [tab,setTab]=useState<Tab>('procesar')
   const [estado,setEstado]=useState<EstadoProceso>('idle')
   const [pasoActual,setPasoActual]=useState(0)
   const [dragOver,setDragOver]=useState(false)
   const [videoInfo,setVideoInfo]=useState<{nombre:string;tamaño:string}|null>(null)
-  const [clips,setClips]=useState<Clip[]>([])
  const [config,setConfig]=useState({
     cliente:'',
     tipoContenido:'Podcast',
@@ -487,6 +487,7 @@ const [archivoBase64,setArchivoBase64]=useState('')
       setEstado('idle')
       setErrorMsg('')
     }
+  }
 
   const inputSt: React.CSSProperties = {
   background: c.s2,
@@ -613,13 +614,14 @@ return (
               </div>
               {tipoInput==='youtube'&&(
                 <input
- type="text"
- value={youtubeUrl}
- onChange={(e)=>setyoutubeUrl(e.target.value)}
- placeholder="https://youtube.com/watch?v=..."
+  type="text"
+  value={youtubeUrl}
+  onChange={(e)=>setyoutubeUrl(e.target.value)}
+  placeholder="https://youtube.com/watch?v=..."
+  style={inputSt}
 />
-          
-          <Btn t={t} v="primary" onClick={detectarClips}>
+
+<Btn t={t} v="primary" onClick={detectarClips}>
   Analizar Video
 </Btn>
               )}
@@ -797,7 +799,7 @@ return (
             </div>
           </div>
           <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:'16px'}}>
-            clips.map((clip)=>(
+            {clips.map((clip)=>(
               <ClipCard key={clip.id} clip={clip} t={t} formato={config.formato} tipografia={config.tipografia} colorSub={config.colorSub} posicionSub={config.posicionSub} posicionLogo={config.posicionLogo}/>
             ))}
           </div>
