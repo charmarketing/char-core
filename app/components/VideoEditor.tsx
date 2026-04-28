@@ -354,7 +354,7 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
 
 export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
-  const [youtubeUrl, setYoutubeUrl] = useState("")
+  const [youtubeUrl, setyoutubeUrl] = useState("")
   async function detectarClips() {
 
 const res = await fetch("/api/video-editor", {
@@ -411,13 +411,13 @@ console.log("Clips detectados:", data)
     setClips([])
     setTranscriptPreview('')
     setResumen('')
-    if(tipoInput==='youtube'&&!urlYoutube.trim()){setErrorMsg('Ingresá una URL de YouTube válida');return}
+    if(tipoInput==='youtube'&&!youtubeUrl.trim()){setErrorMsg('Ingresá una URL de YouTube válida');return}
     if(tipoInput==='archivo'&&!archivoFile){setErrorMsg('Subí un archivo primero');return}
     try{
       let transcript=''
       if(tipoInput==='youtube'){
         setEstado('analizando');setPasoActual(2)
-        const res=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo_input:'youtube',youtube_url:urlYoutube,config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}})})
+        const res=await fetch('/api/video-editor',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tipo_input:'youtube',youtube_url:youtubeUrl,config:{cantidad:parseInt(config.clipsCantidad),tipo:config.tipoContenido,formato:config.formato,idioma:'Español'}})})
         const data=await res.json()
         if(!res.ok||!data.ok) throw new Error(data.error||'Error al procesar YouTube')
         setTranscriptPreview(data.transcript_preview||'')
@@ -603,7 +603,7 @@ const [archivoBase64,setArchivoBase64]=useState('')
                 <input
  type="text"
  value={youtubeUrl}
- onChange={(e)=>setYoutubeUrl(e.target.value)}
+ onChange={(e)=>setyoutubeUrl(e.target.value)}
  placeholder="https://youtube.com/watch?v=..."
 />
               )}
