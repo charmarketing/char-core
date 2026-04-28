@@ -487,7 +487,6 @@ const [archivoBase64,setArchivoBase64]=useState('')
       setEstado('idle')
       setErrorMsg('')
     }
-  }
 
   const inputSt: React.CSSProperties = {
   background: c.s2,
@@ -499,7 +498,6 @@ const [archivoBase64,setArchivoBase64]=useState('')
   fontSize: '13px',
   outline: 'none',
   width: '100%'
-  }
   }
 
 return (
