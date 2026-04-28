@@ -354,8 +354,8 @@ function ClipCard({clip,t,formato,tipografia,colorSub,posicionSub,posicionLogo}:
 
 export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}) {
   const c=th(t)
-  const [youtubeUrl, setyoutubeUrl] = useState("")
-  const [clips,setClips] = useState<Clip[]>([])
+  const [youtubeUrl, setYoutubeUrl] = useState("")
+  onChange={(e)=>setYoutubeUrl(e.target.value)}
   async function detectarClips() {
 
 const res = await fetch("/api/video-editor", {
@@ -621,9 +621,11 @@ return (
   style={inputSt}
 />
 
-<Btn t={t} v="primary" onClick={detectarClips}>
-  Analizar Video
-</Btn>
+<div style={{marginTop:'10px'}}>
+  <Btn t={t} v="primary" onClick={detectarClips}>
+    Analizar Video
+  </Btn>
+</div>
               )}
               {errorMsg&&<div style={{marginTop:'10px',padding:'10px 14px',background:RED+'15',border:`1px solid ${RED}40`,borderRadius:'8px',fontSize:'12px',color:RED}}>{errorMsg}</div>}
             </Card>
