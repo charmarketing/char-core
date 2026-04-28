@@ -317,10 +317,7 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       setEstado('idle')
       setPasoActual(0)
-
-    }
-
-  }
+}
 
   const inputSt: React.CSSProperties = {
     background: c.s2,
