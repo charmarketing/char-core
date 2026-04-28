@@ -330,8 +330,7 @@ const inputSt: React.CSSProperties = {
     outline: 'none',
     width: '100%'
   }
-
-  return (
+return (
 
     <div className="char-fade" style={{display:'grid',gap:'28px'}}>
 
