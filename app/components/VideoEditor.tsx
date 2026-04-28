@@ -359,14 +359,14 @@ headers: {
 "Content-Type": "application/json"
 },
 body: JSON.stringify({
-tipo_input: "youtube",
-youtube_url: youtubeUrl,
-config: {
-cantidad: 3,
-tipo: "Podcast",
-formato: "9:16 Vertical",
-idioma: "Español"
-}
+ tipo_input: "youtube",
+ youtube_url: youtubeUrl,
+ config: {
+   cantidad: 3,
+   tipo: "Podcast",
+   formato: "9:16 Vertical",
+   idioma: "Español"
+ }
 })
 })
 
@@ -401,7 +401,6 @@ export default function VideoEditor({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     posicionLogo:'Arriba derecha',
   })
   const inputRef=useRef<HTMLInputElement>(null)
-  const [urlYoutube,setUrlYoutube]=useState('')
   const [tipoInput,setTipoInput]=useState<'youtube'|'archivo'>('youtube')
   const [transcriptPreview,setTranscriptPreview]=useState('')
   const [resumen,setResumen]=useState('')
@@ -602,10 +601,10 @@ const [archivoBase64,setArchivoBase64]=useState('')
               </div>
               {tipoInput==='youtube'&&(
                 <input
-type="text"
-value={urlYoutube}
-onChange={(e)=>setUrlYoutube(e.target.value)}
-placeholder="https://youtube.com/watch?v=..."
+ type="text"
+ value={youtubeUrl}
+ onChange={(e)=>setYoutubeUrl(e.target.value)}
+ placeholder="https://youtube.com/watch?v=..."
 />
               )}
               {errorMsg&&<div style={{marginTop:'10px',padding:'10px 14px',background:RED+'15',border:`1px solid ${RED}40`,borderRadius:'8px',fontSize:'12px',color:RED}}>{errorMsg}</div>}
