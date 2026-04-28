@@ -489,7 +489,17 @@ const [archivoBase64,setArchivoBase64]=useState('')
     }
   }
 
-  const inputSt:React.CSSProperties={background:c.s2,color:c.text,border:`1px solid ${c.border}`,borderRadius:'10px',padding:'10px 14px',fontFamily:'Rajdhani,sans-serif',fontSize:'13px',outline:'none',width:'100%'}
+  const inputSt: React.CSSProperties = {
+  background: c.s2,
+  color: c.text,
+  border: `1px solid ${c.border}`,
+  borderRadius: '10px',
+  padding: '10px 14px',
+  fontFamily: 'Rajdhani, sans-serif',
+  fontSize: '13px',
+  outline: 'none',
+  width: '100%'
+}
 
   return(
     <div className="char-fade" style={{display:'grid',gap:'28px'}}>
