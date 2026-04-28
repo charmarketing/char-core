@@ -52,22 +52,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
-
-import { uploadToR2 } from "@/app/lib/r2"
-import { NextResponse } from "next/server"
-
-export async function POST(req: Request) {
-  const formData = await req.formData()
-  const file = formData.get("file") as File
-
-  if (!file) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 })
-  }
-
-  const key = await uploadToR2(file)
-
-  return NextResponse.json({
-    success: true,
-    key
-  })
-}
