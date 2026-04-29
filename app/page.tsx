@@ -13,23 +13,28 @@ import PanelSEM from './components/PanelSEM'
 import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
 
-async function subirVideo(file: File) {
-
-  const formData = new FormData()
-  formData.append("file", file)
-
-  const res = await fetch("/api/upload", {
-    method: "POST",
-    body: formData
+async function subirVideo(file: File): Promise<{ url: string }> {
+  // 1. Pedir URL prefirmada a R2
+  const res1 = await fetch('/api/upload-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, contentType: file.type }),
   })
-
-  const data = await res.json()
-
-  if (!res.ok) {
-    throw new Error(data.error || "Error subiendo video")
+  if (!res1.ok) {
+    const e = await res1.json().catch(() => ({}))
+    throw new Error(e.error || 'Error al obtener URL de upload')
   }
-
-  return data
+  const { signedUrl, publicUrl } = await res1.json()
+ 
+  // 2. Subir directo al navegador → R2 (sin pasar por Vercel)
+  const res2 = await fetch(signedUrl, {
+    method: 'PUT',
+    body: file,
+    headers: { 'Content-Type': file.type },
+  })
+  if (!res2.ok) throw new Error('Error al subir el archivo a R2')
+ 
+  return { url: publicUrl }
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────
