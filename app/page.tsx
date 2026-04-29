@@ -14,27 +14,20 @@ import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
 
 async function subirVideo(file: File): Promise<{ url: string }> {
-  // 1. Pedir URL prefirmada a R2
-  const res1 = await fetch('/api/upload-url', {
+  const formData = new FormData()
+  formData.append('file', file)
+  const res = await fetch('/api/upload', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ filename: file.name, contentType: file.type }),
+    body: formData,
   })
-  if (!res1.ok) {
-    const e = await res1.json().catch(() => ({}))
-    throw new Error(e.error || 'Error al obtener URL de upload')
+  if (!res.ok) {
+    const e = await res.json().catch(() => ({}))
+    throw new Error(e.error || 'Error al subir el archivo')
   }
-  const { signedUrl, publicUrl } = await res1.json()
- 
-  // 2. Subir directo al navegador → R2 (sin pasar por Vercel)
-  const res2 = await fetch(signedUrl, {
-    method: 'PUT',
-    body: file,
-    headers: { 'Content-Type': file.type },
-  })
-  if (!res2.ok) throw new Error('Error al subir el archivo a R2')
- 
-  return { url: publicUrl }
+  const data = await res.json()
+  const key = data.key || data.url
+  const base = process.env.NEXT_PUBLIC_APP_URL || ''
+  return { url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || ''}/${key}` }
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────
