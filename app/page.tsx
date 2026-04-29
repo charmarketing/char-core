@@ -25,9 +25,9 @@ async function subirVideo(file: File): Promise<{ url: string }> {
     throw new Error(e.error || 'Error al subir el archivo')
   }
   const data = await res.json()
-  const key = data.key || data.url
-  const base = process.env.NEXT_PUBLIC_APP_URL || ''
-  return { url: `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL || ''}/${key}` }
+  const key = data.key
+  const publicBase = 'https://pub-8b0049e88ce647d286ecbba7d9f54023.r2.dev'
+  return { url: `${publicBase}/${key}` }
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────
