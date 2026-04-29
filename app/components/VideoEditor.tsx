@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 
 // ── TIPOS ──────────────────────────────────────────────────────────────────
 interface Clip {
@@ -52,7 +52,7 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [hue, setHue] = useState(0)
   const [hex, setHex] = useState(color.replace('#',''))
-
+ 
   const drawCanvas = useCallback((h: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -66,44 +66,73 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
     gB.addColorStop(0,'transparent'); gB.addColorStop(1,'#000')
     ctx.fillStyle = gB; ctx.fillRect(0,0,w,ht)
   }, [])
-
+ 
+  // FIX: dibuja el canvas al montar y cuando cambia el hue
+  useEffect(() => { drawCanvas(hue) }, [hue, drawCanvas])
+ 
+  const hexToHue = (hexColor: string): number => {
+    const r = parseInt(hexColor.slice(0,2),16)/255
+    const g = parseInt(hexColor.slice(2,4),16)/255
+    const b = parseInt(hexColor.slice(4,6),16)/255
+    const max = Math.max(r,g,b), min = Math.min(r,g,b)
+    if (max === min) return 0
+    const d = max - min
+    let h = 0
+    if (max === r) h = ((g-b)/d + (g<b?6:0))/6
+    else if (max === g) h = ((b-r)/d + 2)/6
+    else h = ((r-g)/d + 4)/6
+    return Math.round(h * 360)
+  }
+ 
   const pickColor = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current!
     const rect = canvas.getBoundingClientRect()
     const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
     const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
-    const px = canvas.getContext('2d')!.getImageData(x,y,1,1).data
+    const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
     const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
     setHex(h.replace('#','')); onChange(h)
   }
-
+ 
+  // FIX: al clickear preset, sincroniza hue Y redibuja canvas
+  const handlePreset = (c: string) => {
+    const newHex = c.replace('#','')
+    const newHue = hexToHue(newHex)
+    setHex(newHex)
+    setHue(newHue)
+    onChange(c)
+    setTimeout(() => drawCanvas(newHue), 10)
+  }
+ 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
       <canvas ref={canvasRef} width={220} height={140}
         style={{ width:'100%', borderRadius:8, cursor:'crosshair', border:'1px solid #1e1e3a' }}
         onClick={pickColor}
         onMouseMove={e => { if(e.buttons===1) pickColor(e) }}
-        onMouseEnter={() => drawCanvas(hue)}
-        onLoad={() => drawCanvas(hue)}
       />
       <input type="range" min={0} max={360} value={hue}
-        style={{ width:'100%', accentColor:GOLD, cursor:'pointer' }}
-        onChange={e => { setHue(+e.target.value); drawCanvas(+e.target.value) }}
+        style={{ width:'100%', accentColor:'#c9a96e', cursor:'pointer' }}
+        onChange={e => setHue(+e.target.value)}
       />
       <div style={{ display:'flex', alignItems:'center', gap:10 }}>
         <div style={{ width:34,height:34,borderRadius:7,background:`#${hex}`,border:'2px solid #333',flexShrink:0 }}/>
         <div style={{ flex:1 }}>
           <div style={{ fontSize:9,color:'#666',letterSpacing:1 }}>HEX</div>
           <input value={`#${hex}`}
-            onChange={e => { const v=e.target.value.replace('#',''); setHex(v); if(v.length===6) onChange('#'+v) }}
+            onChange={e => {
+              const v=e.target.value.replace('#','')
+              setHex(v)
+              if(v.length===6){ onChange('#'+v); const h=hexToHue(v); setHue(h); setTimeout(()=>drawCanvas(h),10) }
+            }}
             style={{ background:'transparent',border:'none',color:'#fff',fontSize:13,fontWeight:700,fontFamily:'monospace',width:'100%',outline:'none' }}
           />
         </div>
       </div>
       <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
         {PRESETS.map(c => (
-          <button key={c} onClick={() => { setHex(c.replace('#','')); onChange(c) }}
-            style={{ width:32,height:26,borderRadius:6,background:c,border:color===c?`2px solid ${GOLD}`:'1px solid #333',cursor:'pointer' }}
+          <button key={c} onClick={() => handlePreset(c)}
+            style={{ width:32,height:26,borderRadius:6,background:c,border:color===c?`2px solid #c9a96e`:'1px solid #333',cursor:'pointer' }}
           />
         ))}
       </div>
@@ -274,19 +303,11 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
       // 1. Subir archivo si corresponde
       if (inputTipo === 'archivo') {
         if (!videoFile) throw new Error('Seleccioná un archivo primero')
-        setStep('Subiendo video...')
-        if (onUpload) {
-          const r = await onUpload(videoFile)
-          urlFinal = r.url
-        } else {
-          // Fallback: convertir a base64 para Deepgram directo
-          urlFinal = await new Promise<string>((res, rej) => {
-            const reader = new FileReader()
-            reader.onload = e => res(e.target!.result as string)
-            reader.onerror = rej
-            reader.readAsDataURL(videoFile)
-          })
-        }
+        setStep('Subiendo video a almacenamiento...')
+        if (!onUpload) throw new Error('Función de upload no disponible. Recargá la página.')
+        const r = await onUpload(videoFile)
+        if (!r?.url) throw new Error('Error al subir el archivo. Verificá la conexión con R2.')
+        urlFinal = r.url
       } else {
         if (!youtubeUrl.trim()) throw new Error('Pegá el link de YouTube primero')
         urlFinal = youtubeUrl.trim()
@@ -588,10 +609,10 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
             <div style={{ background:'#000', border:`1px solid ${c.border}`, borderRadius:14, padding:20 }}>
               <div style={{ fontSize:9, color:c.text3, letterSpacing:2, fontWeight:700, marginBottom:12 }}>PREVIEW DE SUBTÍTULOS</div>
               <div style={{ background:'#111', borderRadius:8, padding:'28px 16px', textAlign:'center', minHeight:90, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:6 }}>
-                <div style={{ fontSize:20, fontWeight:800, color:colorSub, fontFamily:fuente, textShadow:'0 2px 8px #00000099' }}>
-                  Así se verán los subtítulos
-                </div>
-                <div style={{ fontSize:10, color:'#666' }}>{fuente} · {colorSub} · {posSub}</div>
+                <div style={{ fontSize:20, fontWeight:800, color:colorSub, fontFamily:`'${fuente}', sans-serif`, textShadow:'0 2px 8px #00000099', transition:'all 0.3s' }}>
+          Así se verán los subtítulos
+        </div>
+        <div style={{ fontSize:10, color:'#666', fontFamily:'Rajdhani,sans-serif' }}>{fuente} · {colorSub} · {posSub}</div>
               </div>
             </div>
 
