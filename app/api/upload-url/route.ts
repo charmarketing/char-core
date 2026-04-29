@@ -25,3 +25,16 @@ export async function POST(req: NextRequest) {
       Key: key,
       ContentType: contentType,
     })
+
+    // URL prefirmada válida por 1 hora — el browser sube directo a R2
+    const signedUrl = await getSignedUrl(r2, command, { expiresIn: 3600 })
+
+    // URL pública del archivo una vez subido
+    const publicUrl = `${process.env.R2_ENDPOINT}/${process.env.R2_BUCKET}/${key}`
+
+    return NextResponse.json({ signedUrl, publicUrl, key })
+  } catch (err: any) {
+    console.error('[upload-url]', err.message)
+    return NextResponse.json({ error: err.message }, { status: 500 })
+  }
+}
