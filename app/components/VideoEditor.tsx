@@ -294,7 +294,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 
       // 2. Transcribir
       setStep('Transcribiendo con Deepgram...')
-      const transcRes = await fetch('/api/deepgram', {
+      const transcRes = await fetch('/api/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: urlFinal, tipo_input: inputTipo, idioma })
