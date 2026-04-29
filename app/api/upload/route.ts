@@ -1,15 +1,16 @@
-import { uploadToR2 } from '../../lib/r2'
-import { NextResponse } from 'next/server'
- 
+import { uploadToR2 } from "@/lib/r2"
+
 export async function POST(req: Request) {
-  try {
-    const formData = await req.formData()
-    const file = formData.get('file') as File
-    if (!file) return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
-    const key = await uploadToR2(file)
-    return NextResponse.json({ success: true, key })
-  } catch (err: any) {
-    console.error('[upload]', err.message)
-    return NextResponse.json({ error: err.message }, { status: 500 })
+  const form = await req.formData()
+  const file = form.get("file") as File
+
+  if (!file) {
+    return Response.json({ error: "No file" }, { status: 400 })
   }
+
+  const filename = await uploadToR2(file)
+
+  const url = `${process.env.R2_ENDPOINT}/${process.env.R2_BUCKET}/${filename}`
+
+  return Response.json({ url })
 }
