@@ -2,7 +2,7 @@ import { uploadToR2 } from "../../lib/r2"
 
 export async function POST(req: Request) {
   const form = await req.formData()
-  const file = form.get("file") as File
+  const file = form.get("video") as File
 
   if (!file) {
     return Response.json({ error: "No file" }, { status: 400 })
