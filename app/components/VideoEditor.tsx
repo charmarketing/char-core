@@ -335,7 +335,6 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
   url: urlFinal,
-  tipo_input: 'transcript',
   transcript,
   config: { cantidad, tipo, formato, idioma, traducir, idiomaDestino }
 })
