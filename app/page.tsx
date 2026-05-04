@@ -14,20 +14,14 @@ import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
 
 async function subirVideo(file: File): Promise<{ url: string }> {
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch('/api/upload', {
+  const r1 = await fetch('/api/upload-url', {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ filename: file.name, contentType: file.type || 'video/mp4' }),
   })
-  if (!res.ok) {
-    const e = await res.json().catch(() => ({}))
-    throw new Error(e.error || 'Error al subir el archivo')
-  }
-  const data = await res.json()
-  const key = data.key
-  const publicBase = 'https://pub-8b0049e88ce647d286ecbba7d9f54023.r2.dev'
-  return { url: `${publicBase}/${key}` }
+  const { signedUrl, publicUrl } = await r1.json()
+  await fetch(signedUrl, { method: 'PUT', headers: { 'Content-Type': file.type }, body: file })
+  return { url: publicUrl }
 }
 
 // ── THEME ─────────────────────────────────────────────────────────────────
