@@ -327,23 +327,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
       const transcData = await transcRes.json()
       const transcript: string = transcData.transcript || ''
       if (transcript.length < 50) throw new Error('No se pudo obtener la transcripción. Verificá que el video tenga audio claro.')
-
-// subir video primero
-let urlFinal = url
-
-if (videoFile) {
-  const form = new FormData()
-  form.append("file", videoFile)
-
-  const upload = await fetch("/api/upload", {
-    method: "POST",
-    body: form
-  })
-
-  const data = await upload.json()
-  urlFinal = data.url
-}
-      
+   
       // 3. Detectar clips virales
       setStep(`Detectando ${cantidad} clips virales con IA...`)
       const analysisRes = await fetch('/api/video-editor', {
