@@ -1,4 +1,4 @@
-import { uploadToR2 } from "@/lib/r2"
+import { uploadToR2 } from "../../lib/r2"
 
 export async function POST(req: Request) {
   const form = await req.formData()
