@@ -148,17 +148,21 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
   )
 }
 
-// ── CLIP CARD (Professional Agency Grade) ───────────────────────────────────
+// ── CLIP CARD (Professional Agency Grade - MODIFICADO CHAR) ───────────────────
 function ClipCard({ 
   clip, 
   theme, 
   onPreviewClip,
-  videoDuration
+  videoDuration,
+  setActiveClip,
+  setModalOpen
 }: { 
-  clip: Clip; 
+  clip: any; 
   theme: 'dark' | 'light'; 
   onPreviewClip?: (inicio: string, fin: string) => void;
-  videoDuration: number; // Duración real del video para validar timestamps
+  videoDuration: number; 
+  setActiveClip: (clip: any) => void;
+  setModalOpen: (open: boolean) => void;
 }) {
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false);
@@ -176,16 +180,15 @@ function ClipCard({
 
   const sc = isInvalidTimestamp ? ERROR : (clip.score_viral >= 85 ? SUCCESS : (clip.score_viral >= 70 ? GOLD : ERROR));
   
-  // Función de copiado robusta con fallback
   const copyProfessionalData = () => {
     const textToCopy = `💎 CHAR CORE - ENTREGA HIGH TICKET\n` +
       `CLIP ${clip.numero}: ${clip.titulo}\n` +
       `⏱️ Timestamps: ${clip.timestamp_inicio} → ${clip.timestamp_fin} (${clip.duracion_seg}s)\n` +
       `📊 Score Viral: ${clip.score_viral}/100\n` +
       `🎯 Red Recomendada: ${clip.red_recomendada}\n\n` +
-      `🚀 OPCIONES DE GANCHOS VIRALES:\n${clip.hook_viral_options.map((h,i)=>`${i+1}. ${h}`).join('\n')}\n\n` +
-      `📝 COPY / CAPTION ESTRATÉGICO:\n${clip.copy_caption_professional}\n\n` +
-      `🧠 JUSTIFICACIÓN ESTRATÉGICA CHAR:\n${clip.justificacion_estrategica}\n\n` +
+      `🚀 GANCHO VIRAL:\n${clip.gancho || clip.hook_viral_options?.[0]}\n\n` +
+      `📝 COPY / CAPTION ESTRATÉGICO:\n${clip.copy_caption}\n\n` +
+      `🧠 JUSTIFICACIÓN ESTRATÉGICA CHAR:\n${clip.por_que_viral || clip.justificacion_estrategica}\n\n` +
       `💬 SUBTÍTULOS BASE (LIMPIOS):\n${clip.subtitulos.join('\n')}`;
 
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -193,25 +196,11 @@ function ClipCard({
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       });
-    } else {
-      // Fallback para navegadores antiguos o entornos no seguros
-      const textArea = document.createElement("textarea");
-      textArea.value = textToCopy;
-      document.body.appendChild(textArea);
-      textArea.select();
-      try {
-        document.execCommand('copy');
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Falló el copiado de respaldo', err);
-      }
-      document.body.removeChild(textArea);
     }
-  }
+  };
 
   return (
-    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}`, transition:'all 0.2s', boxShadow: open ? '0 8px 30px rgba(0,0,0,0.12)' : 'none' }}>
+    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}`, transition:'all 0.2s', boxShadow: open ? '0 8px 30px rgba(0,0,0,0.12)' : 'none', marginBottom:14 }}>
       <div style={{ padding:'18px 22px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:14 }}>
           <div style={{ flex:1 }}>
@@ -233,14 +222,12 @@ function ClipCard({
           </div>
         </div>
 
-        {/* Sección de Ganchos (Táctica) */}
-        <div style={{ background:theme==='dark'?'#111124':'#f9fafe',borderRadius:10,padding:'12px 16px',marginBottom:12, border:`1px solid ${c.border}` }}>
-          <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:6, textTransform:'uppercase' }}>Ganchos Virales (Opciones)</div>
-          {clip.hook_viral_options.map((hook,i) => (
-            <div key={i} style={{ fontSize:13,color:c.text,fontStyle:'italic',lineHeight:1.45, marginBottom: i<clip.hook_viral_options.length-1 ? 6 : 0, paddingLeft:12, borderLeft:`2px solid ${c.border}` }}>
-              "{hook}"
-            </div>
-          ))}
+        {/* Sección de Ganchos */}
+        <div style={{ background:theme=='dark'?'#111124':'#f9fafe',borderRadius:10,padding:'12px 16px',marginBottom:12, border:`1px solid ${c.border}` }}>
+          <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:6, textTransform:'uppercase' }}>Gancho Viral (Estrategia)</div>
+          <div style={{ fontSize:13,color:c.text,fontStyle:'italic',lineHeight:1.45, paddingLeft:12, borderLeft:`2px solid ${c.border}` }}>
+            "{clip.gancho || (clip.hook_viral_options && clip.hook_viral_options[0])}"
+          </div>
         </div>
 
         {/* Red y Justificación */}
@@ -250,33 +237,17 @@ function ClipCard({
             <div style={{ fontSize:13,fontWeight:700,color:c.text }}>{clip.red_recomendada}</div>
           </div>
           <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px' }}>
-            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>POR QUÉ FUNCIONA CHAR CORE</div>
-            <div style={{ fontSize:12,color:c.text2,lineHeight:1.45, fontWeight:500 }}>{clip.justificacion_estrategica}</div>
+            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>POR QUÉ FUNCIONA</div>
+            <div style={{ fontSize:12,color:c.text2,lineHeight:1.45, fontWeight:500, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+              {clip.por_que_viral || clip.justificacion_estrategica}
+            </div>
           </div>
         </div>
 
-        {/* Detalles Desplegables (High Ticket) */}
-        {open && (
-          <div style={{marginTop:16, borderTop:`1px solid ${c.border}`, paddingTop:16}}>
-            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'12px 16px',marginBottom:12 }}>
-              <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:8, textTransform:'uppercase' }}>COPY / CAPTION ESTRATÉGICO</div>
-              <div style={{ fontSize:13,color:c.text2,lineHeight:1.6,whiteSpace:'pre-line', fontWeight:500 }}>{clip.copy_caption_professional}</div>
-            </div>
-            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'12px 16px',marginBottom:12 }}>
-              <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:8, textTransform:'uppercase' }}>💬 Subtítulos (Transcripción Base)</div>
-              {clip.subtitulos.map((s,i) => (
-                <div key={i} style={{ fontSize:12,color:c.text2,padding:'5px 0',borderBottom:i<clip.subtitulos.length-1?`1px solid ${c.border}`:'none', fontWeight:400 }}>
-                  <span style={{color:c.text3, fontWeight:700, marginRight:6}}>{i+1}.</span> {s}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Botones de Acción Agencial */}
-        <div style={{ display:'flex', gap:10, marginTop: open ? 16 : 0 }}>
-          <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text,padding:'9px 0',fontSize:12,cursor:'pointer',fontFamily:'inherit',fontWeight:700, transition:'all 0.2s' }}>
-            {open ? '▲ Menos Detalles' : '▼ Ver Copy y Subs'}
+        {/* Botones de Acción Mapeados */}
+        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
+          <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text,padding:'9px 0',fontSize:12,cursor:'pointer',fontWeight:700 }}>
+            {open ? '▲ Menos' : '▼ Info Base'}
           </button>
           
           {onPreviewClip && (
@@ -284,14 +255,14 @@ function ClipCard({
               type="button"
               disabled={isInvalidTimestamp}
               onClick={() => onPreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} 
-              style={{ background: isInvalidTimestamp ? c.border : SUCCESS+'15', border:`1px solid ${isInvalidTimestamp ? c.border : SUCCESS+'40'}`, borderRadius:8, color: isInvalidTimestamp ? c.text3 : SUCCESS, padding:'9px 18px', fontSize:12, cursor: isInvalidTimestamp ? 'not-allowed' : 'pointer', fontWeight:700, fontFamily:'inherit', transition:'all 0.2s' }}
+              style={{ background: isInvalidTimestamp ? c.border : SUCCESS+'15', border:`1px solid ${isInvalidTimestamp ? c.border : SUCCESS+'40'}`, borderRadius:8, color: isInvalidTimestamp ? c.text3 : SUCCESS, padding:'9px 12px', fontSize:12, cursor: isInvalidTimestamp ? 'not-allowed' : 'pointer', fontWeight:700 }}
             >
-              👁️ Previsualizar
+              👁️ Probar
             </button>
           )}
 
-          <button onClick={copyProfessionalData} style={{ background: copied ? SUCCESS+'20' : GOLD+'15',border:`1px solid ${copied ? SUCCESS+'50' : GOLD+'40'}`,borderRadius:8,color: copied ? SUCCESS : GOLD,padding:'9px 18px',fontSize:12,cursor:'pointer',fontWeight:700,fontFamily:'inherit', transition:'all 0.2s', minWidth:100 }}>
-            {copied ? '✅ Copiado' : '📋 Copiar Datos'}
+          <button onClick={() => { setActiveClip(clip); setModalOpen(true); }} style={{ background: GOLD, border:'none', borderRadius:8, color: '#000', padding:'9px 12px', fontSize:12, cursor:'pointer', fontWeight:800 }}>
+            ⚡ Expandir Estrategia
           </button>
         </div>
       </div>
@@ -632,27 +603,17 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                   </div>
                   
                   {resultado ? (
-  resultado.clips.map((clip: any, index: number) => (
-    <div key={index} style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, borderLeft: `4px solid ${GOLD}` }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 11, fontWeight: 800, color: GOLD }}>CLIP #{clip.numero}</span>
-        <span style={{ fontSize: 11, background: `${SUCCESS}20`, color: SUCCESS, padding: '2px 8px', borderRadius: 20, fontWeight: 800 }}>{clip.score_viral} PTS</span>
-      </div>
-      
-      <div>
-        <h3 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 4px', color: c.text }}>{clip.titulo}</h3>
-        <p style={{ fontSize: 12, color: c.text2, margin: 0 }}>⏱️ <strong>{clip.timestamp_inicio} - {clip.timestamp_fin}</strong> ({clip.duracion_seg}s)</p>
-      </div>
-
-      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-        <button onClick={() => handlePreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} style={{ flex: 1, background: c.s2, color: c.text, border: `1px solid ${c.border}`, padding: '6px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
-          👁️ Ver Clip
-        </button>
-        <button onClick={() => { setActiveClip(clip); setIsModalOpen(true); }} style={{ flex: 1, background: GOLD, color: '#000', border: 'none', padding: '6px', borderRadius: 6, fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
-          ⚡ Expandir Estrategia
-        </button>
-      </div>
-    </div>
+ resultado.clips.map((clip: any, index: number) => (
+  <ClipCard 
+    key={index}
+    clip={clip}
+    theme={theme}
+    videoDuration={videoDuration}
+    onPreviewClip={handlePreviewClip}
+    setActiveClip={setActiveClip}
+    setModalOpen={setIsModalOpen}
+  />
+))
   ))
 ) : (
   <div style={{ textAlign: 'center', padding: 40, color: c.text3, border: `1px dashed ${c.border}`, borderRadius: 12 }}>
