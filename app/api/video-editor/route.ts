@@ -31,14 +31,13 @@ Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos con
 
 Instrucciones estratégicas imperativas para los campos del JSON:
 - \"gancho\": No busques hacer reír. Generá un gancho de alto impacto basado en disrupción de mercado, datos duros o dolores profundos de un dueño de negocio B2B (máximo 8 palabras).
-- \"por_que_viral\": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho. Al final de este campo, agregá SIEMPRE la siguiente etiqueta: [PORTADA: Texto corto de 3 palabras en mayúsculas para clavar grande en Canva + Concepto de imagen de fondo sugerido].
-- \"copy_caption\": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
-- \"titulo\": Un título corporativo y sofisticado para el clip.
-- \"por_que_viral\": Explicá brevemente el valor estratégico del clip y, OBLIGATORIAMENTE, añade tres propuestas de portadas profesionales con este formato exacto:
+- \"por_que_viral\": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho y, OBLIGATORIAMENTE, añade tres propuestas de portadas profesionales con este formato exacto:
   IDEAS DE PORTADAS GANADORAS PARA ADRIÁN:
   Opción 1 [Expresiva de Alto Click]: TÍTULO VISUAL: (Frase corta de 3 palabras en mayúsculas). EXPRESIÓN DE ROSTRO: (Cómo debe salir el cliente en la foto, ej: apuntando a la cámara con mirada desafiante). FONDO Y ILUMINACIÓN: (Composición de fondo, colores de luces y elementos gráficos).
   Opción 2 [Disruptiva / Shock]: TÍTULO VISUAL: (...). EXPRESIÓN DE ROSTRO: (...). FONDO Y ILUMINACIÓN: (...).
   Opción 3 [Autoridad Teatral]: TÍTULO VISUAL: (...). EXPRESIÓN DE ROSTRO: (...). FONDO Y ILUMINACIÓN: (...).`
+- \"copy_caption\": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
+- \"titulo\": Un título corporativo y sofisticado para el clip.
 
 TIPO DE CONTENIDO: ${cfg.tipo}
 FORMATO DESTINO: ${cfg.formato}
