@@ -83,16 +83,6 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
     return Math.round(h * 360)
   }
  
-  const pickColor = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const canvas = canvasRef.current!
-    const rect = canvas.getBoundingClientRect()
-    const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
-    const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
-    const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
-    const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
-    setHex(h.replace('#','')); onChange(h)
-  }
- 
   const handlePreset = (c: string) => {
     const newHex = c.replace('#','')
     const newHue = hexToHue(newHex)
@@ -136,6 +126,16 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
       </div>
     </div>
   )
+
+  function pickColor(e: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = canvasRef.current!
+    const rect = canvas.getBoundingClientRect()
+    const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
+    const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
+    const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
+    const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
+    setHex(h.replace('#','')); onChange(h)
+  }
 }
 
 // ── CLIP CARD CORREGIDA ───────────────────────────────────────────────────
@@ -172,7 +172,7 @@ function ClipCard({
             </div>
             <div style={{ fontSize:15,fontWeight:700,color:c.text,lineHeight:1.3 }}>{clip.titulo}</div>
           </div>
-          <div style={{ textAAalign:'center', flexShrink:0 }}>
+          <div style={{ textAlign:'center', flexShrink:0 }}>
             <div style={{ fontSize:22,fontWeight:800,color:sc,lineHeight:1 }}>{clip.score_viral}</div>
             <div style={{ fontSize:9,color:c.text3 }}>VIRAL</div>
           </div>
@@ -459,7 +459,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
           <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:16 }}>SESIONES ANTERIORES</div>
           {historial.length === 0
             ? <div style={{ textAlign:'center', padding:'40px 0', color:c.text3, fontSize:13 }}>No hay sesiones aún.</div>
-            : hhistorial.map((h,i) => (
+            : historial.map((h,i) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom: i<historial.length-1 ? `1px solid ${c.border}` : 'none' }}>
                 <div>
                   <div style={{ fontSize:13, color:c.text, fontWeight:600 }}>{h.sesion}</div>
