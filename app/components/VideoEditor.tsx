@@ -67,7 +67,6 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
     ctx.fillStyle = gB; ctx.fillRect(0,0,w,ht)
   }, [])
  
-  // FIX: dibuja el canvas al montar y cuando cambia el hue
   useEffect(() => { drawCanvas(hue) }, [hue, drawCanvas])
  
   const hexToHue = (hexColor: string): number => {
@@ -94,7 +93,6 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
     setHex(h.replace('#','')); onChange(h)
   }
  
-  // FIX: al clickear preset, sincroniza hue Y redibuja canvas
   const handlePreset = (c: string) => {
     const newHex = c.replace('#','')
     const newHue = hexToHue(newHex)
@@ -174,7 +172,7 @@ function ClipCard({
             </div>
             <div style={{ fontSize:15,fontWeight:700,color:c.text,lineHeight:1.3 }}>{clip.titulo}</div>
           </div>
-          <div style={{ textAlign:'center', flexShrink:0 }}>
+          <div style={{ textAAalign:'center', flexShrink:0 }}>
             <div style={{ fontSize:22,fontWeight:800,color:sc,lineHeight:1 }}>{clip.score_viral}</div>
             <div style={{ fontSize:9,color:c.text3 }}>VIRAL</div>
           </div>
@@ -278,37 +276,32 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
 
   const handlePreviewClip = (inicioStr: string, finStr: string) => {
-  if (!videoPlayerRef.current) return;
+    if (!videoPlayerRef.current) return
 
-  // Convertimos "HH:MM:SS" a segundos totales
-  const parseToSeconds = (timeStr: string) => {
-    const parts = timeStr.split(':').map(Number);
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
-    if (parts.length === 2) return parts[0] * 60 + parts[1];
-    return 0;
-  };
-
-  const inicioSeg = parseToSeconds(inicioStr);
-  const finSeg = parseToSeconds(finStr);
-
-  const video = videoPlayerRef.current;
-  video.currentTime = inicioSeg;
-  video.play();
-
-  // Escuchamos el evento de actualización de tiempo para frenarlo en el segundo exacto
-  const onTimeUpdate = () => {
-    if (video.currentTime >= finSeg) {
-      video.pause();
-      video.removeEventListener('timeupdate', onTimeUpdate);
+    const parseToSeconds = (timeStr: string) => {
+      const parts = timeStr.split(':').map(Number)
+      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
+      if (parts.length === 2) return parts[0] * 60 + parts[1]
+      return 0
     }
-  };
 
-  // Limpiamos listeners viejos antes de agregar el nuevo
-  video.removeEventListener('timeupdate', onTimeUpdate);
-  video.addEventListener('timeupdate', onTimeUpdate);
-}; // <--- ESTA LLAVE CIERRA LA FUNCIÓN INTERNA
+    const inicioSeg = parseToSeconds(inicioStr)
+    const finSeg = parseToSeconds(finStr)
 
-}; // <--- ¡ESTA ES LA LLAVE QUE FALTA! Cierra handlePreviewClip por completo.
+    const video = videoPlayerRef.current
+    video.currentTime = inicioSeg
+    video.play()
+
+    const onTimeUpdate = () => {
+      if (video.currentTime >= finSeg) {
+        video.pause()
+        video.removeEventListener('timeupdate', onTimeUpdate)
+      }
+    }
+
+    video.removeEventListener('timeupdate', onTimeUpdate)
+    video.addEventListener('timeupdate', onTimeUpdate)
+  }
 
   // Estado — configuración
   const [sesion, setSesion] = useState('')
@@ -354,29 +347,27 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const procesar = async () => {
     setError(''); setResultado(null); setLoading(true)
     try {
-      let urlFinal = videoUrl
+      let urlTemporal = videoUrl
 
-      // 1. Subir archivo si corresponde
       if (inputTipo === 'archivo') {
         if (!videoFile) throw new Error('Seleccioná un archivo primero')
         setStep('Subiendo video a almacenamiento...')
         if (!onUpload) throw new Error('Función de upload no disponible. Recargá la página.')
         const r = await onUpload(videoFile)
         if (!r?.url) throw new Error('Error al subir el archivo. Verificá la conexión con R2.')
-        urlFinal = r.url
+        urlTemporal = r.url
       } else {
         if (!youtubeUrl.trim()) throw new Error('Pegá el link de YouTube primero')
-        urlFinal = youtubeUrl.trim()
+        urlTemporal = youtubeUrl.trim()
       }
-      
-      setUrlFinal(urlFinal)
 
-      // 2. Transcribir
+      setUrlFinal(urlTemporal)
+
       setStep('Transcribiendo con Deepgram...')
       const transcRes = await fetch('/api/transcribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: urlFinal, tipo_input: inputTipo, idioma })
+        body: JSON.stringify({ url: urlTemporal, tipo_input: inputTipo, idioma })
       })
       if (!transcRes.ok) {
         const e = await transcRes.json().catch(() => ({}))
@@ -386,16 +377,15 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
       const transcript: string = transcData.transcript || ''
       if (transcript.length < 50) throw new Error('No se pudo obtener la transcripción. Verificá que el video tenga audio claro.')
    
-      // 3. Detectar clips virales
       setStep(`Detectando ${cantidad} clips virales con IA...`)
       const analysisRes = await fetch('/api/video-editor', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-  url: urlFinal,
-  transcript,
-  config: { cantidad, tipo, formato, idioma, traducir, idiomaDestino }
-})
+          url: urlTemporal,
+          transcript,
+          config: { cantidad, tipo, formato, idioma, traducir, idiomaDestino }
+        })
       })
       if (!analysisRes.ok) {
         const e = await analysisRes.json().catch(() => ({}))
@@ -469,7 +459,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
           <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:16 }}>SESIONES ANTERIORES</div>
           {historial.length === 0
             ? <div style={{ textAlign:'center', padding:'40px 0', color:c.text3, fontSize:13 }}>No hay sesiones aún.</div>
-            : historial.map((h,i) => (
+            : hhistorial.map((h,i) => (
               <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom: i<historial.length-1 ? `1px solid ${c.border}` : 'none' }}>
                 <div>
                   <div style={{ fontSize:13, color:c.text, fontWeight:600 }}>{h.sesion}</div>
@@ -668,9 +658,9 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
               <div style={{ fontSize:9, color:c.text3, letterSpacing:2, fontWeight:700, marginBottom:12 }}>PREVIEW DE SUBTÍTULOS</div>
               <div style={{ background:'#111', borderRadius:8, padding:'28px 16px', textAlign:'center', minHeight:90, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:6 }}>
                 <div style={{ fontSize:20, fontWeight:800, color:colorSub, fontFamily:`'${fuente}', sans-serif`, textShadow:'0 2px 8px #00000099', transition:'all 0.3s' }}>
-          Así se verán los subtítulos
-        </div>
-        <div style={{ fontSize:10, color:'#666', fontFamily:'Rajdhani,sans-serif' }}>{fuente} · {colorSub} · {posSub}</div>
+                  Así se verán los subtítulos
+                </div>
+                <div style={{ fontSize:10, color:'#666', fontFamily:'Rajdhani,sans-serif' }}>{fuente} · {colorSub} · {posSub}</div>
               </div>
             </div>
 
@@ -710,72 +700,71 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
             )}
 
             {/* Resultados */}
-          {resultado && (
-  <div style={{ marginTop: 32 }}>
-    {/* Título de la sección de resultados */}
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-      <div style={{ fontSize: 18, fontWeight: 800, color: c.text }}>🎬 Clips Detectados con Éxito</div>
-      <button onClick={() => setResultado(null)} style={{ background: 'transparent', border: 'none', color: c.text3, cursor: 'pointer', fontSize: 13 }}>
-        Limpiar pantalla
-      </button>
-    </div>
+            {resultado && (
+              <div style={{ marginTop: 32 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                  <div style={{ fontSize: 18, fontWeight: 800, color: c.text }}>🎬 Clips Detectados con Éxito</div>
+                  <button onClick={() => setResultado(null)} style={{ background: 'transparent', border: 'none', color: c.text3, cursor: 'pointer', fontSize: 13 }}>
+                    Limpiar pantalla
+                  </button>
+                </div>
 
-    {/* Contenedor principal en dos columnas (Mockup original) */}
-    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, alignItems: 'start' }}>
-      
-      {/* COLUMNA IZQUIERDA: REPRODUCTOR INTELIGENTE COSTO $0 */}
-      <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20, overflow: 'hidden' }}>
-          <div style={{ fontSize: 9, color: c.text3, letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>
-            REPRODUCTOR DE PREVISUALIZACIÓN DE LA AGENCIA
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, alignItems: 'start' }}>
+                  
+                  {/* COLUMNA IZQUIERDA: REPRODUCTOR */}
+                  <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20, overflow: 'hidden' }}>
+                      <div style={{ fontSize: 9, color: c.text3, letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>
+                        REPRODUCTOR DE PREVISUALIZACIÓN DE LA AGENCIA
+                      </div>
+                      
+                      {urlFinal ? (
+                        <video 
+                          ref={videoPlayerRef}
+                          src={urlFinal} 
+                          controls 
+                          style={{ width: '100%', borderRadius: 8, background: '#000', maxHeight: '400px' }}
+                        />
+                      ) : youtubeUrl ? (
+                        <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text2 }}>
+                          📺 Para links de YouTube, podés usar los tiempos de la derecha para guiarte en tu editor local.
+                        </div>
+                      ) : (
+                        <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text3 }}>
+                          Cargando origen del video...
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20 }}>
+                      <div style={{ fontSize: 9, color: GOLD, letterSpacing: 2, fontWeight: 700, marginBottom: 8 }}>
+                        RESUMEN ESTRATÉGICO (CHAR CORE)
+                      </div>
+                      <div style={{ fontSize: 13, color: c.text2, lineHeight: 1.5 }}>
+                        {resultado.resumen}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* COLUMNA DERECHA: LISTADO */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    {resultado.clips?.map((clip: any, index: number) => (
+                      <ClipCard 
+                        key={index} 
+                        clip={clip} 
+                        theme={theme} 
+                        onPreviewClip={handlePreviewClip} 
+                      />
+                    ))}
+                  </div>
+
+                </div>
+              </div>
+            )}
+
           </div>
-          
-          {/* Si es archivo local o tenemos la URL guardada en urlFinal */}
-          {urlFinal ? (
-            <video 
-              ref={videoPlayerRef}
-              src={urlFinal} 
-              controls 
-              style={{ width: '100%', borderRadius: 8, background: '#000', maxHeight: '400px' }}
-            />
-          ) : youtubeUrl ? (
-            <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text2 }}>
-              📺 Para links de YouTube, podés usar los tiempos de la derecha para guiarte en tu editor local.
-            </div>
-          ) : (
-            <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text3 }}>
-              Cargando origen del video...
-            </div>
-          )}
         </div>
-
-        {/* Resumen estratégico de la IA debajo del video */}
-        <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20 }}>
-          <div style={{ fontSize: 9, color: GOLD, letterSpacing: 2, fontWeight: 700, marginBottom: 8 }}>
-            RESUMEN ESTRATÉGICO (CHAR CORE)
-          </div>
-          <div style={{ fontSize: 13, color: c.text2, lineHeight: 1.5 }}>
-            {resultado.resumen}
-          </div>
-        </div>
-      </div>
-
-      {/* COLUMNA DERECHA: LISTADO DE CLIPS CARD */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {resultado.clips?.map((clip: any, index: number) => (
-  <ClipCard 
-    key={index} 
-    clip={clip} 
-    theme={theme} 
-    onPreviewClip={handlePreviewClip} 
-  />
-))}
-      </div>
-
-   </div>
-  </div>
-)}
-
+      )}
     </div>
   )
-} // <--- Cierra el export default function VideoEditor
+}
