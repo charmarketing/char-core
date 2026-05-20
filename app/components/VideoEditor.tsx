@@ -149,6 +149,18 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
 }
 
 // ── CLIP CARD (Professional Agency Grade - MODIFICADO CHAR) ───────────────────
+// ── CONFIGURACIÓN DE COLORES DE LA AGENCIA ──────────────────────────────────
+const GOLD = '#D4AF37';
+const SUCCESS = '#10B981';
+const ERROR = '#EF4444';
+
+function useTheme(theme: 'dark' | 'light') {
+  return theme === 'dark' 
+    ? { bg:'#05050f', surface:'#0b0b18', s2:'#111124', border:'#16163a', text:'#f0f0ff', text2:'#9090b8', text3:'#4a4a6a' }
+    : { bg:'#eef0f8', surface:'#ffffff', s2:'#f4f6ff', border:'#dde0f0', text:'#0d0d20', text2:'#2a2a4a', text3:'#6060aa' };
+}
+
+// ── COMPONENTE CLIP CARD PROFESIONAL ────────────────────────────────────────
 function ClipCard({ 
   clip, 
   theme, 
@@ -164,9 +176,9 @@ function ClipCard({
   setActiveClip: (clip: any) => void;
   setModalOpen: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const c = useTheme(theme)
+  const c = useTheme(theme);
   
   const parseToSecondsHelper = (timeStr: string) => {
     const parts = timeStr.split(':').map(Number);
@@ -177,30 +189,10 @@ function ClipCard({
 
   const inicioSeg = parseToSecondsHelper(clip.timestamp_inicio);
   const isInvalidTimestamp = inicioSeg > videoDuration && videoDuration > 0;
-
   const sc = isInvalidTimestamp ? ERROR : (clip.score_viral >= 85 ? SUCCESS : (clip.score_viral >= 70 ? GOLD : ERROR));
-  
-  const copyProfessionalData = () => {
-    const textToCopy = `💎 CHAR CORE - ENTREGA HIGH TICKET\n` +
-      `CLIP ${clip.numero}: ${clip.titulo}\n` +
-      `⏱️ Timestamps: ${clip.timestamp_inicio} → ${clip.timestamp_fin} (${clip.duracion_seg}s)\n` +
-      `📊 Score Viral: ${clip.score_viral}/100\n` +
-      `🎯 Red Recomendada: ${clip.red_recomendada}\n\n` +
-      `🚀 GANCHO VIRAL:\n${clip.gancho || clip.hook_viral_options?.[0]}\n\n` +
-      `📝 COPY / CAPTION ESTRATÉGICO:\n${clip.copy_caption}\n\n` +
-      `🧠 JUSTIFICACIÓN ESTRATÉGICA CHAR:\n${clip.por_que_viral || clip.justificacion_estrategica}\n\n` +
-      `💬 SUBTÍTULOS BASE (LIMPIOS):\n${clip.subtitulos.join('\n')}`;
-
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(textToCopy).then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      });
-    }
-  };
 
   return (
-    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}`, transition:'all 0.2s', boxShadow: open ? '0 8px 30px rgba(0,0,0,0.12)' : 'none', marginBottom:14 }}>
+    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}`, transition:'all 0.2s', marginBottom:14 }}>
       <div style={{ padding:'18px 22px' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:14 }}>
           <div style={{ flex:1 }}>
@@ -208,66 +200,138 @@ function ClipCard({
               <span style={{ fontSize:10,color:sc,fontWeight:700,letterSpacing:1.2,background:sc+'15',border:`1px solid ${sc}30`,padding:'3px 10px',borderRadius:20, textTransform:'uppercase' }}>
                 CLIP {clip.numero}
               </span>
-              <span style={{ fontSize:11,color: isInvalidTimestamp ? ERROR : c.text2, fontWeight:600, textDecoration: isInvalidTimestamp ? 'line-through' : 'none' }}>
+              <span style={{ fontSize:11,color: isInvalidTimestamp ? ERROR : c.text2, fontWeight:600 }}>
                 {clip.timestamp_inicio} → {clip.timestamp_fin}
               </span>
               <span style={{ fontSize:10,color:c.text3, fontWeight:500 }}>{clip.duracion_seg}s</span>
-              {isInvalidTimestamp && <span style={{fontSize:9,color:ERROR, fontWeight:700}}>⚠️ TIME INVALID</span>}
             </div>
-            <div style={{ fontSize:17,fontWeight:800,color:c.text,lineHeight:1.25, letterSpacing:'-0.3px' }}>{clip.titulo}</div>
+            <div style={{ fontSize:17,fontWeight:800,color:c.text,lineHeight:1.25 }}>{clip.titulo}</div>
           </div>
-          <div style={{ textAlign:'right', flexShrink:0 }}>
+          <div style={{ textAlign:'right' }}>
             <div style={{ fontSize:26,fontWeight:900,color:sc,lineHeight:1 }}>{clip.score_viral}</div>
-            <div style={{ fontSize:10,color:c.text3, fontWeight:700, letterSpacing:1 }}>VIRAL</div>
+            <div style={{ fontSize:10,color:c.text3, fontWeight:700 }}>VIRAL</div>
           </div>
         </div>
 
-        {/* Sección de Ganchos */}
-        <div style={{ background:theme=='dark'?'#111124':'#f9fafe',borderRadius:10,padding:'12px 16px',marginBottom:12, border:`1px solid ${c.border}` }}>
-          <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:6, textTransform:'uppercase' }}>Gancho Viral (Estrategia)</div>
-          <div style={{ fontSize:13,color:c.text,fontStyle:'italic',lineHeight:1.45, paddingLeft:12, borderLeft:`2px solid ${c.border}` }}>
-            "{clip.gancho || (clip.hook_viral_options && clip.hook_viral_options[0])}"
+        {/* Gancho */}
+        <div style={{ background:theme==='dark'?'#111124':'#f9fafe',borderRadius:10,padding:'12px 16px',marginBottom:12, border:`1px solid ${c.border}` }}>
+          <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:6, textTransform:'uppercase' }}>Gancho Viral</div>
+          <div style={{ fontSize:13,color:c.text,fontStyle:'italic',paddingLeft:12, borderLeft:`2px solid ${c.border}` }}>
+            "{clip.gancho}"
           </div>
         </div>
 
-        {/* Red y Justificación */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:10, marginBottom:12 }}>
-          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px' }}>
-            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>RED</div>
-            <div style={{ fontSize:13,fontWeight:700,color:c.text }}>{clip.red_recomendada}</div>
-          </div>
-          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px' }}>
-            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>POR QUÉ FUNCIONA</div>
-            <div style={{ fontSize:12,color:c.text2,lineHeight:1.45, fontWeight:500, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-              {clip.por_que_viral || clip.justificacion_estrategica}
-            </div>
-          </div>
-        </div>
-
-        {/* Botones de Acción Mapeados */}
-        <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-          <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text,padding:'9px 0',fontSize:12,cursor:'pointer',fontWeight:700 }}>
-            {open ? '▲ Menos' : '▼ Info Base'}
-          </button>
-          
+        {/* Botones de acción de la tarjeta */}
+        <div style={{ display:'flex', gap:8 }}>
           {onPreviewClip && (
             <button 
-              type="button"
               disabled={isInvalidTimestamp}
               onClick={() => onPreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} 
-              style={{ background: isInvalidTimestamp ? c.border : SUCCESS+'15', border:`1px solid ${isInvalidTimestamp ? c.border : SUCCESS+'40'}`, borderRadius:8, color: isInvalidTimestamp ? c.text3 : SUCCESS, padding:'9px 12px', fontSize:12, cursor: isInvalidTimestamp ? 'not-allowed' : 'pointer', fontWeight:700 }}
+              style={{ flex: 1, background: SUCCESS+'15', border:`1px solid ${SUCCESS}40`, borderRadius:8, color: SUCCESS, padding:'9px 0', fontSize:12, cursor:'pointer', fontWeight:700 }}
             >
-              👁️ Probar
+              👁️ Ver Clip
             </button>
           )}
 
-          <button onClick={() => { setActiveClip(clip); setModalOpen(true); }} style={{ background: GOLD, border:'none', borderRadius:8, color: '#000', padding:'9px 12px', fontSize:12, cursor:'pointer', fontWeight:800 }}>
+          <button 
+            onClick={() => { setActiveClip(clip); setModalOpen(true); }} 
+            style={{ flex: 1, background: GOLD, border:'none', borderRadius:8, color: '#000', padding:'9px 0', fontSize:12, cursor:'pointer', fontWeight:800 }}
+          >
             ⚡ Expandir Estrategia
           </button>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+// ── MODAL MAESTRO FLOTANTE INTERNACIONAL (CHAR CORE) ──────────────────────────
+function StrategicModal({ 
+  isOpen, 
+  clip, 
+  theme, 
+  onClose 
+}: { 
+  isOpen: boolean; 
+  clip: any; 
+  theme: 'dark' | 'light'; 
+  onClose: () => void; 
+}) {
+  const c = useTheme(theme);
+  if (!isOpen || !clip) return null;
+
+  return (
+    <div style={{ position:'fixed', top:0, left:0, right:0, bottom:0, background:'rgba(3, 3, 10, 0.85)', backdropFilter:'blur(12px)', display:'flex', alignItems:'center', justifyContent:'center', zIndex:1000, padding:20 }}>
+      <div style={{ background:c.surface, border:`1px solid ${GOLD}40`, borderRadius:20, width:'100%', maxWidth:1100, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 50px rgba(0,0,0,0.6)', display:'flex', flexDirection:'column' }}>
+        
+        {/* Encabezado */}
+        <div style={{ padding:'20px 30px', borderBottom:`1px solid ${c.border}`, display:'flex', justifyContent:'space-between', alignItems:'center', background:c.s2 }}>
+          <div>
+            <span style={{ fontSize:11, color:GOLD, fontWeight:900, letterSpacing:1.5 }}>AUDITORÍA DE CONTENIDO DE ALTO VALOR</span>
+            <h2 style={{ fontSize:22, fontWeight:900, margin:'4px 0 0 0', color:c.text }}>{clip.titulo}</h2>
+          </div>
+          <button onClick={onClose} style={{ background:'#ff474720', color:'#ff4747', border:'none', width:36, height:36, borderRadius:'50%', cursor:'pointer', fontWeight:900 }}>✕</button>
+        </div>
+
+        {/* Cuerpo */}
+        <div style={{ padding:30, display:'grid', gridTemplateColumns:'1.2fr 1fr', gap:30 }}>
+          
+          {/* Lado Izquierdo */}
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            <div>
+              <span style={{ fontSize:10, color:c.text3, fontWeight:800, display:'block', marginBottom:6 }}>🧲 GANCHO VIRAL DETECTADO</span>
+              <div style={{ background:`${GOLD}10`, padding:14, borderRadius:8, border:`1px solid ${GOLD}30`, color:GOLD, fontWeight:800, fontSize:14 }}>
+                "{clip.gancho}"
+              </div>
+            </div>
+
+            <div>
+              <span style={{ fontSize:10, color:c.text3, fontWeight:800, display:'block', marginBottom:6 }}>📝 COPY CAPTION PROFESIONAL ESTRATÉGICO</span>
+              <textarea readOnly value={clip.copy_caption} style={{ width:'100%', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text2, padding:12, fontSize:13, height:160, fontFamily:'inherit', resize:'none' }} />
+            </div>
+
+            <div>
+              <span style={{ fontSize:10, color:c.text3, fontWeight:800, display:'block', marginBottom:6 }}>🧠 LOGÍSTICA DE RELEVANCIA Y DIRECCIÓN DE ARTE</span>
+              <div style={{ fontSize:13, color:c.text, background:c.s2, padding:16, borderRadius:8, border:`1px solid ${c.border}`, whiteSpace:'pre-line', lineHeight:1.5 }}>
+                {clip.por_que_viral}
+              </div>
+            </div>
+          </div>
+
+          {/* Lado Derecho */}
+          <div style={{ display:'flex', flexDirection:'column', gap:20, borderLeft:`1px solid ${c.border}`, paddingLeft:24 }}>
+            <div style={{ background:c.s2, padding:14, borderRadius:8, border:`1px solid ${c.border}` }}>
+              <span style={{ fontSize:10, color:c.text3, fontWeight:800, display:'block', marginBottom:4 }}>📊 MÉTRICAS DEL CLIP</span>
+              <div style={{ fontSize:13, color:c.text2 }}>Plataforma Sugerida: <strong style={{color:GOLD}}>{clip.red_recomendada}</strong></div>
+              <div style={{ fontSize:13, color:c.text2, marginTop:4 }}>Segmento original: <strong>{clip.timestamp_inicio} a {clip.timestamp_fin}</strong></div>
+              <div style={{ fontSize:13, color:c.text2, marginTop:4 }}>Duración exacta: <strong>{clip.duracion_seg} segundos</strong></div>
+            </div>
+
+            <div>
+              <span style={{ fontSize:10, color:c.text3, fontWeight:800, display:'block', marginBottom:6 }}>💬 SUBTÍTULOS CRUCIALES DEL BLOQUE</span>
+              <div style={{ display:'flex', flexDirection:'column', gap:6, maxHeight:150, overflowY:'auto' }}>
+                {clip.subtitulos?.map((sub: string, sIdx: number) => (
+                  <div key={sIdx} style={{ fontSize:12, color:c.text2, background:c.s2, padding:'8px 12px', borderRadius:6, borderLeft:`3px solid ${GOLD}` }}>
+                    {sub}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ background:`${GOLD}05`, padding:16, borderRadius:10, border:`1px dashed ${GOLD}40` }}>
+              <span style={{ fontSize:11, fontWeight:800, color:GOLD, display:'block', marginBottom:6 }}>🎯 FORMATO DE REPLICACIÓN (STANDARDS CHAR)</span>
+              <ul style={{ margin:0, paddingLeft:14, fontSize:12, color:c.text2, display:'flex', flexDirection:'column', gap:6 }}>
+                <li>Aislá el rostro en primer plano y aplicá máscara de enfoque en los ojos.</li>
+                <li>Incliná el bloque de texto entre 3° y 5° con tipografía Sans-serif gruesa.</li>
+                <li>Utilizá sombras duras e iluminación trasera de neón para generar separación de fondo.</li>
+              </ul>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // ── EXPORTS ────────────────────────────────────────────────────────────────
@@ -614,7 +678,6 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
     setModalOpen={setIsModalOpen}
   />
 ))
-  ))
 ) : (
   <div style={{ textAlign: 'center', padding: 40, color: c.text3, border: `1px dashed ${c.border}`, borderRadius: 12 }}>
     Esperando análisis del video...
