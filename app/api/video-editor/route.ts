@@ -62,7 +62,7 @@ Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estruc
     method: 'POST',
     headers: { Authorization: `Bearer ${KEY()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'llama-3.3-70b-specdec',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.3, // Temperatura baja para evitar alucinaciones en los timestamps
       max_tokens: 3000,
       response_format: { type: 'json_object' },
