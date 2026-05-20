@@ -1,19 +1,19 @@
 'use client'
 import { useState, useRef, useCallback, useEffect } from 'react'
 
-// ── TIPOS ──────────────────────────────────────────────────────────────────
+// ── TIPOS UNIFICADOS Y ESTRATÉGICOS ─────────────────────────────────────────
 interface Clip {
-  numero: number
-  titulo: string
-  gancho: string
-  timestamp_inicio: string
-  timestamp_fin: string
-  duracion_seg: number
-  por_que_viral: string
-  red_recomendada: string
-  copy_caption: string
-  subtitulos: string[]
-  score_viral: number
+  numero: number;
+  titulo: string;
+  hook_viral_options: string[]; // 3 opciones de ganchos de alto impacto
+  copy_caption_professional: string; // Copy estructurado persuasivamente
+  justificacion_estrategica: string; // Por qué este clip funciona para High Ticket
+  timestamp_inicio: string; // Formato HH:MM:SS o MM:SS
+  timestamp_fin: string; // Formato HH:MM:SS o MM:SS
+  duracion_seg: number;
+  red_recomendada: string;
+  subtitulos: string[];
+  score_viral: number; // 1-100
 }
 interface Cliente { id: string; nombre: string }
 interface Props {
@@ -22,8 +22,10 @@ interface Props {
   onUpload?: (file: File) => Promise<{ url: string }>
 }
 
-// ── CONSTANTES ─────────────────────────────────────────────────────────────
+// ── CONSTANTES DE DISEÑO PREMIUM ───────────────────────────────────────────
 const GOLD = '#c9a96e'
+const SUCCESS = '#3dd68c'
+const ERROR = '#f87171'
 const FUENTES = ['Rajdhani','Glacial Indifference','Montserrat','Bebas Neue','Oswald','Roboto','Poppins']
 const PRESETS = ['#ffffff','#ffcd38','#c9a96e','#00cfff','#3dd68c','#f87171','#a78bfa','#000000']
 const TIPOS = ['Podcast','Entrevista','Charla / Keynote','Clase / Tutorial','Reunión','Video de cliente','Otro']
@@ -40,14 +42,14 @@ const POSICIONES_SUB = ['Arriba','Centro','Abajo (recomendado)']
 const POSICIONES_LOGO = ['Arriba izquierda','Arriba derecha','Abajo izquierda','Abajo derecha','Centro']
 const IDIOMAS = ['Español','Inglés','Portugués','Francés','Alemán','Italiano','Japonés','Chino','Árabe','Hindi']
 
-// ── COLORES TEMA ───────────────────────────────────────────────────────────
+// ── COLOR THEME LOGIC ───────────────────────────────────────────────────────
 function useTheme(t: 'dark'|'light') {
   return t === 'dark'
     ? { bg:'#05050f', surface:'#0b0b18', s2:'#111124', border:'#16163a', b2:'#1e1e3a', text:'#f0f0ff', text2:'#9090b8', text3:'#4a4a6a' }
     : { bg:'#eef0f8', surface:'#ffffff', s2:'#f4f6ff', border:'#dde0f0', b2:'#c8cbdf', text:'#0d0d20', text2:'#2a2a4a', text3:'#6060aa' }
 }
 
-// ── COLOR PICKER tipo Canva ────────────────────────────────────────────────
+// ── COLOR PICKER (Advanced) ────────────────────────────────────────────────
 function ColorPicker({ color, onChange }: { color: string; onChange: (c: string) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [hue, setHue] = useState(0)
@@ -96,8 +98,26 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
     <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
       <canvas ref={canvasRef} width={220} height={140}
         style={{ width:'100%', borderRadius:8, cursor:'crosshair', border:'1px solid #1e1e3a' }}
-        onClick={pickColor}
-        onMouseMove={e => { if(e.buttons===1) pickColor(e) }}
+        onClick={(e) => {
+          const canvas = canvasRef.current!
+          const rect = canvas.getBoundingClientRect()
+          const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
+          const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
+          const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
+          const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
+          setHex(h.replace('#','')); onChange(h)
+        }}
+        onMouseMove={e => {
+          if(e.buttons===1){
+            const canvas = canvasRef.current!
+            const rect = canvas.getBoundingClientRect()
+            const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
+            const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
+            const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
+            const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
+            setHex(h.replace('#','')); onChange(h)
+          }
+        }}
       />
       <input type="range" min={0} max={360} value={hue}
         style={{ width:'100%', accentColor:'#c9a96e', cursor:'pointer' }}
@@ -126,104 +146,152 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
       </div>
     </div>
   )
-
-  function pickColor(e: React.MouseEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current!
-    const rect = canvas.getBoundingClientRect()
-    const x = Math.round((e.clientX-rect.left)*(canvas.width/rect.width))
-    const y = Math.round((e.clientY-rect.top)*(canvas.height/rect.height))
-    const px = canvas.getContext('2d')!.getImageData(Math.max(0,x),Math.max(0,y),1,1).data
-    const h = `#${px[0].toString(16).padStart(2,'0')}${px[1].toString(16).padStart(2,'0')}${px[2].toString(16).padStart(2,'0')}`
-    setHex(h.replace('#','')); onChange(h)
-  }
 }
 
-// ── CLIP CARD CORREGIDA ───────────────────────────────────────────────────
+// ── CLIP CARD (Professional Agency Grade) ───────────────────────────────────
 function ClipCard({ 
   clip, 
   theme, 
-  onPreviewClip 
+  onPreviewClip,
+  videoDuration
 }: { 
   clip: Clip; 
   theme: 'dark' | 'light'; 
-  onPreviewClip?: (inicio: string, fin: string) => void; 
+  onPreviewClip?: (inicio: string, fin: string) => void;
+  videoDuration: number; // Duración real del video para validar timestamps
 }) {
   const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false);
   const c = useTheme(theme)
-  const sc = clip.score_viral >= 85 ? '#3dd68c' : clip.score_viral >= 70 ? GOLD : '#f87171'
   
-  const copy = () => {
-    navigator.clipboard.writeText(
-      `CLIP ${clip.numero}: ${clip.titulo}\nTimestamps: ${clip.timestamp_inicio} → ${clip.timestamp_fin} (${clip.duracion_seg}s)\n\nGANCHO:\n${clip.gancho}\n\nPOR QUÉ ES VIRAL:\n${clip.por_que_viral}\n\nRED: ${clip.red_recomendada}\n\nCAPTION:\n${clip.copy_caption}\n\nSUBTÍTULOS:\n${clip.subtitulos.join('\n')}`
-    )
+  const parseToSecondsHelper = (timeStr: string) => {
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return parts[0] || 0;
+  };
+
+  const inicioSeg = parseToSecondsHelper(clip.timestamp_inicio);
+  const isInvalidTimestamp = inicioSeg > videoDuration && videoDuration > 0;
+
+  const sc = isInvalidTimestamp ? ERROR : (clip.score_viral >= 85 ? SUCCESS : (clip.score_viral >= 70 ? GOLD : ERROR));
+  
+  // Función de copiado robusta con fallback
+  const copyProfessionalData = () => {
+    const textToCopy = `💎 CHAR CORE - ENTREGA HIGH TICKET\n` +
+      `CLIP ${clip.numero}: ${clip.titulo}\n` +
+      `⏱️ Timestamps: ${clip.timestamp_inicio} → ${clip.timestamp_fin} (${clip.duracion_seg}s)\n` +
+      `📊 Score Viral: ${clip.score_viral}/100\n` +
+      `🎯 Red Recomendada: ${clip.red_recomendada}\n\n` +
+      `🚀 OPCIONES DE GANCHOS VIRALES:\n${clip.hook_viral_options.map((h,i)=>`${i+1}. ${h}`).join('\n')}\n\n` +
+      `📝 COPY / CAPTION ESTRATÉGICO:\n${clip.copy_caption_professional}\n\n` +
+      `🧠 JUSTIFICACIÓN ESTRATÉGICA CHAR:\n${clip.justificacion_estrategica}\n\n` +
+      `💬 SUBTÍTULOS BASE (LIMPIOS):\n${clip.subtitulos.join('\n')}`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(textToCopy).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    } else {
+      // Fallback para navegadores antiguos o entornos no seguros
+      const textArea = document.createElement("textarea");
+      textArea.value = textToCopy;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Falló el copiado de respaldo', err);
+      }
+      document.body.removeChild(textArea);
+    }
   }
 
   return (
-    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}` }}>
-      <div style={{ padding:'16px 20px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:12 }}>
+    <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}`, transition:'all 0.2s', boxShadow: open ? '0 8px 30px rgba(0,0,0,0.12)' : 'none' }}>
+      <div style={{ padding:'18px 22px' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', gap:12, marginBottom:14 }}>
           <div style={{ flex:1 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4, flexWrap:'wrap' }}>
-              <span style={{ fontSize:9,color:sc,fontWeight:700,letterSpacing:1,background:sc+'20',border:`1px solid ${sc}40`,padding:'2px 8px',borderRadius:20 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, flexWrap:'wrap' }}>
+              <span style={{ fontSize:10,color:sc,fontWeight:700,letterSpacing:1.2,background:sc+'15',border:`1px solid ${sc}30`,padding:'3px 10px',borderRadius:20, textTransform:'uppercase' }}>
                 CLIP {clip.numero}
               </span>
-              <span style={{ fontSize:9,color:c.text3 }}>{clip.timestamp_inicio} → {clip.timestamp_fin}</span>
-              <span style={{ fontSize:9,color:c.text3 }}>{clip.duracion_seg}s</span>
+              <span style={{ fontSize:11,color: isInvalidTimestamp ? ERROR : c.text2, fontWeight:600, textDecoration: isInvalidTimestamp ? 'line-through' : 'none' }}>
+                {clip.timestamp_inicio} → {clip.timestamp_fin}
+              </span>
+              <span style={{ fontSize:10,color:c.text3, fontWeight:500 }}>{clip.duracion_seg}s</span>
+              {isInvalidTimestamp && <span style={{fontSize:9,color:ERROR, fontWeight:700}}>⚠️ TIME INVALID</span>}
             </div>
-            <div style={{ fontSize:15,fontWeight:700,color:c.text,lineHeight:1.3 }}>{clip.titulo}</div>
+            <div style={{ fontSize:17,fontWeight:800,color:c.text,lineHeight:1.25, letterSpacing:'-0.3px' }}>{clip.titulo}</div>
           </div>
-          <div style={{ textAlign:'center', flexShrink:0 }}>
-            <div style={{ fontSize:22,fontWeight:800,color:sc,lineHeight:1 }}>{clip.score_viral}</div>
-            <div style={{ fontSize:9,color:c.text3 }}>VIRAL</div>
-          </div>
-        </div>
-        <div style={{ background:theme==='dark'?'#161628':'#eef0ff',borderRadius:8,padding:'10px 14px',marginBottom:10 }}>
-          <div style={{ fontSize:9,color:GOLD,letterSpacing:1,fontWeight:700,marginBottom:4 }}>GANCHO</div>
-          <div style={{ fontSize:13,color:c.text,fontStyle:'italic',lineHeight:1.4 }}>"{clip.gancho}"</div>
-        </div>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:8, marginBottom:10 }}>
-          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'8px 12px' }}>
-            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:2 }}>RED</div>
-            <div style={{ fontSize:12,fontWeight:600,color:c.text }}>{clip.red_recomendada}</div>
-          </div>
-          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'8px 12px' }}>
-            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:2 }}>POR QUÉ FUNCIONA</div>
-            <div style={{ fontSize:11,color:c.text2,lineHeight:1.4 }}>{clip.por_que_viral}</div>
+          <div style={{ textAlign:'right', flexShrink:0 }}>
+            <div style={{ fontSize:26,fontWeight:900,color:sc,lineHeight:1 }}>{clip.score_viral}</div>
+            <div style={{ fontSize:10,color:c.text3, fontWeight:700, letterSpacing:1 }}>VIRAL</div>
           </div>
         </div>
+
+        {/* Sección de Ganchos (Táctica) */}
+        <div style={{ background:theme==='dark'?'#111124':'#f9fafe',borderRadius:10,padding:'12px 16px',marginBottom:12, border:`1px solid ${c.border}` }}>
+          <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:6, textTransform:'uppercase' }}>Ganchos Virales (Opciones)</div>
+          {clip.hook_viral_options.map((hook,i) => (
+            <div key={i} style={{ fontSize:13,color:c.text,fontStyle:'italic',lineHeight:1.45, marginBottom: i<clip.hook_viral_options.length-1 ? 6 : 0, paddingLeft:12, borderLeft:`2px solid ${c.border}` }}>
+              "{hook}"
+            </div>
+          ))}
+        </div>
+
+        {/* Red y Justificación */}
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:10, marginBottom:12 }}>
+          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px' }}>
+            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>RED</div>
+            <div style={{ fontSize:13,fontWeight:700,color:c.text }}>{clip.red_recomendada}</div>
+          </div>
+          <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px' }}>
+            <div style={{ fontSize:9,color:c.text3,letterSpacing:1,marginBottom:3,fontWeight:700 }}>POR QUÉ FUNCIONA CHAR CORE</div>
+            <div style={{ fontSize:12,color:c.text2,lineHeight:1.45, fontWeight:500 }}>{clip.justificacion_estrategica}</div>
+          </div>
+        </div>
+
+        {/* Detalles Desplegables (High Ticket) */}
         {open && (
-          <>
-            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px',marginBottom:10 }}>
-              <div style={{ fontSize:9,color:GOLD,letterSpacing:1,fontWeight:700,marginBottom:6 }}>CAPTION</div>
-              <div style={{ fontSize:12,color:c.text2,lineHeight:1.5,whiteSpace:'pre-line' }}>{clip.copy_caption}</div>
+          <div style={{marginTop:16, borderTop:`1px solid ${c.border}`, paddingTop:16}}>
+            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'12px 16px',marginBottom:12 }}>
+              <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:8, textTransform:'uppercase' }}>COPY / CAPTION ESTRATÉGICO</div>
+              <div style={{ fontSize:13,color:c.text2,lineHeight:1.6,whiteSpace:'pre-line', fontWeight:500 }}>{clip.copy_caption_professional}</div>
             </div>
-            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'10px 14px',marginBottom:10 }}>
-              <div style={{ fontSize:9,color:GOLD,letterSpacing:1,fontWeight:700,marginBottom:6 }}>SUBTÍTULOS</div>
+            <div style={{ background:c.s2,border:`1px solid ${c.border}`,borderRadius:8,padding:'12px 16px',marginBottom:12 }}>
+              <div style={{ fontSize:10,color:GOLD,letterSpacing:1.5,fontWeight:800,marginBottom:8, textTransform:'uppercase' }}>💬 Subtítulos (Transcripción Base)</div>
               {clip.subtitulos.map((s,i) => (
-                <div key={i} style={{ fontSize:12,color:c.text,padding:'3px 0',borderBottom:i<clip.subtitulos.length-1?`1px solid ${c.border}`:'none' }}>
-                  {i+1}. {s}
+                <div key={i} style={{ fontSize:12,color:c.text2,padding:'5px 0',borderBottom:i<clip.subtitulos.length-1?`1px solid ${c.border}`:'none', fontWeight:400 }}>
+                  <span style={{color:c.text3, fontWeight:700, marginRight:6}}>{i+1}.</span> {s}
                 </div>
               ))}
             </div>
-          </>
+          </div>
         )}
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text2,padding:'7px 0',fontSize:11,cursor:'pointer',fontFamily:'inherit' }}>
-            {open ? '▲ Menos' : '▼ Caption y subtítulos'}
+
+        {/* Botones de Acción Agencial */}
+        <div style={{ display:'flex', gap:10, marginTop: open ? 16 : 0 }}>
+          <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text,padding:'9px 0',fontSize:12,cursor:'pointer',fontFamily:'inherit',fontWeight:700, transition:'all 0.2s' }}>
+            {open ? '▲ Menos Detalles' : '▼ Ver Copy y Subs'}
           </button>
           
           {onPreviewClip && (
             <button 
               type="button"
+              disabled={isInvalidTimestamp}
               onClick={() => onPreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} 
-              style={{ background:'#3dd68c20', border:'1px solid #3dd68c50', borderRadius:8, color:'#3dd68c', padding:'7px 12px', fontSize:11, cursor:'pointer', fontWeight:700, fontFamily:'inherit' }}
+              style={{ background: isInvalidTimestamp ? c.border : SUCCESS+'15', border:`1px solid ${isInvalidTimestamp ? c.border : SUCCESS+'40'}`, borderRadius:8, color: isInvalidTimestamp ? c.text3 : SUCCESS, padding:'9px 18px', fontSize:12, cursor: isInvalidTimestamp ? 'not-allowed' : 'pointer', fontWeight:700, fontFamily:'inherit', transition:'all 0.2s' }}
             >
-              👁️ Ver Clip
+              👁️ Previsualizar
             </button>
           )}
 
-          <button onClick={copy} style={{ background:GOLD+'20',border:`1px solid ${GOLD}50`,borderRadius:8,color:GOLD,padding:'7px 14px',fontSize:11,cursor:'pointer',fontWeight:700,fontFamily:'inherit' }}>
-            📋 Copiar
+          <button onClick={copyProfessionalData} style={{ background: copied ? SUCCESS+'20' : GOLD+'15',border:`1px solid ${copied ? SUCCESS+'50' : GOLD+'40'}`,borderRadius:8,color: copied ? SUCCESS : GOLD,padding:'9px 18px',fontSize:12,cursor:'pointer',fontWeight:700,fontFamily:'inherit', transition:'all 0.2s', minWidth:100 }}>
+            {copied ? '✅ Copiado' : '📋 Copiar Datos'}
           </button>
         </div>
       </div>
@@ -234,23 +302,36 @@ function ClipCard({
 // ── EXPORTS ────────────────────────────────────────────────────────────────
 function exportCSV(clips: Clip[], sesion: string) {
   const rows = [
-    ['Clip','Título','Inicio','Fin','Duración (s)','Score Viral','Red','Gancho','Por qué viral','Caption'],
-    ...clips.map(c => [c.numero,c.titulo,c.timestamp_inicio,c.timestamp_fin,c.duracion_seg,c.score_viral,c.red_recomendada,c.gancho,c.por_que_viral,c.copy_caption])
+    ['Clip','Título','Inicio','Fin','Duración (s)','Score Viral','Red','Gancho 1','Gancho 2','Gancho 3','Justificación Estratégica','Copy Professional'],
+    ...clips.map(c => [
+      c.numero,
+      c.titulo,
+      c.timestamp_inicio,
+      c.timestamp_fin,
+      c.duracion_seg,
+      c.score_viral,
+      c.red_recomendada,
+      c.hook_viral_options[0]||'',
+      c.hook_viral_options[1]||'',
+      c.hook_viral_options[2]||'',
+      c.justificacion_estrategica,
+      c.copy_caption_professional
+    ])
   ]
   const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n')
   dl(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}), `CHAR_Video_${sesion||'sesion'}.csv`)
 }
 function exportTXT(clips: Clip[], sesion: string) {
-  const lines = [`CHAR CORE — Video Editor IA\nSesión: ${sesion}\nFecha: ${new Date().toLocaleDateString('es-AR')}\n${'═'.repeat(50)}`]
+  const lines = [`💎 CHAR CORE — Video Editor IA High Ticket\nSesión: ${sesion}\nFecha: ${new Date().toLocaleDateString('es-AR')}\n${'═'.repeat(60)}`]
   clips.forEach(c => {
-    lines.push(`\nCLIP ${c.numero}: ${c.titulo}`)
-    lines.push(`Timestamps: ${c.timestamp_inicio} → ${c.timestamp_fin} (${c.duracion_seg}s)`)
-    lines.push(`Score viral: ${c.score_viral}/100 · Red: ${c.red_recomendada}`)
-    lines.push(`\nGancho: "${c.gancho}"`)
-    lines.push(`\nPor qué viral:\n${c.por_que_viral}`)
-    lines.push(`\nCaption:\n${c.copy_caption}`)
-    lines.push(`\nSubtítulos:\n${c.subtitulos.map((s,i)=>`${i+1}. ${s}`).join('\n')}`)
-    lines.push(`\n${'─'.repeat(40)}`)
+    lines.push(`\n🚀 CLIP ${c.numero}: ${c.titulo}`)
+    lines.push(`⏱️ Timestamps: ${c.timestamp_inicio} → ${c.timestamp_fin} (${c.duracion_seg}s)`)
+    lines.push(`📊 Score viral: ${c.score_viral}/100 · Red: ${c.red_recomendada}`)
+    lines.push(`\n🧲 GANCHOS VIRALES:\n${c.hook_viral_options.map((h,i)=>`${i+1}. ${h}`).join('\n')}`)
+    lines.push(`\n🧠 JUSTIFICACIÓN ESTRATÉGICA CHAR:\n${c.justificacion_estrategica}`)
+    lines.push(`\n📝 COPY / CAPTION ESTRATÉGICO:\n${c.copy_caption_professional}`)
+    lines.push(`\n💬 Subtítulos Base:\n${c.subtitulos.map((s,i)=>`${i+1}. ${s}`).join('\n')}`)
+    lines.push(`\n${'─'.repeat(50)}`)
   })
   dl(new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8;'}), `CHAR_Video_${sesion||'sesion'}.txt`)
 }
@@ -261,49 +342,84 @@ function dl(blob: Blob, name: string) {
 // ── COMPONENTE PRINCIPAL ───────────────────────────────────────────────────
 export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }: Props) {
   const c = useTheme(theme)
-
-  // Estado — tab
   const [tab, setTab] = useState<'procesar'|'historial'>('procesar')
-
-  // Estado — fuente de video
   const [inputTipo, setInputTipo] = useState<'archivo'|'youtube'>('archivo')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [videoFile, setVideoFile] = useState<File|null>(null)
   const [videoUrl, setVideoUrl] = useState('')
-  const [urlFinal, setUrlFinal] = useState('')
+  const [urlFinal, setUrlFinal] = useState('') // URL real para el reproductor
   const [dragging, setDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
+  const [realVideoDuration, setRealVideoDuration] = useState(0);
 
+  // Cargar historial desde localStorage al montar
+  const [historial, setHistorial] = useState<{sesion:string;clips:Clip[];fecha:string;realDuration:number}[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('char_editor_history');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  // Guardar historial automáticamente
+  useEffect(() => {
+    localStorage.setItem('char_editor_history', JSON.stringify(historial));
+  }, [historial]);
+
+  // Capturar duración real cuando carga el video
+  useEffect(() => {
+    const video = videoPlayerRef.current;
+    if (video) {
+      const handleLoadedMetadata = () => {
+        setRealVideoDuration(video.duration);
+        setError(''); // Limpiamos errores previos de duración
+      };
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      return () => video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    }
+  }, [urlFinal]);
+
+  // Lógica de Previsualización Inteligente (Fixed & Robust)
   const handlePreviewClip = (inicioStr: string, finStr: string) => {
-    if (!videoPlayerRef.current) return
+    if (!videoPlayerRef.current) return;
 
     const parseToSeconds = (timeStr: string) => {
-      const parts = timeStr.split(':').map(Number)
-      if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
-      if (parts.length === 2) return parts[0] * 60 + parts[1]
-      return 0
+      // Maneja formatos H:M:S, M:S, o S puro
+      const parts = timeStr.split(':').map(Number);
+      let secs = 0;
+      if (parts.length === 3) secs = parts[0] * 3600 + parts[1] * 60 + parts[2];
+      else if (parts.length === 2) secs = parts[0] * 60 + parts[1];
+      else secs = parts[0] || 0;
+      return secs;
+    };
+
+    const inicioSeg = parseToSeconds(inicioStr);
+    const finSeg = parseToSeconds(finStr);
+
+    if (inicioSeg > realVideoDuration && realVideoDuration > 0) {
+      setError(`Error operátivo CHAR: El timestamp de Groq (${inicioStr}) está fuera de la duración real del video (${realVideoDuration.toFixed(1)}s).`);
+      return;
     }
 
-    const inicioSeg = parseToSeconds(inicioStr)
-    const finSeg = parseToSeconds(finStr)
+    const video = videoPlayerRef.current;
+    video.currentTime = inicioSeg;
+    video.play();
 
-    const video = videoPlayerRef.current
-    video.currentTime = inicioSeg
-    video.play()
-
+    // Listener para pausar automáticamente
     const onTimeUpdate = () => {
       if (video.currentTime >= finSeg) {
-        video.pause()
-        video.removeEventListener('timeupdate', onTimeUpdate)
+        video.pause();
+        video.removeEventListener('timeupdate', onTimeUpdate);
       }
-    }
+    };
 
-    video.removeEventListener('timeupdate', onTimeUpdate)
-    video.addEventListener('timeupdate', onTimeUpdate)
-  }
+    // Limpieza de listeners previos
+    video.removeEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('timeupdate', onTimeUpdate);
+  };
 
-  // Estado — configuración
+  // Resto de estados (Configuración)
   const [sesion, setSesion] = useState('')
   const [clienteId, setClienteId] = useState(clientes[0]?.id || '')
   const [tipo, setTipo] = useState('Podcast')
@@ -312,162 +428,114 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const [idioma, setIdioma] = useState('Español')
   const [traducir, setTraducir] = useState(false)
   const [idiomaDestino, setIdiomaDestino] = useState('Inglés')
-
-  // Estado — subtítulos
   const [fuente, setFuente] = useState('Rajdhani')
   const [colorSub, setColorSub] = useState('#ffffff')
   const [posSub, setPosSub] = useState('Abajo (recomendado)')
   const [posLogo, setPosLogo] = useState('Arriba derecha')
-
-  // Estado — procesamiento
   const [loading, setLoading] = useState(false)
   const [step, setStep] = useState('')
   const [error, setError] = useState('')
   const [resultado, setResultado] = useState<{clips:Clip[];resumen:string;palabras:number}|null>(null)
-  const [historial, setHistorial] = useState<{sesion:string;clips:Clip[];fecha:string}[]>([])
 
-  // ── Manejo de archivo ────────────────────────────────────────────────────
   const handleFile = (f: File) => {
     const ok = ['video/mp4','video/mov','video/avi','video/webm','video/quicktime','audio/mpeg','audio/mp4','audio/m4a','audio/wav','audio/x-m4a']
-    if (!ok.some(t => f.type.includes(t.split('/')[1]))) {
-      setError('Formato no soportado. Usá MP4, MOV, AVI, MP3 o M4A.'); return
-    }
-    if (f.size > 500 * 1024 * 1024) {
-      setError('Archivo muy grande. Máximo 500MB.'); return
-    }
-    setVideoFile(f); setError(''); setInputTipo('archivo')
+    if (!ok.some(t => f.type.includes(t.split('/')[1]))) { setError('Formato no soportado High Ticket. Usá MP4, MOV, AVI, MP3 o M4A.'); return; }
+    if (f.size > 500 * 1024 * 1024) { setError('Archivo High Ticket muy grande. Máximo 500MB.'); return; }
+    setVideoFile(f); setError(''); setInputTipo('archivo');
   }
-  const onDrop = (e: React.DragEvent) => {
-    e.preventDefault(); setDragging(false)
-    const f = e.dataTransfer.files[0]
-    if (f) handleFile(f)
-  }
-  
-  // ── Procesamiento principal ──────────────────────────────────────────────
-  const procesar = async () => {
-    setError(''); setResultado(null); setLoading(true)
-    try {
-      let urlTemporal = videoUrl
 
+  const procesar = async () => {
+    setError(''); setResultado(null); setLoading(true); setUrlFinal('');
+    try {
+      let urlTemporal = videoUrl;
       if (inputTipo === 'archivo') {
         if (!videoFile) throw new Error('Seleccioná un archivo primero')
-        setStep('Subiendo video a almacenamiento...')
-        if (!onUpload) throw new Error('Función de upload no disponible. Recargá la página.')
+        setStep('🚀 CHAR CORE: Subiendo video a R2 High Ticket...')
+        if (!onUpload) throw new Error('Función de upload no disponible. Contactar ingeniería CHAR.')
         const r = await onUpload(videoFile)
-        if (!r?.url) throw new Error('Error al subir el archivo. Verificá la conexión con R2.')
-        urlTemporal = r.url
+        if (!r?.url) throw new Error('Error al subir el archivo. Verificá conexión R2.')
+        urlTemporal = r.url;
       } else {
         if (!youtubeUrl.trim()) throw new Error('Pegá el link de YouTube primero')
-        urlTemporal = youtubeUrl.trim()
+        urlTemporal = youtubeUrl.trim();
       }
+      setUrlFinal(urlTemporal); // Guardamos la URL real para el reproductor
 
-      setUrlFinal(urlTemporal)
-
-      setStep('Transcribiendo con Deepgram...')
-      const transcRes = await fetch('/api/transcribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: urlTemporal, tipo_input: inputTipo, idioma })
-      })
-      if (!transcRes.ok) {
-        const e = await transcRes.json().catch(() => ({}))
-        throw new Error(e.error || 'Error al transcribir')
-      }
+      setStep('🎧 CHAR CORE: Transcribiendo con Deepgram Ultra...')
+      const transcRes = await fetch('/api/transcribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: urlTemporal, tipo_input: inputTipo, idioma }) });
+      if (!transcRes.ok) { const e = await transcRes.json().catch(() => ({})); throw new Error(e.error || 'Error en transcripción CHAR') }
       const transcData = await transcRes.json()
       const transcript: string = transcData.transcript || ''
-      if (transcript.length < 50) throw new Error('No se pudo obtener la transcripción. Verificá que el video tenga audio claro.')
+      if (transcript.length < 50) throw new Error('Transcripción insuficiente para análisis High Ticket. Verificá el audio.')
    
-      setStep(`Detectando ${cantidad} clips virales con IA...`)
-      const analysisRes = await fetch('/api/video-editor', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: urlTemporal,
-          transcript,
-          config: { cantidad, tipo, formato, idioma, traducir, idiomaDestino }
-        })
-      })
-      if (!analysisRes.ok) {
-        const e = await analysisRes.json().catch(() => ({}))
-        throw new Error(e.error || 'Error al analizar clips')
-      }
-      const data = await analysisRes.json()
-      setResultado(data)
-      setHistorial(prev => [{ sesion: sesion || 'Sesión sin nombre', clips: data.clips, fecha: new Date().toLocaleDateString('es-AR') }, ...prev.slice(0,9)])
+      setStep(`🧠 CHAR CORE: Detectando ${cantidad} clips virales para High Ticket con Groq...`)
+      const analysisRes = await fetch('/api/video-editor', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url: urlTemporal, transcript, config: { cantidad, tipo, formato, idioma, traducir, idiomaDestino } }) });
+      if (!analysisRes.ok) { const e = await analysisRes.json().catch(() => ({})); throw new Error(e.error || 'Error en análisis viral Groq CHAR') }
+      const data = await analysisRes.json();
+      
+      setResultado(data);
+      // Guardar en historial (con la duración real)
+      setHistorial(prev => [{ 
+        sesion: sesion || `Sesión ${data.clips[0]?.titulo || 'Sin Título'}`, 
+        clips: data.clips, 
+        fecha: new Date().toLocaleDateString('es-AR') + ' ' + new Date().toLocaleTimeString('es-AR'),
+        realDuration: realVideoDuration
+      }, ...prev.slice(0,19)]); // Guardar últimas 20 sesiones
 
-    } catch (e: any) {
-      setError(e.message || 'Error desconocido')
-    } finally {
-      setLoading(false); setStep('')
-    }
+    } catch (e: any) { setError(e.message || 'Error desconocido CHAR CORE'); setUrlFinal(''); } finally { setLoading(false); setStep(''); }
   }
 
-  // ── Helpers de estilo ────────────────────────────────────────────────────
-  const card  = (extra: React.CSSProperties = {}): React.CSSProperties => ({ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, padding:22, ...extra })
-  const lbl   = (): React.CSSProperties => ({ fontSize:9, color:c.text3, letterSpacing:'2px', fontWeight:700, marginBottom:6, display:'block' })
-  const sel   = (): React.CSSProperties => ({ width:'100%', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text, padding:'10px 14px', fontSize:13, cursor:'pointer', fontFamily:'inherit', outline:'none' })
-  const inp   = (): React.CSSProperties => ({ width:'100%', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text, padding:'10px 14px', fontSize:13, fontFamily:'inherit', outline:'none', boxSizing:'border-box' })
+  // Estilos base premium
+  const card = (extra: React.CSSProperties = {}): React.CSSProperties => ({ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, padding:24, ...extra })
+  const lbl = (): React.CSSProperties => ({ fontSize:10, color:c.text3, letterSpacing:'1.5px', fontWeight:800, marginBottom:8, display:'block', textTransform:'uppercase' })
+  const sel = (): React.CSSProperties => ({ width:'100%', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text, padding:'11px 16px', fontSize:14, cursor:'pointer', fontFamily:'inherit', outline:'none', fontWeight:500 })
+  const inp = (): React.CSSProperties => ({ width:'100%', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text, padding:'11px 16px', fontSize:14, fontFamily:'inherit', outline:'none', boxSizing:'border-box', fontWeight:500 })
 
   return (
-    <div style={{ display:'grid', gap:28 }}>
-
-      {/* ── HEADER ── */}
-      <div>
-        <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:4 }}>INTELIGENCIA ARTIFICIAL</div>
-        <h1 style={{ fontSize:28, fontWeight:800, margin:'0 0 6px', color:c.text }}>Video Editor IA</h1>
-        <p style={{ fontSize:12, color:c.text3, margin:0 }}>
-          Convertí videos largos en clips virales · Transcripción con Deepgram · Análisis con Groq
-        </p>
+    <div style={{ display:'grid', gap:28, maxWidth:1600, margin:'0 auto', padding:'20px' }}>
+      {/* ── HEADER AGENCIA ── */}
+      <div style={{borderBottom:`1px solid ${c.border}`, paddingBottom:20}}>
+        <div style={{ fontSize:10, color:GOLD, letterSpacing:4, fontWeight:800, marginBottom:6, textTransform:'uppercase' }}>CHAR CORE — High Ticket Content Labs</div>
+        <h1 style={{ fontSize:36, fontWeight:900, margin:'0 0 8px', color:c.text, letterSpacing:'-1px' }}>Video Editor IA (Nivel Mundial)</h1>
+        <p style={{ fontSize:14, color:c.text3, margin:0, fontWeight:500 }}>Automatización Creativa Estratégica · Deepgram Ultra · Groq LLaMA 3.3</p>
       </div>
 
-      {/* ── MÉTRICAS ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:14 }}>
-        {[
-          { label:'HORAS AHORRADAS', val:'20+', sub:'por semana estimadas', color:'#3dd68c' },
-          { label:'CLIPS GENERADOS', val: resultado ? String(resultado.clips.length) : '0', sub:'en esta sesión', color:GOLD },
-          { label:'TRANSCRIPCIÓN', val:'DEEPGRAM', sub:'Hasta 200h/mes gratis', color:'#4f8fff' },
-          { label:'ANÁLISIS VIRAL', val:'GROQ', sub:'LLaMA 3.3 · gratis', color:'#a78bfa' },
-        ].map((m,i) => (
-          <div key={i} style={{ ...card(), position:'relative', overflow:'hidden', padding:18 }}>
-            <div style={{ position:'absolute', top:0, right:0, width:60, height:60, background:`radial-gradient(circle at top right,${m.color}15,transparent 70%)` }}/>
-            <div style={{ fontSize:9, color:c.text3, letterSpacing:2, fontWeight:700, marginBottom:8 }}>{m.label}</div>
-            <div style={{ fontSize:22, fontWeight:800, color:m.color, lineHeight:1, marginBottom:4 }}>{m.val}</div>
-            <div style={{ fontSize:10, color:c.text3 }}>{m.sub}</div>
-          </div>
-        ))}
+      {/* ── TABS & HISTORIAL (Persistente) ── */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', gap:16, background:c.surface, padding:10, borderRadius:12, border:`1px solid ${c.border}` }}>
+        <div style={{ display:'flex', gap:8 }}>
+          {(['procesar','historial'] as const).map(t => (
+            <button key={t} onClick={() => setTab(t)} style={{
+              background: tab===t ? GOLD : 'transparent',
+              color: tab===t ? '#05050f' : c.text2,
+              border: `1px solid ${tab===t ? GOLD : 'transparent'}`,
+              borderRadius:8, padding:'10px 24px', fontSize:13, fontWeight:800,
+              cursor:'pointer', fontFamily:'inherit', transition:'all 0.2s',
+            }}>
+              {t === 'procesar' ? '⚡ NUEVA SESIÓN HIGH TICKET' : '📋 HISTORIAL DE ENTREGAS'}
+            </button>
+          ))}
+        </div>
+        {tab === 'historial' && historial.length > 0 && (
+          <button onClick={() => { localStorage.removeItem('char_editor_history'); setHistorial([]); }} style={{background:ERROR+'15', color:ERROR, border:`1px solid ${ERROR}30`, borderRadius:8, padding:'8px 16px', fontSize:11, fontWeight:700, cursor:'pointer'}}>Limpiar Historial</button>
+        )}
       </div>
 
-      {/* ── TABS ── */}
-      <div style={{ display:'flex', gap:10 }}>
-        {(['procesar','historial'] as const).map(t => (
-          <button key={t} onClick={() => setTab(t)} style={{
-            background: tab===t ? GOLD : c.s2,
-            color: tab===t ? '#05050f' : c.text2,
-            border: `1px solid ${tab===t ? GOLD : c.border}`,
-            borderRadius:8, padding:'8px 20px', fontSize:12, fontWeight:700,
-            cursor:'pointer', fontFamily:'inherit',
-            boxShadow: tab===t ? `0 4px 16px ${GOLD}40` : 'none'
-          }}>
-            {t === 'procesar' ? '⚡ Procesar Video' : '📋 Historial'}
-          </button>
-        ))}
-      </div>
-
-      {/* ── HISTORIAL ── */}
+      {/* ── PANEL HISTORIAL ── */}
       {tab === 'historial' && (
         <div style={card()}>
-          <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:16 }}>SESIONES ANTERIORES</div>
+          <div style={lbl()}>ENTREGAS RECIENTES AGENCIA CHAR</div>
           {historial.length === 0
-            ? <div style={{ textAlign:'center', padding:'40px 0', color:c.text3, fontSize:13 }}>No hay sesiones aún.</div>
+            ? <div style={{ textAlign:'center', padding:'60px 0', color:c.text3, fontSize:14, fontWeight:500 }}>No hay entregas registradas en este navegador.</div>
             : historial.map((h,i) => (
-              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'12px 0', borderBottom: i<historial.length-1 ? `1px solid ${c.border}` : 'none' }}>
+              <div key={i} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'16px 0', borderBottom: i<historial.length-1 ? `1px solid ${c.border}` : 'none' }}>
                 <div>
-                  <div style={{ fontSize:13, color:c.text, fontWeight:600 }}>{h.sesion}</div>
-                  <div style={{ fontSize:11, color:c.text3 }}>{h.clips.length} clips · {h.fecha}</div>
+                  <div style={{ fontSize:15, color:c.text, fontWeight:700 }}>{h.sesion}</div>
+                  <div style={{ fontSize:12, color:c.text3 }}>{h.clips.length} clips High Ticket · {h.realDuration.toFixed(1)}s total · {h.fecha}</div>
                 </div>
-                <div style={{ display:'flex', gap:6 }}>
-                  <button onClick={() => exportCSV(h.clips, h.sesion)} style={{ background:'transparent', border:`1px solid ${c.border}`, borderRadius:7, color:c.text2, padding:'5px 10px', fontSize:11, cursor:'pointer', fontFamily:'inherit' }}>CSV</button>
-                  <button onClick={() => exportTXT(h.clips, h.sesion)} style={{ background:'transparent', border:`1px solid ${c.border}`, borderRadius:7, color:c.text2, padding:'5px 10px', fontSize:11, cursor:'pointer', fontFamily:'inherit' }}>TXT</button>
+                <div style={{ display:'flex', gap:8 }}>
+                  <button onClick={() => exportCSV(h.clips, h.sesion)} style={{ background:'transparent', border:`1px solid ${c.border}`, borderRadius:7, color:c.text2, padding:'6px 12px', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>CSV</button>
+                  <button onClick={() => exportTXT(h.clips, h.sesion)} style={{ background:'transparent', border:`1px solid ${c.border}`, borderRadius:7, color:c.text2, padding:'6px 12px', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>TXT</button>
+                  <button onClick={() => { setResultado({clips: h.clips, resumen:'Cargado desde historial', palabras:0}); setUrlFinal(''); setTab('procesar'); }} style={{ background:GOLD+'15', border:`1px solid ${GOLD}40`, borderRadius:7, color:GOLD, padding:'6px 12px', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:700 }}>Cargar</button>
                 </div>
               </div>
             ))
@@ -475,293 +543,96 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
         </div>
       )}
 
-      {/* ── PROCESAR ── */}
+      {/* ── PANEL PROCESAR ── */}
       {tab === 'procesar' && (
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:20 }}>
-
-          {/* ── COLUMNA IZQUIERDA ── */}
-          <div style={{ display:'grid', gap:16 }}>
-
+        <div style={{ display:'grid', gridTemplateColumns:'minmax(400px, 1fr) 2fr', gap:28 }}>
+          {/* ── COLUMNA IZQUIERDA: CONFIGURACIÓN ── */}
+          <div style={{ display:'grid', gap:20, alignContent:'start' }}>
             {/* Fuente de video */}
             <div style={card()}>
-              <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:14 }}>FUENTE DE VIDEO</div>
-              <div style={{ display:'flex', gap:8, marginBottom:16 }}>
+              <div style={lbl()}>FUENTE DE INPUT MULTIMEDIA</div>
+              <div style={{ display:'flex', gap:10, marginBottom:18 }}>
                 {(['archivo','youtube'] as const).map(t => (
-                  <button key={t} onClick={() => setInputTipo(t)} style={{
-                    flex:1, background: inputTipo===t ? GOLD+'20' : c.s2,
-                    border: `1px solid ${inputTipo===t ? GOLD : c.border}`,
-                    borderRadius:8, color: inputTipo===t ? GOLD : c.text2,
-                    padding:'8px 0', fontSize:12, fontWeight: inputTipo===t ? 700 : 500,
-                    cursor:'pointer', fontFamily:'inherit'
-                  }}>
-                    {t === 'archivo' ? '📁 Archivo local' : '🔗 YouTube'}
+                  <button key={t} onClick={() => setInputTipo(t)} style={{ flex:1, background: inputTipo===t ? GOLD+'20' : c.s2, border: `1px solid ${inputTipo===t ? GOLD : c.border}`, borderRadius:10, color: inputTipo===t ? GOLD : c.text2, padding:'12px 0', fontSize:13, fontWeight: inputTipo===t ? 800 : 600, cursor:'pointer', fontFamily:'inherit', transition:'all 0.2s' }}>
+                    {t === 'archivo' ? '📁 Archivo local HT' : '🔗 YouTube Link'}
                   </button>
                 ))}
               </div>
-
               {inputTipo === 'archivo' ? (
-                <div
-                  onDragOver={e => { e.preventDefault(); setDragging(true) }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={onDrop}
-                  onClick={() => fileRef.current?.click()}
-                  style={{
-                    border: `2px dashed ${dragging ? GOLD : videoFile ? '#3dd68c' : c.border}`,
-                    borderRadius:10, padding:'32px 20px', textAlign:'center',
-                    cursor:'pointer', background: dragging ? GOLD+'08' : c.s2,
-                    transition:'all 0.2s'
-                  }}>
-                  <input ref={fileRef} type="file" accept="video/*,audio/*" style={{ display:'none' }}
-                    onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+                <div onDragOver={e => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={(e)=>{ e.preventDefault(); setDragging(false); const f=e.dataTransfer.files[0]; if(f) handleFile(f); }} onClick={() => fileRef.current?.click()} style={{ border: `2px dashed ${dragging ? GOLD : videoFile ? SUCCESS : c.border}`, borderRadius:12, padding:'40px 20px', textAlign:'center', cursor:'pointer', background: dragging ? GOLD+'08' : c.s2, transition:'all 0.2s' }}>
+                  <input ref={fileRef} type="file" accept="video/*,audio/*" style={{ display:'none' }} onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
                   {videoFile ? (
                     <>
-                      <div style={{ fontSize:28, marginBottom:8 }}>✅</div>
-                      <div style={{ fontSize:13, color:'#3dd68c', fontWeight:700 }}>{videoFile.name}</div>
-                      <div style={{ fontSize:11, color:c.text3, marginTop:4 }}>
-                        {(videoFile.size/1024/1024).toFixed(1)} MB · Click para cambiar
-                      </div>
+                      <div style={{ fontSize:32, marginBottom:10 }}>✅</div>
+                      <div style={{ fontSize:14, color:SUCCESS, fontWeight:700 }}>{videoFile.name}</div>
+                      <div style={{ fontSize:11, color:c.text3, marginTop:5 }}>{(videoFile.size/1024/1024).toFixed(1)} MB · Click para cambiar</div>
                     </>
                   ) : (
                     <>
-                      <div style={{ fontSize:36, marginBottom:10, color:c.text3 }}>🎬</div>
-                      <div style={{ fontSize:14, color:c.text2, fontWeight:600 }}>Arrastrá tu video acá</div>
-                      <div style={{ fontSize:11, color:c.text3, marginTop:6 }}>MP4, MOV, AVI, MP3, M4A · Hasta 500MB</div>
+                      <div style={{ fontSize:40, marginBottom:12, color:c.text3 }}>🎬</div>
+                      <div style={{ fontSize:15, color:c.text2, fontWeight:700 }}>Arrastrá tu video High Ticket acá</div>
+                      <div style={{ fontSize:12, color:c.text3, marginTop:8, fontWeight:500 }}>MP4, MOV, AVI · Hasta 500MB</div>
                     </>
                   )}
                 </div>
               ) : (
-                <div>
-                  <label style={lbl()}>URL DE YOUTUBE</label>
-                  <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                    style={inp()} />
-                  <div style={{ fontSize:10, color:c.text3, marginTop:6 }}>
-                    El video necesita subtítulos automáticos activados en YouTube
-                  </div>
+                <div style={{marginBottom:10}}>
+                  <label style={lbl()}>URL DE YOUTUBE ESTRATÉGICO</label>
+                  <input value={youtubeUrl} onChange={e => setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=..." style={inp()} />
                 </div>
               )}
             </div>
 
-            {/* Configuración general */}
+            {/* Configuración */}
             <div style={card()}>
-              <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:16 }}>CONFIGURACIÓN GENERAL</div>
-              <div style={{ display:'grid', gap:14 }}>
-                <div>
-                  <label style={lbl()}>NOMBRE DE SESIÓN</label>
-                  <input value={sesion} onChange={e => setSesion(e.target.value)}
-                    placeholder="Ej: Podcast Ep.15 — Mayo 2026"
-                    style={inp()} />
+              <div style={lbl()}>PARÁMETROS ESTRATÉGICOS CHAR CORE</div>
+              <div style={{ display:'grid', gap:16 }}>
+                <div><label style={lbl()}>NOMBRE DE SESIÓN AGENCIA</label><input value={sesion} onChange={e => setSesion(e.target.value)} placeholder="Ej: Cliente X - Estrategia Mayo" style={inp()} /></div>
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+                  <div><label style={lbl()}>TIPO CONTENIDO</label><select value={tipo} onChange={e => setTipo(e.target.value)} style={sel()}>{TIPOS.map(t => <option key={t}>{t}</option>)}</select></div>
+                  <div><label style={lbl()}>CANTIDAD CLIPS</label><select value={cantidad} onChange={e => setCantidad(+e.target.value)} style={sel()}>{CLIPS_N.map(n => <option key={n} value={n}>{n} clips HT</option>)}</select></div>
                 </div>
-                <div>
-                  <label style={lbl()}>CLIENTE</label>
-                  <select value={clienteId} onChange={e => setClienteId(e.target.value)} style={sel()}>
-                    {clientes.map(cl => <option key={cl.id} value={cl.id}>{cl.nombre}</option>)}
-                    {clientes.length === 0 && <option value="">Sin clientes cargados</option>}
-                  </select>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, padding:'12px 16px' }}>
+                  <div><div style={{ fontSize:13, color:c.text, fontWeight:700 }}>Traducir subtítulos</div><div style={{ fontSize:11, color:c.text3, fontWeight:500 }}>Versión multi-idioma CHAR</div></div>
+                  <button onClick={() => setTraducir(!traducir)} style={{ width:48, height:26, borderRadius:13, cursor:'pointer', background: traducir ? GOLD : c.border, border:'none', position:'relative', transition:'background 0.2s' }}><span style={{ position:'absolute', top:3, left: traducir ? 25 : 3, width:20, height:20, borderRadius:'50%', background:'#fff', transition:'left 0.2s' }}/></button>
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                  <div>
-                    <label style={lbl()}>TIPO DE CONTENIDO</label>
-                    <select value={tipo} onChange={e => setTipo(e.target.value)} style={sel()}>
-                      {TIPOS.map(t => <option key={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={lbl()}>CLIPS A DETECTAR</label>
-                    <select value={cantidad} onChange={e => setCantidad(+e.target.value)} style={sel()}>
-                      {CLIPS_N.map(n => <option key={n} value={n}>{n} clips</option>)}
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label style={lbl()}>FORMATO DE EXPORTACIÓN</label>
-                  <select value={formato} onChange={e => setFormato(e.target.value)} style={sel()}>
-                    {FORMATOS.map(f => <option key={f}>{f}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={lbl()}>IDIOMA DEL VIDEO</label>
-                  <select value={idioma} onChange={e => setIdioma(e.target.value)} style={sel()}>
-                    {IDIOMAS.map(i => <option key={i}>{i}</option>)}
-                  </select>
-                </div>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, padding:'10px 14px' }}>
-                  <div>
-                    <div style={{ fontSize:12, color:c.text, fontWeight:600 }}>Traducir subtítulos</div>
-                    <div style={{ fontSize:10, color:c.text3 }}>Genera versión en otro idioma</div>
-                  </div>
-                  <button onClick={() => setTraducir(!traducir)} style={{
-                    width:44, height:24, borderRadius:12, cursor:'pointer',
-                    background: traducir ? GOLD : c.border, border:'none',
-                    position:'relative', transition:'background 0.2s'
-                  }}>
-                    <span style={{ position:'absolute', top:2, left: traducir ? 22 : 2, width:20, height:20, borderRadius:'50%', background:'#fff', transition:'left 0.2s' }}/>
-                  </button>
-                </div>
-                {traducir && (
-                  <div>
-                    <label style={lbl()}>IDIOMA DESTINO</label>
-                    <select value={idiomaDestino} onChange={e => setIdiomaDestino(e.target.value)} style={sel()}>
-                      {IDIOMAS.filter(i => i !== idioma).map(i => <option key={i}>{i}</option>)}
-                    </select>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Subtítulos */}
-            <div style={card()}>
-              <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:16 }}>SUBTÍTULOS Y ESTILO</div>
-              <div style={{ display:'grid', gap:16 }}>
-                <div>
-                  <label style={lbl()}>TIPOGRAFÍA</label>
-                  <div style={{ display:'grid', gap:6 }}>
-                    {FUENTES.map(f => (
-                      <button key={f} onClick={() => setFuente(f)} style={{
-                        background: fuente===f ? GOLD+'20' : c.s2,
-                        border: `1px solid ${fuente===f ? GOLD : c.border}`,
-                        borderRadius:8, color: fuente===f ? GOLD : c.text2,
-                        padding:'8px 14px', fontSize:13, cursor:'pointer',
-                        fontFamily: f, textAlign:'left', fontWeight: fuente===f ? 700 : 400
-                      }}>
-                        {f}
-                        <span style={{ float:'right', fontSize:11, opacity:0.6, fontFamily:'Rajdhani' }}>Aa Bb Cc</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label style={lbl()}>COLOR DE SUBTÍTULOS</label>
-                  <ColorPicker color={colorSub} onChange={setColorSub} />
-                </div>
-                <div>
-                  <label style={lbl()}>POSICIÓN SUBTÍTULOS</label>
-                  <select value={posSub} onChange={e => setPosSub(e.target.value)} style={sel()}>
-                    {POSICIONES_SUB.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={lbl()}>POSICIÓN LOGO DEL CLIENTE</label>
-                  <select value={posLogo} onChange={e => setPosLogo(e.target.value)} style={sel()}>
-                    {POSICIONES_LOGO.map(p => <option key={p}>{p}</option>)}
-                  </select>
-                </div>
-              </div>
-            </div>
+            {/* Botón Principal */}
+            <button onClick={procesar} disabled={loading} style={{ background: loading ? c.border : `linear-gradient(135deg,${GOLD},#8b6010)`, color: loading ? c.text3 : '#05050f', border:'none', borderRadius:12, padding:'18px 24px', fontSize:16, fontWeight:900, cursor: loading ? 'not-allowed' : 'pointer', fontFamily:'inherit', letterSpacing:'0.5px', boxShadow: loading ? 'none' : `0 8px 25px ${GOLD}35`, transition:'all 0.2s', textTransform:'uppercase' }}>
+              {loading ? `⏳ ${step || 'Procesando Nivel Mundial...'}` : `⚡ Detectar clips High Ticket`}
+            </button>
+            {error && <div style={{ background:ERROR+'15', border:`1px solid ${ERROR}40`, borderRadius:12, padding:'16px 20px', color:ERROR, fontSize:14, fontWeight:600 }}>⚠️ ERROR CHAR CORE: {error}</div>}
           </div>
 
-          {/* ── COLUMNA DERECHA ── */}
-          <div style={{ display:'grid', gap:16, alignContent:'start' }}>
-
-            {/* Preview subtítulos */}
-            <div style={{ background:'#000', border:`1px solid ${c.border}`, borderRadius:14, padding:20 }}>
-              <div style={{ fontSize:9, color:c.text3, letterSpacing:2, fontWeight:700, marginBottom:12 }}>PREVIEW DE SUBTÍTULOS</div>
-              <div style={{ background:'#111', borderRadius:8, padding:'28px 16px', textAlign:'center', minHeight:90, display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:6 }}>
-                <div style={{ fontSize:20, fontWeight:800, color:colorSub, fontFamily:`'${fuente}', sans-serif`, textShadow:'0 2px 8px #00000099', transition:'all 0.3s' }}>
-                  Así se verán los subtítulos
-                </div>
-                <div style={{ fontSize:10, color:'#666', fontFamily:'Rajdhani,sans-serif' }}>{fuente} · {colorSub} · {posSub}</div>
-              </div>
-            </div>
-
-            {/* Redes sociales de exportación */}
-            <div style={card()}>
-              <div style={{ fontSize:9, color:c.text3, letterSpacing:3, fontWeight:700, marginBottom:12 }}>REDES DE EXPORTACIÓN</div>
-              <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
-                {REDES.map(r => (
-                  <div key={r} style={{ background:c.s2, border:`1px solid ${c.border}`, borderRadius:20, padding:'4px 12px', fontSize:11, color:c.text2 }}>
-                    {r}
-                  </div>
-                ))}
-              </div>
-              <div style={{ fontSize:10, color:c.text3, marginTop:10 }}>
-                Los clips se exportan en el formato seleccionado, listos para cada red.
-              </div>
-            </div>
-
-            {/* Botón procesar */}
-            <button onClick={procesar} disabled={loading} style={{
-              background: loading ? c.border : `linear-gradient(135deg,${GOLD},#8b6010)`,
-              color: loading ? c.text3 : '#05050f',
-              border:'none', borderRadius:10, padding:'16px 20px',
-              fontSize:15, fontWeight:800, cursor: loading ? 'not-allowed' : 'pointer',
-              fontFamily:'inherit', letterSpacing:'0.5px',
-              boxShadow: loading ? 'none' : `0 6px 20px ${GOLD}40`,
-              transition:'all 0.2s'
-            }}>
-              {loading ? `⏳ ${step || 'Procesando...'}` : `⚡ Detectar ${cantidad} clips virales`}
-            </button>
-
-            {/* Error */}
-            {error && (
-              <div style={{ background:'#f8717120', border:'1px solid #f8717150', borderRadius:10, padding:'14px 18px', color:'#f87171', fontSize:13 }}>
-                ⚠️ {error}
-              </div>
-            )}
-
-            {/* Resultados */}
+          {/* ── COLUMNA DERECHA: RESULTADOS (sticky video) ── */}
+          <div style={{ display:'grid', gap:28, alignContent:'start' }}>
             {resultado && (
-              <div style={{ marginTop: 32 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: c.text }}>🎬 Clips Detectados con Éxito</div>
-                  <button onClick={() => setResultado(null)} style={{ background: 'transparent', border: 'none', color: c.text3, cursor: 'pointer', fontSize: 13 }}>
-                    Limpiar pantalla
-                  </button>
+              <>
+                <div style={{ position:'sticky', top:20, zIndex:10 }}>
+                  <div style={{background:'#000', border:`1px solid ${c.border}`, borderRadius:14, padding:15, boxShadow:'0 10px 40px rgba(0,0,0,0.3)'}}>
+                    <div style={{ fontSize:10, color:'#999', letterSpacing:2, fontWeight:700, marginBottom:10 }}>REPRODUCTOR TÁCTICO AGENCIA CHAR</div>
+                    {urlFinal ? (
+                      <video ref={videoPlayerRef} src={urlFinal} controls style={{ width:'100%', borderRadius:8, background:'#000', maxHeight:'450px' }}/>
+                    ) : (
+                      <div style={{ background:'#111', borderRadius:8, padding:'50px 20px', textAlign:'center', color:'#666', fontSize:14, fontWeight:500 }}>Link de YouTube: Usar timestamps de guía operativa local.</div>
+                    )}
+                  </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, alignItems: 'start' }}>
+                <div style={{ display:'grid', gap:20 }}>
+                  <div style={{ ...card(), background:GOLD+'05', border:`1px solid ${GOLD}20` }}>
+                    <div style={{fontSize:11, color:GOLD, fontWeight:800, letterSpacing:2, marginBottom:8}}>RESUMEN ESTRATÉGICO CHAR CORE (LLaMA 3.3)</div>
+                    <p style={{fontSize:14, color:c.text, lineHeight:1.6, margin:0, fontWeight:500}}>{resultado.resumen}</p>
+                  </div>
                   
-                  {/* COLUMNA IZQUIERDA: REPRODUCTOR */}
-                  <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20, overflow: 'hidden' }}>
-                      <div style={{ fontSize: 9, color: c.text3, letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>
-                        REPRODUCTOR DE PREVISUALIZACIÓN DE LA AGENCIA
-                      </div>
-                      
-                      {urlFinal ? (
-                        <video 
-                          ref={videoPlayerRef}
-                          src={urlFinal} 
-                          controls 
-                          style={{ width: '100%', borderRadius: 8, background: '#000', maxHeight: '400px' }}
-                        />
-                      ) : youtubeUrl ? (
-                        <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text2 }}>
-                          📺 Para links de YouTube, podés usar los tiempos de la derecha para guiarte en tu editor local.
-                        </div>
-                      ) : (
-                        <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text3 }}>
-                          Cargando origen del video...
-                        </div>
-                      )}
-                    </div>
-
-                    <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20 }}>
-                      <div style={{ fontSize: 9, color: GOLD, letterSpacing: 2, fontWeight: 700, marginBottom: 8 }}>
-                        RESUMEN ESTRATÉGICO (CHAR CORE)
-                      </div>
-                      <div style={{ fontSize: 13, color: c.text2, lineHeight: 1.5 }}>
-                        {resultado.resumen}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* COLUMNA DERECHA: LISTADO */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                    {resultado.clips?.map((clip: any, index: number) => (
-                      <ClipCard 
-                        key={index} 
-                        clip={clip} 
-                        theme={theme} 
-                        onPreviewClip={handlePreviewClip} 
-                      />
-                    ))}
-                  </div>
-
+                  {resultado.clips?.map((clip: any, index: number) => (
+                    <ClipCard key={index} clip={clip} theme={theme} onPreviewClip={handlePreviewClip} videoDuration={realVideoDuration} />
+                  ))}
                 </div>
-              </div>
+              </>
             )}
-
           </div>
         </div>
       )}
