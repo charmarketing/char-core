@@ -272,6 +272,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [videoFile, setVideoFile] = useState<File|null>(null)
   const [videoUrl, setVideoUrl] = useState('')
+  const [urlFinal, setUrlFinal] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
@@ -305,7 +306,9 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   // Limpiamos listeners viejos antes de agregar el nuevo
   video.removeEventListener('timeupdate', onTimeUpdate);
   video.addEventListener('timeupdate', onTimeUpdate);
-};
+}; // <--- ESTA LLAVE CIERRA LA FUNCIÓN INTERNA
+
+}; // <--- ¡ESTA ES LA LLAVE QUE FALTA! Cierra handlePreviewClip por completo.
 
   // Estado — configuración
   const [sesion, setSesion] = useState('')
@@ -365,6 +368,8 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
         if (!youtubeUrl.trim()) throw new Error('Pegá el link de YouTube primero')
         urlFinal = youtubeUrl.trim()
       }
+      
+      setUrlFinal(urlFinal)
 
       // 2. Transcribir
       setStep('Transcribiendo con Deepgram...')
@@ -767,6 +772,10 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 ))}
       </div>
 
-    </div>
+   </div>
   </div>
 )}
+
+    </div>
+  )
+} // <--- Cierra el export default function VideoEditor
