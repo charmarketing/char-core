@@ -353,6 +353,10 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const videoPlayerRef = useRef<HTMLVideoElement>(null)
   const [realVideoDuration, setRealVideoDuration] = useState(0);
 
+  // Estados para el control del Modal Maestro de CHAR
+  const [activeClip, setActiveClip] = useState<any | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   // Cargar historial desde localStorage al montar
   const [historial, setHistorial] = useState<{sesion:string;clips:Clip[];fecha:string;realDuration:number}[]>(() => {
     if (typeof window !== 'undefined') {
@@ -627,12 +631,116 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                     <p style={{fontSize:14, color:c.text, lineHeight:1.6, margin:0, fontWeight:500}}>{resultado.resumen}</p>
                   </div>
                   
-                  {resultado.clips?.map((clip: any, index: number) => (
-                    <ClipCard key={index} clip={clip} theme={theme} onPreviewClip={handlePreviewClip} videoDuration={realVideoDuration} />
-                  ))}
+                  {resultado ? (
+  resultado.clips.map((clip: any, index: number) => (
+    <div key={index} style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column', gap: 10, borderLeft: `4px solid ${GOLD}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: 11, fontWeight: 800, color: GOLD }}>CLIP #{clip.numero}</span>
+        <span style={{ fontSize: 11, background: `${SUCCESS}20`, color: SUCCESS, padding: '2px 8px', borderRadius: 20, fontWeight: 800 }}>{clip.score_viral} PTS</span>
+      </div>
+      
+      <div>
+        <h3 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 4px', color: c.text }}>{clip.titulo}</h3>
+        <p style={{ fontSize: 12, color: c.text2, margin: 0 }}>⏱️ <strong>{clip.timestamp_inicio} - {clip.timestamp_fin}</strong> ({clip.duracion_seg}s)</p>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+        <button onClick={() => handlePreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} style={{ flex: 1, background: c.s2, color: c.text, border: `1px solid ${c.border}`, padding: '6px', borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: 'pointer' }}>
+          👁️ Ver Clip
+        </button>
+        <button onClick={() => { setActiveClip(clip); setIsModalOpen(true); }} style={{ flex: 1, background: GOLD, color: '#000', border: 'none', padding: '6px', borderRadius: 6, fontSize: 12, fontWeight: 800, cursor: 'pointer' }}>
+          ⚡ Expandir Estrategia
+        </button>
+      </div>
+    </div>
+  ))
+) : (
+  <div style={{ textAlign: 'center', padding: 40, color: c.text3, border: `1px dashed ${c.border}`, borderRadius: 12 }}>
+    Esperando análisis del video...
+  </div>
+)}
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL MAESTRO FLOTANTE INTERNACIONAL (CHAR CORE) ──────────────── */}
+      {isModalOpen && activeClip && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(3, 3, 10, 0.85)', backdropFilter: 'blur(12px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}>
+          <div style={{ background: c.surface, border: `1px solid ${GOLD}60`, borderRadius: 20, width: '100%', maxWidth: 1200, maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 50px rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column' }}>
+            
+            {/* Cabecera del Modal */}
+            <div style={{ padding: '20px 30px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: c.s2 }}>
+              <div>
+                <span style={{ fontSize: 11, color: GOLD, fontWeight: 900, letterSpacing: 1.5 }}>AUDITORÍA DE CONTENIDO DE ALTO VALOR</span>
+                <h2 style={{ fontSize: 20, fontWeight: 900, margin: '4px 0 0', color: c.text }}>{activeClip.titulo}</h2>
+              </div>
+              <button onClick={() => { setIsModalOpen(false); setActiveClip(null); }} style={{ background: '#f8717120', color: '#f87171', border: 'none', width: 36, height: 36, borderRadius: '50%', fontWeight: 900, cursor: 'pointer', fontSize: 14 }}>✕</button>
+            </div>
+
+            {/* Cuerpo de Datos de Agencia */}
+            <div style={{ padding: 30, display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 30 }}>
+              
+              {/* Lado Izquierdo: Textos y Datos de Groq */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div>
+                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, letterSpacing: 1, display: 'block', marginBottom: 6 }}>🪝 GANCHO VIRAL DETECTADO</span>
+                  <div style={{ background: `${GOLD}10`, padding: 12, borderRadius: 8, border: `1px solid ${GOLD}30`, color: GOLD, fontWeight: 800, fontSize: 14 }}>
+                    "{activeClip.gancho}"
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, letterSpacing: 1, display: 'block', marginBottom: 6 }}>📝 COPY CAPTION PROFESIONAL ESTRATÉGICO</span>
+                  <div style={{ position: 'relative' }}>
+                    <textarea readOnly value={activeClip.copy_caption} style={{ width: '100%', background: c.s2, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text, padding: '12px', fontSize: 13, height: 200, fontFamily: 'inherit', lineHeight: 1.5, resize: 'none' }} />
+                    <button onClick={() => { navigator.clipboard.writeText(activeClip.copy_caption); alert('🎯 Copy copiado'); }} style={{ position: 'absolute', bottom: 12, right: 12, background: GOLD, color: '#000', border: 'none', padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 800, cursor: 'pointer' }}>
+                      📋 Copiar Texto Completo
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, letterSpacing: 1, display: 'block', marginBottom: 6 }}>🎯 LOGÍSTICA DE RELEVANCIA Y DIRECCIÓN DE ARTE</span>
+                  <div style={{ fontSize: 13, color: c.text, background: c.s2, padding: 16, borderRadius: 8, border: `1px solid ${c.border}`, whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+                    {activeClip.por_que_viral}
+                  </div>
+                </div>
+              </div>
+
+              {/* Lado Derecho: Tiempos, Subtítulos y Checklist para Adrián */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20, borderLeft: `1px solid ${c.border}`, paddingLeft: 24 }}>
+                <div style={{ background: c.s2, padding: 14, borderRadius: 8, border: `1px solid ${c.border}` }}>
+                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, display: 'block', marginBottom: 4 }}>📊 MÉTRICAS DEL CLIP</span>
+                  <div style={{ fontSize: 13, color: c.text2 }}>Plataforma Sugerida: <strong>{activeClip.red_recomendada}</strong></div>
+                  <div style={{ fontSize: 13, color: c.text2, marginTop: 4 }}>Segmento original: <strong>{activeClip.timestamp_inicio} a {activeClip.timestamp_fin}</strong></div>
+                  <div style={{ fontSize: 13, color: c.text2, marginTop: 4 }}>Duración exacta: <strong>{activeClip.duracion_seg} segundos</strong></div>
+                </div>
+
+                <div>
+                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, letterSpacing: 1, display: 'block', marginBottom: 6 }}>💬 SUBTÍTULOS CRUCIALES DEL BLOQUE</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
+                    {activeClip.subtitulos?.map((sub: string, sIdx: number) => (
+                      <div key={sIdx} style={{ fontSize: 12, color: c.text2, background: c.s2, padding: '8px 12px', borderRadius: 6, borderLeft: `3px solid ${GOLD}` }}>
+                        {sub}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ background: `${GOLD}05`, padding: 16, borderRadius: 10, border: `1px dashed ${GOLD}40` }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: GOLD, display: 'block', marginBottom: 6 }}>🎨 FORMATO DE REPLICACIÓN (STANDARDS CHAR)</span>
+                  <ul style={{ margin: 0, paddingLeft: 14, fontSize: 12, color: c.text2, display: 'flex', flexDirection: 'column', gap: 6, lineHeight: 1.4 }}>
+                    <li>Aislá el rostro en primer plano y aplicá máscara de enfoque en los ojos.</li>
+                    <li>Incliná el bloque de texto entre 3° y 5° con tipografía Sans-serif gruesa.</li>
+                    <li>Utilizá sombras duras e iluminación trasera de neón para generar separación de fondo.</li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
           </div>
         </div>
       )}
