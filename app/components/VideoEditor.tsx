@@ -140,11 +140,29 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
   )
 }
 
-// ── CLIP CARD OPTIMIZADA CON REPRODUCTOR ───────────────────────────────────
-function ClipCard({ clip, theme, onPreviewClip }: { 
+// ── CLIP CARD CORREGIDA ───────────────────────────────────────────────────
+interface Clip {
+  numero: number;
+  titulo: string;
+  gancho: string;
+  timestamp_inicio: string;
+  timestamp_fin: string;
+  duracion_seg: number;
+  por_que_viral: string;
+  red_recomendada: string;
+  copy_caption: string;
+  subtitulos: string[];
+  score_viral: number;
+}
+
+function ClipCard({ 
+  clip, 
+  theme, 
+  onPreviewClip 
+}: { 
   clip: Clip; 
-  theme: 'dark'|'light'; 
-  onPreviewClip?: (inicio: string, fin: string) => void 
+  theme: 'dark' | 'light'; 
+  onPreviewClip?: (inicio: string, fin: string) => void; 
 }) {
   const [open, setOpen] = useState(false)
   const c = useTheme(theme)
@@ -210,9 +228,9 @@ function ClipCard({ clip, theme, onPreviewClip }: {
             {open ? '▲ Menos' : '▼ Caption y subtítulos'}
           </button>
           
-          {/* BOTÓN NUEVO DE PREVISUALIZACIÓN COHETE */}
           {onPreviewClip && (
             <button 
+              type="button"
               onClick={() => onPreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} 
               style={{ background:'#3dd68c20', border:'1px solid #3dd68c50', borderRadius:8, color:'#3dd68c', padding:'7px 12px', fontSize:11, cursor:'pointer', fontWeight:700, fontFamily:'inherit' }}
             >
@@ -220,7 +238,7 @@ function ClipCard({ clip, theme, onPreviewClip }: {
             </button>
           )}
 
-          <button onClick={copy} style={{ background:GOLD+'20',border:`1px solid ${GOLD}50`,borderRadius:8,color:GOLD Ram,padding:'7px 14px',fontSize:11,cursor:'pointer',fontWeight:700,fontFamily:'inherit' }}>
+          <button onClick={copy} style={{ background:GOLD+'20',border:`1px solid ${GOLD}50`,borderRadius:8,color:GOLD,padding:'7px 14px',fontSize:11,cursor:'pointer',fontWeight:700,fontFamily:'inherit' }}>
             📋 Copiar
           </button>
         </div>
@@ -753,7 +771,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 
       {/* COLUMNA DERECHA: LISTADO DE CLIPS CARD */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {resultado.clips?.map((clip: any, index: number) => (
+        {resultado.clips?.map((clip: Clip, index: number) => (
           <ClipCard 
             key={index} 
             clip={clip} 
