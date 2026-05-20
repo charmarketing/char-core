@@ -140,16 +140,22 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
   )
 }
 
-// ── CLIP CARD ──────────────────────────────────────────────────────────────
-function ClipCard({ clip, theme }: { clip: Clip; theme: 'dark'|'light' }) {
+// ── CLIP CARD OPTIMIZADA CON REPRODUCTOR ───────────────────────────────────
+function ClipCard({ clip, theme, onPreviewClip }: { 
+  clip: Clip; 
+  theme: 'dark'|'light'; 
+  onPreviewClip?: (inicio: string, fin: string) => void 
+}) {
   const [open, setOpen] = useState(false)
   const c = useTheme(theme)
   const sc = clip.score_viral >= 85 ? '#3dd68c' : clip.score_viral >= 70 ? GOLD : '#f87171'
+  
   const copy = () => {
     navigator.clipboard.writeText(
       `CLIP ${clip.numero}: ${clip.titulo}\nTimestamps: ${clip.timestamp_inicio} → ${clip.timestamp_fin} (${clip.duracion_seg}s)\n\nGANCHO:\n${clip.gancho}\n\nPOR QUÉ ES VIRAL:\n${clip.por_que_viral}\n\nRED: ${clip.red_recomendada}\n\nCAPTION:\n${clip.copy_caption}\n\nSUBTÍTULOS:\n${clip.subtitulos.join('\n')}`
     )
   }
+
   return (
     <div style={{ background:c.surface, border:`1px solid ${c.border}`, borderRadius:14, overflow:'hidden', borderTop:`3px solid ${sc}` }}>
       <div style={{ padding:'16px 20px' }}>
@@ -203,7 +209,18 @@ function ClipCard({ clip, theme }: { clip: Clip; theme: 'dark'|'light' }) {
           <button onClick={() => setOpen(!open)} style={{ flex:1,background:'transparent',border:`1px solid ${c.border}`,borderRadius:8,color:c.text2,padding:'7px 0',fontSize:11,cursor:'pointer',fontFamily:'inherit' }}>
             {open ? '▲ Menos' : '▼ Caption y subtítulos'}
           </button>
-          <button onClick={copy} style={{ background:GOLD+'20',border:`1px solid ${GOLD}50`,borderRadius:8,color:GOLD,padding:'7px 14px',fontSize:11,cursor:'pointer',fontWeight:700,fontFamily:'inherit' }}>
+          
+          {/* BOTÓN NUEVO DE PREVISUALIZACIÓN COHETE */}
+          {onPreviewClip && (
+            <button 
+              onClick={() => onPreviewClip(clip.timestamp_inicio, clip.timestamp_fin)} 
+              style={{ background:'#3dd68c20', border:'1px solid #3dd68c50', borderRadius:8, color:'#3dd68c', padding:'7px 12px', fontSize:11, cursor:'pointer', fontWeight:700, fontFamily:'inherit' }}
+            >
+              👁️ Ver Clip
+            </button>
+          )}
+
+          <button onClick={copy} style={{ background:GOLD+'20',border:`1px solid ${GOLD}50`,borderRadius:8,color:GOLD Ram,padding:'7px 14px',fontSize:11,cursor:'pointer',fontWeight:700,fontFamily:'inherit' }}>
             📋 Copiar
           </button>
         </div>
@@ -253,6 +270,38 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const [videoUrl, setVideoUrl] = useState('')
   const [dragging, setDragging] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
+  const videoPlayerRef = useRef<HTMLVideoElement>(null)
+
+  const handlePreviewClip = (inicioStr: string, finStr: string) => {
+  if (!videoPlayerRef.current) return;
+
+  // Convertimos "HH:MM:SS" a segundos totales
+  const parseToSeconds = (timeStr: string) => {
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+    if (parts.length === 2) return parts[0] * 60 + parts[1];
+    return 0;
+  };
+
+  const inicioSeg = parseToSeconds(inicioStr);
+  const finSeg = parseToSeconds(finStr);
+
+  const video = videoPlayerRef.current;
+  video.currentTime = inicioSeg;
+  video.play();
+
+  // Escuchamos el evento de actualización de tiempo para frenarlo en el segundo exacto
+  const onTimeUpdate = () => {
+    if (video.currentTime >= finSeg) {
+      video.pause();
+      video.removeEventListener('timeupdate', onTimeUpdate);
+    }
+  };
+
+  // Limpiamos listeners viejos antes de agregar el nuevo
+  video.removeEventListener('timeupdate', onTimeUpdate);
+  video.addEventListener('timeupdate', onTimeUpdate);
+};
 
   // Estado — configuración
   const [sesion, setSesion] = useState('')
@@ -293,7 +342,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
     const f = e.dataTransfer.files[0]
     if (f) handleFile(f)
   }
-
+  
   // ── Procesamiento principal ──────────────────────────────────────────────
   const procesar = async () => {
     setError(''); setResultado(null); setLoading(true)
@@ -652,42 +701,68 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
             )}
 
             {/* Resultados */}
-            {resultado && (
-              <div style={{ display:'grid', gap:12 }}>
-                <div style={{ ...card(), borderLeft:`3px solid ${GOLD}` }}>
-                  <div style={{ fontSize:9, color:GOLD, letterSpacing:2, fontWeight:700, marginBottom:8 }}>ANÁLISIS GENERAL</div>
-                  <div style={{ fontSize:13, color:c.text2, lineHeight:1.5 }}>{resultado.resumen}</div>
-                  <div style={{ fontSize:10, color:c.text3, marginTop:8 }}>
-                    {resultado.palabras?.toLocaleString()} palabras · {resultado.clips.length} clips detectados
-                  </div>
-                </div>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button onClick={() => exportCSV(resultado.clips, sesion)}
-                    style={{ flex:1, background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text2, padding:'9px 0', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>
-                    📊 Exportar CSV
-                  </button>
-                  <button onClick={() => exportTXT(resultado.clips, sesion)}
-                    style={{ flex:1, background:c.s2, border:`1px solid ${c.border}`, borderRadius:8, color:c.text2, padding:'9px 0', fontSize:12, cursor:'pointer', fontFamily:'inherit', fontWeight:600 }}>
-                    📄 Exportar TXT
-                  </button>
-                </div>
-                {resultado.clips.map(clip => (
-                  <ClipCard key={clip.numero} clip={clip} theme={theme} />
-                ))}
-              </div>
-            )}
+          {resultado && (
+  <div style={{ marginTop: 32 }}>
+    {/* Título de la sección de resultados */}
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ fontSize: 18, fontWeight: 800, color: c.text }}>🎬 Clips Detectados con Éxito</div>
+      <button onClick={() => setResultado(null)} style={{ background: 'transparent', border: 'none', color: c.text3, cursor: 'pointer', fontSize: 13 }}>
+        Limpiar pantalla
+      </button>
+    </div>
 
-            {!resultado && !loading && !error && (
-              <div style={{ ...card(), minHeight:220, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', border:`1px dashed ${c.b2}` }}>
-                <div style={{ fontSize:40, marginBottom:14, opacity:0.3 }}>🎬</div>
-                <div style={{ fontSize:13, color:c.text3, textAlign:'center', lineHeight:1.6 }}>
-                  Subí un video o pegá un link de YouTube<br/>y hacé clic en "Detectar clips virales"
-                </div>
-              </div>
-            )}
+    {/* Contenedor principal en dos columnas (Mockup original) */}
+    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: 24, alignItems: 'start' }}>
+      
+      {/* COLUMNA IZQUIERDA: REPRODUCTOR INTELIGENTE COSTO $0 */}
+      <div style={{ position: 'sticky', top: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20, overflow: 'hidden' }}>
+          <div style={{ fontSize: 9, color: c.text3, letterSpacing: 2, fontWeight: 700, marginBottom: 12 }}>
+            REPRODUCTOR DE PREVISUALIZACIÓN DE LA AGENCIA
+          </div>
+          
+          {/* Si es archivo local o tenemos la URL guardada en urlFinal */}
+          {urlFinal ? (
+            <video 
+              ref={videoPlayerRef}
+              src={urlFinal} 
+              controls 
+              style={{ width: '100%', borderRadius: 8, background: '#000', maxHeight: '400px' }}
+            />
+          ) : youtubeUrl ? (
+            <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text2 }}>
+              📺 Para links de YouTube, podés usar los tiempos de la derecha para guiarte en tu editor local.
+            </div>
+          ) : (
+            <div style={{ background: c.s2, borderRadius: 8, padding: 24, textAlign: 'center', fontSize: 13, color: c.text3 }}>
+              Cargando origen del video...
+            </div>
+          )}
+        </div>
+
+        {/* Resumen estratégico de la IA debajo del video */}
+        <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 14, padding: 20 }}>
+          <div style={{ fontSize: 9, color: GOLD, letterSpacing: 2, fontWeight: 700, marginBottom: 8 }}>
+            RESUMEN ESTRATÉGICO (CHAR CORE)
+          </div>
+          <div style={{ fontSize: 13, color: c.text2, lineHeight: 1.5 }}>
+            {resultado.resumen}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* COLUMNA DERECHA: LISTADO DE CLIPS CARD */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {resultado.clips?.map((clip: any, index: number) => (
+          <ClipCard 
+            key={index} 
+            clip={clip} 
+            theme={theme} 
+            onPreviewClip={handlePreviewClip} // Conectamos el botón con el reproductor
+          />
+        ))}
+      </div>
+
     </div>
-  )
-}
+  </div>
+)}
