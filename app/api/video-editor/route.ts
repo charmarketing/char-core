@@ -26,45 +26,54 @@ async function analizarClips(transcript: string, cfg: {
 }) {
   if (!KEY()) throw new Error('GROQ_API_KEY no configurada en Vercel → Settings → Environment Variables')
 
-  const prompt = `Sos un Director de Arte Senior y Estratega de Contenido High Ticket B2B para marcas de autoridad mundial. Tu objetivo es auditar esta transcripción y extraer los ${cfg.cantidad} momentos con mayor retención, impacto comercial y conversión de clientes de alto valor.
+ const prompt = `Eres el Director de Arte Senior y Estratega B2B de la agencia CHAR Core, especialista en Marketing de Contenidos High Ticket y posicionamiento de autoridad mundial. Tu objetivo es analizar la transcripción de un video largo y extraer los fragmentos con mayor potencial viral y estratégico.
 
-Instrucciones imperativas para el contenido de los campos:
-- \"titulo\": Un título corporativo, magnético y sofisticado para el clip (maximo 8 palabras).
-- \"gancho\": Una frase de apertura disruptiva que rompa el scroll. Ataca dolores reales de facturacion, infraestructura o ineficiencia B2B. No uses chistes ni ganchos infantiles.
-- \"copy_caption\": Escribi un copy de conversion premium usando el framework PAS (Problema, Agitacion, Solucion) o AIDA. Estructura limpia con espacios, viñetas elegantes, emojis corporativos sutiles y SIEMPRE un llamado a la accion (CTA) directo para agendar una sesion de consultoria estrategica. Incluye 3-5 hashtags estrategicos de autoridad al final.
-- \"por_que_viral\": Explica la tesis estrategica detras del clip. Inmediatamente despues, debes incluir obligatoriamente tres propuestas detalladas de portadas de alto impacto visual (Estilo contraste extremo con rostro expresivo premium) siguiendo esta estructura de texto liso:
-  OPCION 1 (Shock y Disrupcion) - Titulo en Canva: (Frase corta de 2 o 3 palabras en mayusculas). Gesto del Cliente: (Expresion facial exacta para congelar). Composicion y Luces: (Fondo oscuro con luz de neon detras).
-  OPCION 2 (Autoridad Tecnica) - Titulo en Canva: (Escribir frase). Gesto del Cliente: (Describir pose). Composicion y Luces: (Describir entorno).
-  OPCION 3 (Dolor Inmediato o Economico) - Titulo en Canva: (Escribir frase). Gesto del Cliente: (Describir pose). Composicion y Luces: (Describir entorno).
+Instrucciones imperativas para cada campo del JSON:
+- numero: [Número de clip]
+- titulo: [Título corto, magnético y corporativo del clip (max 8 palabras)].
+- gancho_viral_options: [Genera exactamente 3 opciones de ganchos de alto impacto. Opción 1: Disrupción o quiebre de patrón. Opción 2: Basado en un dato o dolor B2B. Opción 3: Llamado directo a la autoridad].
+- copy_caption_professional: [Escribe un copy estructurado profesionalmente. Usa el framework PAS (Problema, Agitación, Solución) o AIDA. Separa los párrafos con espacios limpios, usa viñetas elegantly, añade emojis corporativos sutiles y finaliza SIEMPRE con una Llamada a la Acción (CTA) de alto valor para agendar una sesión estratégica. Al final incluye 3 hashtags estratégicos].
+- justificacion_estrategica: [Explica de forma analítica por qué este fragmento posiciona al cliente como un líder indiscutible en su nicho y por qué atrae a prospectos que pagan tickets altos].
+- timestamp_inicio: [MM:SS o HH:MM:SS exacto del video original]
+- timestamp_fin: [MM:SS o HH:MM:SS exacto del video original]
+- duracion_seg: [Duración exacta en segundos]
+- red_recomendada: [LinkedIn, Instagram Reels o TikTok según el tono]
+- subtitulos: [Lista de las frases principales que componen el bloque]
+- score_viral: [Número del 1 al 100 basado en el potencial de retención y click]
+- portada_prompt_ia: [Genera el prompt exacto en inglés que describe la composición perfecta para una portada profesional que refleje la autoridad del clip (sin texto encima). Especifica iluminación, expresión facial y desenfoque. Ej: Minimalist high-end corporate studio setting, sharp lighting, cinematic deep blue background with gold accents, professional camera blur depth of field, 8k --ar 9:16].
+- portada_texto_impacto: [Escribe el título superpuesto de alto impacto (2-4 palabras máximo) que Adrián debe tipear grande en Canva o Photoshop. Ej: EL ERROR DE LOS $450K].
 
-TIPO DE CONTENIDO: ${cfg.tipo}
-FORMATO DESTINO: ${cfg.formato}
-IDIOMA DE SALIDA: ${cfg.idioma}
+REGLA DE ORO: No generes respuestas genéricas, ni chistes. El tono debe ser persuasivo, sofisticado y enfocado en el Retorno de Inversión (ROI) y la autoridad de marca.
+
+TIPO DE CONTENIDO: ${cfg.tipo || 'Podcast'}
+FORMATO DESTINO: ${cfg.formato || '9:16'}
+IDIOMA DE SALIDA: ${cfg.idioma || 'Español'}
 ${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
 
 TRANSCRIPCIÓN DEL VIDEO:
 ${transcript.slice(0, 7000)}
 
-Debes responder EXCLUSIVAMENTE con un objeto JSON valido, siguiendo esta estructura exacta:
+Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estructura exacta en cada clip:
 {
-  \"clips\": [
+  "clips": [
     {
-      \"numero\": 1,
-      \"titulo\": \"Titulo gancho corto y poderoso\",
-      \"gancho\": \"Primera linea que engancha en los primeros 3 segundos\",
-      \"timestamp_inicio\": \"00:01:30\",
-      \"timestamp_fin\": \"00:02:15\",
-      \"duracion_seg\": 45,
-      \"por_que_viral\": \"Analisis estrategico... OPCION 1... OPCION 2... OPCION 3...\",
-      \"red_recomendada\": \"Instagram Reels\",
-      \"copy_caption\": \"Caption completo con emojis, viñetas y hashtags listo para publicar\",
-      \"subtitulos\": [\"Linea 1 del subtitulo\", \"Linea 2\", \"Linea 3\"]${cfg.traducir ? `,\n      \"subtitulos_traducidos\": [\"Line 1\", \"Line 2\"]` : ''},
-      \"score_viral\": 92
+      "numero": 1,
+      "titulo": "Título de autoridad",
+      "gancho_viral_options": ["G1", "G2", "G3"],
+      "timestamp_inicio": "00:00",
+      "timestamp_fin": "00:00",
+      "duracion_seg": 0,
+      "portada_prompt_ia": "Midjourney/DALL-E prompt...",
+      "portada_texto_impacto": "TEXTO CANVA",
+      "red_recomendada": "LinkedIn",
+      "copy_caption_professional": "Caption premium...",
+      "justificacion_estrategica": "Explicación CHAR...",
+      "subtitulos": ["Línea 1", "Línea 2"]${cfg.traducir ? `,\n      "subtitulos_traducidos": ["Line 1", "Line 2"]` : ''},
+      "score_viral": 92
     }
   ],
-  \"resumen\": \"Analisis estrategico general en 2 oraciones.\"
+  "resumen": "Análisis general estratégico en 2 oraciones."
 }`
-
   // Usamos el modelo estable actual con specdec para máxima velocidad y evitar timeouts
   const res = await fetch(GROQ, {
     method: 'POST',
