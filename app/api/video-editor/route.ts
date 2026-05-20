@@ -26,8 +26,14 @@ async function analizarClips(transcript: string, cfg: {
 }) {
   if (!KEY()) throw new Error('GROQ_API_KEY no configurada en Vercel → Settings → Environment Variables')
 
-  const prompt = `Sos un experto mundial en marketing viral y contenido para redes sociales (TikTok, Reels, Shorts).
-Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos con mayor potencial de retención y gancho viral.
+  const prompt = `Sos un experto mundial en marketing B2B, contenido High Ticket y posicionamiento de autoridad para marcas y agencias.
+Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos con mayor potencial de retención y cierre de ventas corporativas.
+
+Instrucciones estratégicas imperativas para los campos del JSON:
+- "gancho": No busques hacer reír. Generá un gancho de alto impacto basado en disrupción de mercado, datos duros o dolores profundos de un dueño de negocio B2B (máximo 8 palabras).
+- "por_que_viral": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho y por qué atrae a prospectos de alto valor.
+- "copy_caption": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
+- "titulo": Un título corporativo y sofisticado para el clip.`
 
 TIPO DE CONTENIDO: ${cfg.tipo}
 FORMATO DESTINO: ${cfg.formato}
