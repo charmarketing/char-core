@@ -29,54 +29,41 @@ async function analizarClips(transcript: string, cfg: {
   const prompt = `Sos un Director de Arte Senior y Estratega de Contenido High Ticket B2B para marcas de autoridad mundial. Tu objetivo es auditar esta transcripción y extraer los ${cfg.cantidad} momentos con mayor retención, impacto comercial y conversión de clientes de alto valor.
 
 Instrucciones imperativas para el contenido de los campos:
-- \"titulo\": Un título corporativo, magnético y sofisticado para el clip (máximo 8 palabras).
-- \"gancho\": Una frase de apertura disruptiva que rompa el scroll. Atacá dolores reales de facturación, infraestructura o ineficiencia B2B. No uses chistes ni ganchos infantiles.
-- \"copy_caption\": Escribí un copy de conversión premium usando el framework PAS (Problema, Agitación, Solución) o AIDA. Estructura limpia con espacios, viñetas elegantes, emojis corporativos sutiles y SIEMPRE un llamado a la acción (CTA) directo para agendar una sesión de consultoría estratégica. Incluye 3-5 hashtags estratégicos de autoridad al final.
-- \"por_que_viral\": Explicá la tesis estratégica detrás del clip. Inmediatamente después, debés incluir exactamente este bloque con 3 ideas de portadas de alto impacto visual (Estilo contraste extremo con rostro expresivo):
-  
-  [DIRECCIÓN DE ARTE - 3 OPCIONES DE PORTADA]
-  • OPCIÓN 1 (Shock/Disrupción):
-    - Título en Canva: (Frase ultra corta de 2-3 palabras en mayúsculas de alto impacto)
-    - Gesto del Cliente: (Expresión facial exacta para congelar en el cuadro, ej: mirada fija desafiante)
-    - Composición y Luces: (Fondo oscuro degradado con luz de neón de contraste, elementos de fondo recortados)
-  
-  • OPCIÓN 2 (Autoridad Técnica):
-    - Título en Canva: (...)
-    - Gesto del Cliente: (...)
-    - Composición y Luces: (...)
-  
-  • OPCIÓN 3 (Dolor Inmediato/Económico):
-    - Título en Canva: (...)
-    - Gesto del Cliente: (...)
-    - Composición y Luces: (...)`
+- \"titulo\": Un título corporativo, magnético y sofisticado para el clip (maximo 8 palabras).
+- \"gancho\": Una frase de apertura disruptiva que rompa el scroll. Ataca dolores reales de facturacion, infraestructura o ineficiencia B2B. No uses chistes ni ganchos infantiles.
+- \"copy_caption\": Escribi un copy de conversion premium usando el framework PAS (Problema, Agitacion, Solucion) o AIDA. Estructura limpia con espacios, viñetas elegantes, emojis corporativos sutiles y SIEMPRE un llamado a la accion (CTA) directo para agendar una sesion de consultoria estrategica. Incluye 3-5 hashtags estrategicos de autoridad al final.
+- \"por_que_viral\": Explica la tesis estrategica detras del clip. Inmediatamente despues, debes incluir obligatoriamente tres propuestas detalladas de portadas de alto impacto visual (Estilo contraste extremo con rostro expresivo premium) siguiendo esta estructura de texto liso:
+  OPCION 1 (Shock y Disrupcion) - Titulo en Canva: (Frase corta de 2 o 3 palabras en mayusculas). Gesto del Cliente: (Expresion facial exacta para congelar). Composicion y Luces: (Fondo oscuro con luz de neon detras).
+  OPCION 2 (Autoridad Tecnica) - Titulo en Canva: (Escribir frase). Gesto del Cliente: (Describir pose). Composicion y Luces: (Describir entorno).
+  OPCION 3 (Dolor Inmediato o Economico) - Titulo en Canva: (Escribir frase). Gesto del Cliente: (Describir pose). Composicion y Luces: (Describir entorno).
 
-  TIPO DE CONTENIDO: ${cfg.tipo}
-  FORMATO DESTINO: ${cfg.formato}
-  IDIOMA DE SALIDA: ${cfg.idioma}
-  ${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
+TIPO DE CONTENIDO: ${cfg.tipo}
+FORMATO DESTINO: ${cfg.formato}
+IDIOMA DE SALIDA: ${cfg.idioma}
+${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
 
-  TRANSCRIPCIÓN DEL VIDEO:
-  ${transcript.slice(0, 7000)}
+TRANSCRIPCIÓN DEL VIDEO:
+${transcript.slice(0, 7000)}
 
-  Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estructura exacta:
-  {
-    \"clips\": [
-      {
-        \"numero\": 1,
-        \"titulo\": \"Título gancho corto y poderoso (max 8 palabras)\",
-        \"gancho\": \"Primera línea que engancha en los primeros 3 segundos\",
-        \"timestamp_inicio\": \"00:01:30\",
-        \"timestamp_fin\": \"00:02:15\",
-        \"duracion_seg\": 45,
-        \"por_que_viral\": \"Análisis... [DIRECCIÓN DE ARTE - 3 OPCIONES DE PORTADA]... \",
-        \"red_recomendada\": \"Instagram Reels\",
-        \"copy_caption\": \"Caption completo con emojis, viñetas y hashtags listo para publicar\",
-        \"subtitulos\": [\"Línea 1 del subtítulo\", \"Línea 2\", \"Línea 3\"]${cfg.traducir ? `,\n        \"subtitulos_traducidos\": [\"Line 1 in ${cfg.idiomaDestino}\", \"Line 2\"]` : ''},
-        \"score_viral\": 92
-      }
-    ],
-    \"resumen\": \"Análisis estratégico general en 2 oraciones.\"
-  }`
+Debes responder EXCLUSIVAMENTE con un objeto JSON valido, siguiendo esta estructura exacta:
+{
+  \"clips\": [
+    {
+      \"numero\": 1,
+      \"titulo\": \"Titulo gancho corto y poderoso\",
+      \"gancho\": \"Primera linea que engancha en los primeros 3 segundos\",
+      \"timestamp_inicio\": \"00:01:30\",
+      \"timestamp_fin\": \"00:02:15\",
+      \"duracion_seg\": 45,
+      \"por_que_viral\": \"Analisis estrategico... OPCION 1... OPCION 2... OPCION 3...\",
+      \"red_recomendada\": \"Instagram Reels\",
+      \"copy_caption\": \"Caption completo con emojis, viñetas y hashtags listo para publicar\",
+      \"subtitulos\": [\"Linea 1 del subtitulo\", \"Linea 2\", \"Linea 3\"]${cfg.traducir ? `,\n      \"subtitulos_traducidos\": [\"Line 1\", \"Line 2\"]` : ''},
+      \"score_viral\": 92
+    }
+  ],
+  \"resumen\": \"Analisis estrategico general en 2 oraciones.\"
+}`
 
   // Usamos el modelo estable actual con specdec para máxima velocidad y evitar timeouts
   const res = await fetch(GROQ, {
