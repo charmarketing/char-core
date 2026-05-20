@@ -30,10 +30,10 @@ async function analizarClips(transcript: string, cfg: {
 Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos con mayor potencial de retención y cierre de ventas corporativas.
 
 Instrucciones estratégicas imperativas para los campos del JSON:
-- "gancho": No busques hacer reír. Generá un gancho de alto impacto basado en disrupción de mercado, datos duros o dolores profundos de un dueño de negocio B2B (máximo 8 palabras).
-- "por_que_viral": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho y por qué atrae a prospectos de alto valor.
-- "copy_caption": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
-- "titulo": Un título corporativo y sofisticado para el clip.`
+- \"gancho\": No busques hacer reír. Generá un gancho de alto impacto basado en disrupción de mercado, datos duros o dolores profundos de un dueño de negocio B2B (máximo 8 palabras).
+- \"por_que_viral\": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho. Al final de este campo, agregá SIEMPRE la siguiente etiqueta: [PORTADA: Texto corto de 3 palabras en mayúsculas para clavar grande en Canva + Concepto de imagen de fondo sugerido].
+- \"copy_caption\": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
+- \"titulo\": Un título corporativo y sofisticado para el clip.
 
 TIPO DE CONTENIDO: ${cfg.tipo}
 FORMATO DESTINO: ${cfg.formato}
@@ -45,22 +45,22 @@ ${transcript.slice(0, 7000)}
 
 Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estructura exacta:
 {
-  "clips": [
+  \"clips\": [
     {
-      "numero": 1,
-      "titulo": "Título gancho corto y poderoso (max 8 palabras)",
-      "gancho": "Primera línea que engancha en los primeros 3 segundos",
-      "timestamp_inicio": "00:01:30",
-      "timestamp_fin": "00:02:15",
-      "duracion_seg": 45,
-      "por_que_viral": "Razón específica de por qué genera engagement",
-      "red_recomendada": "Instagram Reels",
-      "copy_caption": "Caption completo con emojis y hashtags listo para publicar",
-      "subtitulos": ["Línea 1 del subtítulo", "Línea 2", "Línea 3"]${cfg.traducir ? `,\n      "subtitulos_traducidos": ["Line 1 in ${cfg.idiomaDestino}", "Line 2"]` : ''},
-      "score_viral": 92
+      \"numero\": 1,
+      \"titulo\": \"Título gancho corto y poderoso (max 8 palabras)\",
+      \"gancho\": \"Primera línea que engancha en los primeros 3 segundos\",
+      \"timestamp_inicio\": \"00:01:30\",
+      \"timestamp_fin\": \"00:02:15\",
+      \"duracion_seg\": 45,
+      \"por_que_viral\": \"Razón estratégica específica... [PORTADA: TEXTO CANVA + Idea visual de fondo]\",
+      \"red_recomendada\": \"Instagram Reels\",
+      \"copy_caption\": \"Caption completo con emojis y hashtags listo para publicar\",
+      \"subtitulos\": [\"Línea 1 del subtítulo\", \"Línea 2\", \"Línea 3\"]${cfg.traducir ? `,\n      \"subtitulos_traducidos\": [\"Line 1 in ${cfg.idiomaDestino}\", \"Line 2\"]` : ''},
+      \"score_viral\": 92
     }
   ],
-  "resumen": "Análisis estratégico general en 2 oraciones."
+  \"resumen\": \"Análisis strategic general en 2 oraciones.\"
 }`
 
   // Usamos el modelo estable actual con specdec para máxima velocidad y evitar timeouts
