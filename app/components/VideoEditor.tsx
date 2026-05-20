@@ -141,20 +141,6 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
 }
 
 // ── CLIP CARD CORREGIDA ───────────────────────────────────────────────────
-interface Clip {
-  numero: number;
-  titulo: string;
-  gancho: string;
-  timestamp_inicio: string;
-  timestamp_fin: string;
-  duracion_seg: number;
-  por_que_viral: string;
-  red_recomendada: string;
-  copy_caption: string;
-  subtitulos: string[];
-  score_viral: number;
-}
-
 function ClipCard({ 
   clip, 
   theme, 
@@ -771,14 +757,14 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 
       {/* COLUMNA DERECHA: LISTADO DE CLIPS CARD */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {resultado.clips?.map((clip: Clip, index: number) => (
-          <ClipCard 
-            key={index} 
-            clip={clip} 
-            theme={theme} 
-            onPreviewClip={handlePreviewClip} // Conectamos el botón con el reproductor
-          />
-        ))}
+        {resultado.clips?.map((clip: any, index: number) => (
+  <ClipCard 
+    key={index} 
+    clip={clip} 
+    theme={theme} 
+    onPreviewClip={handlePreviewClip} 
+  />
+))}
       </div>
 
     </div>
