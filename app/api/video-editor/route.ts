@@ -26,46 +26,57 @@ async function analizarClips(transcript: string, cfg: {
 }) {
   if (!KEY()) throw new Error('GROQ_API_KEY no configurada en Vercel → Settings → Environment Variables')
 
-  const prompt = `Sos un experto mundial en marketing B2B, contenido High Ticket y posicionamiento de autoridad para marcas y agencias.
-Analizá esta transcripción y detectá los ${cfg.cantidad} mejores momentos con mayor potencial de retención y cierre de ventas corporativas.
+  const prompt = `Sos un Director de Arte Senior y Estratega de Contenido High Ticket B2B para marcas de autoridad mundial. Tu objetivo es auditar esta transcripción y extraer los ${cfg.cantidad} momentos con mayor retención, impacto comercial y conversión de clientes de alto valor.
 
-Instrucciones estratégicas imperativas para los campos del JSON:
-- \"gancho\": No busques hacer reír. Generá un gancho de alto impacto basado en disrupción de mercado, datos duros o dolores profundos de un dueño de negocio B2B (máximo 8 palabras).
-- \"por_que_viral\": Explicá analíticamente cómo este fragmento posiciona al cliente como una autoridad indiscutible en su nicho y, OBLIGATORIAMENTE, añade tres propuestas de portadas profesionales con este formato exacto:
-  IDEAS DE PORTADAS GANADORAS PARA ADRIÁN:
-  Opción 1 [Expresiva de Alto Click]: TÍTULO VISUAL: (Frase corta de 3 palabras en mayúsculas). EXPRESIÓN DE ROSTRO: (Cómo debe salir el cliente en la foto, ej: apuntando a la cámara con mirada desafiante). FONDO Y ILUMINACIÓN: (Composición de fondo, colores de luces y elementos gráficos).
-  Opción 2 [Disruptiva / Shock]: TÍTULO VISUAL: (...). EXPRESIÓN DE ROSTRO: (...). FONDO Y ILUMINACIÓN: (...).
-  Opción 3 [Autoridad Teatral]: TÍTULO VISUAL: (...). EXPRESIÓN DE ROSTRO: (...). FONDO Y ILUMINACIÓN: (...).`
-- \"copy_caption\": Escribí un copy estructurado profesionalmente usando el framework PAS (Problema, Agitación, Solución) o AIDA. Dejá espacios limpios, usá viñetas sutiles y finalizá SIEMPRE con una llamada a la acción (CTA) de alto valor para agendar una sesión.
-- \"titulo\": Un título corporativo y sofisticado para el clip.
+Instrucciones imperativas para el contenido de los campos:
+- \"titulo\": Un título corporativo, magnético y sofisticado para el clip (máximo 8 palabras).
+- \"gancho\": Una frase de apertura disruptiva que rompa el scroll. Atacá dolores reales de facturación, infraestructura o ineficiencia B2B. No uses chistes ni ganchos infantiles.
+- \"copy_caption\": Escribí un copy de conversión premium usando el framework PAS (Problema, Agitación, Solución) o AIDA. Estructura limpia con espacios, viñetas elegantes, emojis corporativos sutiles y SIEMPRE un llamado a la acción (CTA) directo para agendar una sesión de consultoría estratégica. Incluye 3-5 hashtags estratégicos de autoridad al final.
+- \"por_que_viral\": Explicá la tesis estratégica detrás del clip. Inmediatamente después, debés incluir exactamente este bloque con 3 ideas de portadas de alto impacto visual (Estilo contraste extremo con rostro expresivo):
+  
+  [DIRECCIÓN DE ARTE - 3 OPCIONES DE PORTADA]
+  • OPCIÓN 1 (Shock/Disrupción):
+    - Título en Canva: (Frase ultra corta de 2-3 palabras en mayúsculas de alto impacto)
+    - Gesto del Cliente: (Expresión facial exacta para congelar en el cuadro, ej: mirada fija desafiante)
+    - Composición y Luces: (Fondo oscuro degradado con luz de neón de contraste, elementos de fondo recortados)
+  
+  • OPCIÓN 2 (Autoridad Técnica):
+    - Título en Canva: (...)
+    - Gesto del Cliente: (...)
+    - Composición y Luces: (...)
+  
+  • OPCIÓN 3 (Dolor Inmediato/Económico):
+    - Título en Canva: (...)
+    - Gesto del Cliente: (...)
+    - Composición y Luces: (...)`
 
-TIPO DE CONTENIDO: ${cfg.tipo}
-FORMATO DESTINO: ${cfg.formato}
-IDIOMA DE SALIDA: ${cfg.idioma}
-${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
+  TIPO DE CONTENIDO: ${cfg.tipo}
+  FORMATO DESTINO: ${cfg.formato}
+  IDIOMA DE SALIDA: ${cfg.idioma}
+  ${cfg.traducir ? `TRADUCIR SUBTÍTULOS A: ${cfg.idiomaDestino}` : ''}
 
-TRANSCRIPCIÓN DEL VIDEO:
-${transcript.slice(0, 7000)}
+  TRANSCRIPCIÓN DEL VIDEO:
+  ${transcript.slice(0, 7000)}
 
-Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estructura exacta:
-{
-  \"clips\": [
-    {
-      \"numero\": 1,
-      \"titulo\": \"Título gancho corto y poderoso (max 8 palabras)\",
-      \"gancho\": \"Primera línea que engancha en los primeros 3 segundos\",
-      \"timestamp_inicio\": \"00:01:30\",
-      \"timestamp_fin\": \"00:02:15\",
-      \"duracion_seg\": 45,
-      \"por_que_viral\": \"Razón estratégica específica... [PORTADA: TEXTO CANVA + Idea visual de fondo]\",
-      \"red_recomendada\": \"Instagram Reels\",
-      \"copy_caption\": \"Caption completo con emojis y hashtags listo para publicar\",
-      \"subtitulos\": [\"Línea 1 del subtítulo\", \"Línea 2\", \"Línea 3\"]${cfg.traducir ? `,\n      \"subtitulos_traducidos\": [\"Line 1 in ${cfg.idiomaDestino}\", \"Line 2\"]` : ''},
-      \"score_viral\": 92
-    }
-  ],
-  \"resumen\": \"Análisis strategic general en 2 oraciones.\"
-}`
+  Debes responder EXCLUSIVAMENTE con un objeto JSON válido, siguiendo esta estructura exacta:
+  {
+    \"clips\": [
+      {
+        \"numero\": 1,
+        \"titulo\": \"Título gancho corto y poderoso (max 8 palabras)\",
+        \"gancho\": \"Primera línea que engancha en los primeros 3 segundos\",
+        \"timestamp_inicio\": \"00:01:30\",
+        \"timestamp_fin\": \"00:02:15\",
+        \"duracion_seg\": 45,
+        \"por_que_viral\": \"Análisis... [DIRECCIÓN DE ARTE - 3 OPCIONES DE PORTADA]... \",
+        \"red_recomendada\": \"Instagram Reels\",
+        \"copy_caption\": \"Caption completo con emojis, viñetas y hashtags listo para publicar\",
+        \"subtitulos\": [\"Línea 1 del subtítulo\", \"Línea 2\", \"Línea 3\"]${cfg.traducir ? `,\n        \"subtitulos_traducidos\": [\"Line 1 in ${cfg.idiomaDestino}\", \"Line 2\"]` : ''},
+        \"score_viral\": 92
+      }
+    ],
+    \"resumen\": \"Análisis estratégico general en 2 oraciones.\"
+  }`
 
   // Usamos el modelo estable actual con specdec para máxima velocidad y evitar timeouts
   const res = await fetch(GROQ, {
