@@ -1,6 +1,8 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+// 1. IMPORTAMOS NUESTRO CONTEXTO GLOBAL
+import { useGlobal } from '../context/GlobalContext'
 
 type Theme = 'dark' | 'light'
 const D = { bg:'#05050f',surface:'#0b0b18',s2:'#111124',border:'#16163a',b2:'#1e1e3a',text:'#f0f0ff',text2:'#9090b8',text3:'#4a4a6a',muted:'#2a2a4a' }
@@ -67,10 +69,13 @@ const BLOG_NOTICIAS:any[] = []
 
 export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const c=th(t)
+  
+  // 2. EXTRAEMOS EL CLIENTE GLOBAL Y SU SETTER
+  const { clienteGlobal, setClienteGlobal } = useGlobal();
+
   const clientesNombres=['CHAR',...clientes.filter((cl:any)=>cl.nombre!=='CHAR').map((cl:any)=>cl.nombre)]
 
   const [tab,setTab]=useState<Tab>('chat')
-  const [clienteCtx,setClienteCtx]=useState('CHAR')
   const [mensajes,setMensajes]=useState<Mensaje[]>([
     {id:'init',rol:'ia',texto:'¡Hola! Soy el Cerebro IA de CHAR, potenciado por Google Gemini. Seleccioná un cliente arriba y respondo siempre desde su filosofía. ¿En qué te ayudo hoy?',tiempo:'ahora'},
   ])
@@ -84,142 +89,142 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const [pitchGenerado,setPitchGenerado]=useState('')
   const [guardando,setGuardando]=useState(false)
   const [noticiasIA,setNoticiasIA]=useState<any[]>([])
-const [cargandoNoticias,setCargandoNoticias]=useState(false)
-const [blogPosts,setBlogPosts]=useState<any[]>([])
-const [mostrarFormPost,setMostrarFormPost]=useState(false)
-const [nuevoPost,setNuevoPost]=useState({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
-const [subiendoImagen,setSubiendoImagen]=useState(false)
-const [subiendoVideo,setSubiendoVideo]=useState(false)
-const [previewImagen,setPreviewImagen]=useState('')
-const [guardandoPost,setGuardandoPost]=useState(false)
-const [blogTab,setBlogTab]=useState<'feed'|'noticias'|'nuevo'>('feed')
-const [noticiaAbierta,setNoticiaAbierta]=useState<any>(null)
-const [analizandoNoticia,setAnalizandoNoticia]=useState(false)
-const [analisisNoticia,setAnalisisNoticia]=useState<Record<number,string>>({})
+  const [cargandoNoticias,setCargandoNoticias]=useState(false)
+  const [blogPosts,setBlogPosts]=useState<any[]>([])
+  const [mostrarFormPost,setMostrarFormPost]=useState(false)
+  const [nuevoPost,setNuevoPost]=useState({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
+  const [subiendoImagen,setSubiendoImagen]=useState(false)
+  const [subiendoVideo,setSubiendoVideo]=useState(false)
+  const [previewImagen,setPreviewImagen]=useState('')
+  const [guardandoPost,setGuardandoPost]=useState(false)
+  const [blogTab,setBlogTab]=useState<'feed'|'noticias'|'nuevo'>('feed')
+  const [noticiaAbierta,setNoticiaAbierta]=useState<any>(null)
+  const [analizandoNoticia,setAnalizandoNoticia]=useState(false)
+  const [analisisNoticia,setAnalisisNoticia]=useState<Record<number,string>>({})
   const chatRef=useRef<HTMLDivElement>(null)
 
   useEffect(()=>{
     if(chatRef.current) chatRef.current.scrollTop=chatRef.current.scrollHeight
   },[mensajes,escribiendo])
+  
   useEffect(()=>{
-  if(tab==='blog'){
-    cargarBlogPosts()
-    generarNoticiasIA()
-  }
-},[tab])
-
-const cargarBlogPosts=async()=>{
-  const {data}=await supabase.from('blog_posts').select('*').eq('publicado',true).order('created_at',{ascending:false})
-  if(data) setBlogPosts(data)
-}
-
-const generarNoticiasIA=async()=>{
-  if(noticiasIA.length>0) return
-  setCargandoNoticias(true)
-  try{
-    const res=await fetch('/api/blog')
-    const data=await res.json()
-    if(data.noticias) setNoticiasIA(data.noticias)
-  }catch(err){
-    console.error('Error noticias IA:',err)
-  }
-  setCargandoNoticias(false)
-}
-
-const expandirNoticia=async(noticia:any, index:number)=>{
-  if(noticiaAbierta===index){
-    setNoticiaAbierta(null)
-    return
-  }
-  setNoticiaAbierta(index)
-  
-  // Si ya tenemos el análisis en memoria no llamamos a Gemini
-  if(analisisNoticia[index]) return
-  
-  // Si la noticia ya tiene análisis guardado en Supabase lo usamos directo
-  if(noticia.analisis){
-    setAnalisisNoticia(prev=>({...prev,[index]:noticia.analisis}))
-    return
-  }
-  
-  setAnalizandoNoticia(true)
-  try{
-    const res=await fetch('/api/blog',{
-      method:'PUT',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({noticia})
-    })
-    const data=await res.json()
-    if(data.analisis){
-      setAnalisisNoticia(prev=>({...prev,[index]:data.analisis}))
-      // Actualizar la noticia en el array local también
-      setNoticiasIA(prev=>prev.map((n,i)=>i===index?{...n,analisis:data.analisis}:n))
+    if(tab==='blog'){
+      cargarBlogPosts()
+      generarNoticiasIA()
     }
-  }catch(err:any){
-    setAnalisisNoticia(prev=>({...prev,[index]:'Error de conexión. Intentá de nuevo.'}))
+  },[tab])
+
+  const cargarBlogPosts=async()=>{
+    const {data}=await supabase.from('blog_posts').select('*').eq('publicado',true).order('created_at',{ascending:false})
+    if(data) setBlogPosts(data)
   }
-  setAnalizandoNoticia(false)
-}
-const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
-  if(tipo==='imagen') setSubiendoImagen(true)
-  else setSubiendoVideo(true)
-  
-  try{
-    const form=new FormData()
-    form.append('file',file)
-    const res=await fetch('/api/upload',{method:'POST',body:form})
-    const data=await res.json()
-    if(data.url){
-      if(tipo==='imagen'){
-        setNuevoPost(prev=>({...prev,imagen_url:data.url}))
-        setPreviewImagen(data.url)
-      } else {
-        setNuevoPost(prev=>({...prev,video_url:data.url}))
-      }
-    } else {
-      alert('Error al subir: '+data.error)
+
+  const generarNoticiasIA=async()=>{
+    if(noticiasIA.length>0) return
+    setCargandoNoticias(true)
+    try{
+      const res=await fetch('/api/blog')
+      const data=await res.json()
+      if(data.noticias) setNoticiasIA(data.noticias)
+    }catch(err){
+      console.error('Error noticias IA:',err)
     }
-  }catch(err:any){
-    alert('Error: '+err.message)
+    setCargandoNoticias(false)
   }
-  
-  if(tipo==='imagen') setSubiendoImagen(false)
-  else setSubiendoVideo(false)
-}
-  const publicarPost=async()=>{
-  if(!nuevoPost.titulo.trim()||!nuevoPost.contenido.trim()) return
-  setGuardandoPost(true)
-  try{
-    const res=await fetch('/api/blog',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        ...nuevoPost,
-        tags:nuevoPost.tags.split(',').map(t=>t.trim()).filter(Boolean),
-        autor:'Adri'
+
+  const expandirNoticia=async(noticia:any, index:number)=>{
+    if(noticiaAbierta===index){
+      setNoticiaAbierta(null)
+      return
+    }
+    setNoticiaAbierta(index)
+   
+    if(analisisNoticia[index]) return
+   
+    if(noticia.analisis){
+      setAnalisisNoticia(prev=>({...prev,[index]:noticia.analisis}))
+      return
+    }
+   
+    setAnalizandoNoticia(true)
+    try{
+      const res=await fetch('/api/blog',{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({noticia})
       })
-    })
-    const data=await res.json()
-    if(data.post){
-      setBlogPosts(prev=>[data.post,...prev])
-      setNuevoPost({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
-      setBlogTab('feed')
+      const data=await res.json()
+      if(data.analisis){
+        setAnalisisNoticia(prev=>({...prev,[index]:data.analisis}))
+        setNoticiasIA(prev=>prev.map((n,i)=>i===index?{...n,analisis:data.analisis}:n))
+      }
+    }catch(err:any){
+      setAnalisisNoticia(prev=>({...prev,[index]:'Error de conexión. Intentá de nuevo.'}))
     }
-  }catch(err){
-    console.error('Error publicar:',err)
+    setAnalizandoNoticia(false)
   }
-  setGuardandoPost(false)
-}
+  
+  const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
+    if(tipo==='imagen') setSubiendoImagen(true)
+    else setSubiendoVideo(true)
+   
+    try{
+      const form=new FormData()
+      form.append('file',file)
+      const res=await fetch('/api/upload',{method:'POST',body:form})
+      const data=await res.json()
+      if(data.url){
+        if(tipo==='imagen'){
+          setNuevoPost(prev=>({...prev,imagen_url:data.url}))
+          setPreviewImagen(data.url)
+        } else {
+          setNuevoPost(prev=>({...prev,video_url:data.url}))
+        }
+      } else {
+        alert('Error al subir: '+data.error)
+      }
+    }catch(err:any){
+      alert('Error: '+err.message)
+    }
+   
+    if(tipo==='imagen') setSubiendoImagen(false)
+    else setSubiendoVideo(false)
+  }
+  
+  const publicarPost=async()=>{
+    if(!nuevoPost.titulo.trim()||!nuevoPost.contenido.trim()) return
+    setGuardandoPost(true)
+    try{
+      const res=await fetch('/api/blog',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          ...nuevoPost,
+          tags:nuevoPost.tags.split(',').map(t=>t.trim()).filter(Boolean),
+          autor:'Adri'
+        })
+      })
+      const data=await res.json()
+      if(data.post){
+        setBlogPosts(prev=>[data.post,...prev])
+        setNuevoPost({titulo:'',contenido:'',resumen:'',imagen_url:'',video_url:'',tags:''})
+        setBlogTab('feed')
+      }
+    }catch(err){
+      console.error('Error publicar:',err)
+    }
+    setGuardandoPost(false)
+  }
 
+  // 3. ACTUALIZAMOS DEPENDENCIAS AL CLIENTE GLOBAL
   useEffect(()=>{
-    cargarFilosofia(clienteCtx)
-    cargarHistorial(clienteCtx)
+    cargarFilosofia(clienteGlobal)
+    cargarHistorial(clienteGlobal)
     setShadowRespuesta('')
     setPitchGenerado('')
-  },[clienteCtx])
+  },[clienteGlobal])
 
   useEffect(()=>{
-    // Inicializar filosofía para clientes reales
     clientes.forEach((cl:any)=>{
       if(!filosofias[cl.nombre]){
         setFilosofias(prev=>({...prev,[cl.nombre]:{
@@ -266,7 +271,7 @@ const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
 
     const userMsg:Mensaje={id:Date.now().toString(),rol:'user',texto,tiempo:'ahora'}
     setMensajes(prev=>[...prev,userMsg])
-    await guardarMensaje('user',texto,clienteCtx)
+    await guardarMensaje('user',texto,clienteGlobal)
     setEscribiendo(true)
 
     try{
@@ -276,8 +281,8 @@ const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
           mensaje:texto,
-          cliente:clienteCtx,
-          filosofia:getFilosofia(clienteCtx).descripcion,
+          cliente:clienteGlobal,
+          filosofia:getFilosofia(clienteGlobal).descripcion,
           historial:historialReciente,
         })
       })
@@ -285,7 +290,7 @@ const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
       if(data.respuesta){
         const iaMsg:Mensaje={id:(Date.now()+1).toString(),rol:'ia',texto:data.respuesta,tiempo:'ahora'}
         setMensajes(prev=>[...prev,iaMsg])
-        await guardarMensaje('ia',data.respuesta,clienteCtx)
+        await guardarMensaje('ia',data.respuesta,clienteGlobal)
       } else {
         throw new Error(data.error||'Sin respuesta')
       }
@@ -303,9 +308,9 @@ const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
-          mensaje:`Analizá este contenido desde la filosofía de ${clienteCtx} y decime si representa bien la marca, qué está bien, qué mejorarías y dale una puntuación del 1 al 10:\n\n${shadowTexto}`,
-          cliente:clienteCtx,
-          filosofia:getFilosofia(clienteCtx).descripcion,
+          mensaje:`Analizá este contenido desde la filosofía de ${clienteGlobal} y decime si representa bien la marca, qué está bien, qué mejorarías y dale una puntuación del 1 al 10:\n\n${shadowTexto}`,
+          cliente:clienteGlobal,
+          filosofia:getFilosofia(clienteGlobal).descripcion,
           historial:[],
         })
       })
@@ -332,8 +337,8 @@ const subirArchivo=async(file:File, tipo:'imagen'|'video')=>{
 - Problema detectado: ${pitchData.problema||'Presencia digital débil'}
 
 La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específicos, por qué CHAR y próximo paso. Formato profesional listo para enviar.`,
-          cliente:clienteCtx,
-          filosofia:getFilosofia(clienteCtx).descripcion,
+          cliente:clienteGlobal,
+          filosofia:getFilosofia(clienteGlobal).descripcion,
           historial:[],
         })
       })
@@ -347,9 +352,9 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
 
   const guardarFilosofia=async()=>{
     setGuardando(true)
-    const f=getFilosofia(clienteCtx)
+    const f=getFilosofia(clienteGlobal)
     await supabase.from('cerebro_conversaciones').insert({
-      cliente:clienteCtx,
+      cliente:clienteGlobal,
       rol:'filosofia',
       texto:JSON.stringify(f)
     })
@@ -358,9 +363,9 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
   }
 
   const limpiarChat=async()=>{
-    if(!confirm('¿Limpiar el historial de chat de '+clienteCtx+'?')) return
-    await supabase.from('cerebro_conversaciones').delete().eq('cliente',clienteCtx).in('rol',['user','ia'])
-    setMensajes([{id:'init',rol:'ia',texto:`Chat limpiado. ¿En qué te ayudo con ${clienteCtx}?`,tiempo:'ahora'}])
+    if(!confirm('¿Limpiar el historial de chat de '+clienteGlobal+'?')) return
+    await supabase.from('cerebro_conversaciones').delete().eq('cliente',clienteGlobal).in('rol',['user','ia'])
+    setMensajes([{id:'init',rol:'ia',texto:`Chat limpiado. ¿En qué te ayudo con ${clienteGlobal}?`,tiempo:'ahora'}])
   }
 
   const copiarTexto=(texto:string)=>{
@@ -398,10 +403,11 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
           </div>
           <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
             {clientesNombres.map(cl=>(
-              <button key={cl} onClick={()=>setClienteCtx(cl)} className="char-btn" style={{
-                background:clienteCtx===cl?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
-                color:clienteCtx===cl?'#050510':c.text2,
-                border:clienteCtx===cl?'none':`1px solid ${c.border}`,
+              // 4. EL BOTÓN AHORA ACTUALIZA EL ESTADO GLOBAL
+              <button key={cl} onClick={()=>setClienteGlobal(cl)} className="char-btn" style={{
+                background:clienteGlobal===cl?`linear-gradient(135deg,${GOLD},#cc8800)`:c.s2,
+                color:clienteGlobal===cl?'#050510':c.text2,
+                border:clienteGlobal===cl?'none':`1px solid ${c.border}`,
                 borderRadius:'8px',padding:'8px 14px',cursor:'pointer',
                 fontSize:'12px',fontWeight:700,fontFamily:'Rajdhani,sans-serif',transition:'all 0.15s',
               }}>{cl}</button>
@@ -409,9 +415,9 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
           </div>
         </div>
         <div style={{marginTop:'14px',display:'flex',gap:'8px',flexWrap:'wrap'}}>
-          <Tag label={`TONO: ${getFilosofia(clienteCtx).tono?.toUpperCase()}`} color={GOLD}/>
-          <Tag label={`ESTILO: ${getFilosofia(clienteCtx).estilo?.toUpperCase()}`} color={PURPLE}/>
-          <Tag label={`PÚBLICO: ${getFilosofia(clienteCtx).publico?.toUpperCase()}`} color={BLUE}/>
+          <Tag label={`TONO: ${getFilosofia(clienteGlobal).tono?.toUpperCase()}`} color={GOLD}/>
+          <Tag label={`ESTILO: ${getFilosofia(clienteGlobal).estilo?.toUpperCase()}`} color={PURPLE}/>
+          <Tag label={`PÚBLICO: ${getFilosofia(clienteGlobal).publico?.toUpperCase()}`} color={BLUE}/>
         </div>
       </Card>
 
@@ -436,7 +442,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
               <div style={{width:'36px',height:'36px',background:`linear-gradient(135deg,${GOLD},#cc8800)`,borderRadius:'10px',display:'flex',alignItems:'center',justifyContent:'center',color:'#fff',boxShadow:`0 4px 14px ${GOLD}40`}}>{I.bolt}</div>
               <div>
-                <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteCtx}</div>
+                <div style={{fontSize:'14px',fontWeight:700,color:c.text}}>CHAR IA — {clienteGlobal}</div>
                 <div style={{fontSize:'11px',color:GREEN,display:'flex',alignItems:'center',gap:'4px'}}>
                   <div style={{width:'6px',height:'6px',borderRadius:'50%',background:GREEN,boxShadow:`0 0 6px ${GREEN}`}}/>
                   Gemini activo · Historial guardado
@@ -482,7 +488,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
               value={input}
               onChange={e=>setInput(e.target.value)}
               onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&enviarMensaje()}
-              placeholder={`Preguntale algo sobre ${clienteCtx}...`}
+              placeholder={`Preguntale algo sobre ${clienteGlobal}...`}
               style={{...inputSt,flex:1}}
               disabled={escribiendo}
             />
@@ -496,19 +502,19 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
       {tab==='shadow'&&(
         <div style={{display:'grid',gap:'16px'}}>
           <Card t={t}>
-            <Eb text={`SHADOW — ${clienteCtx.toUpperCase()}`} t={t}/>
-            <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>¿Esto representa a {clienteCtx}?</h3>
+            <Eb text={`SHADOW — ${clienteGlobal.toUpperCase()}`} t={t}/>
+            <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:'0 0 8px'}}>¿Esto representa a {clienteGlobal}?</h3>
             <div style={{fontSize:'13px',color:c.text2,marginBottom:'20px',lineHeight:'1.6'}}>
-              Describí un diseño, copy, idea o estrategia y Gemini lo analiza desde la filosofía de {clienteCtx}.
+              Describí un diseño, copy, idea o estrategia y Gemini lo analiza desde la filosofía de {clienteGlobal}.
             </div>
             <textarea
               value={shadowTexto}
               onChange={e=>setShadowTexto(e.target.value)}
-              placeholder={`Ej: Quiero publicar un carrusel para ${clienteCtx} con fondo blanco y texto en negro...`}
+              placeholder={`Ej: Quiero publicar un carrusel para ${clienteGlobal} con fondo blanco y texto en negro...`}
               style={{...inputSt,height:'140px',resize:'none',marginBottom:'14px'}}
             />
             <Btn v="primary" t={t} onClick={analizarShadow} disabled={escribiendo||!shadowTexto.trim()}>
-              {I.eye} Analizar desde filosofía de {clienteCtx}
+              {I.eye} Analizar desde filosofía de {clienteGlobal}
             </Btn>
           </Card>
           {escribiendo&&tab==='shadow'&&(
@@ -582,8 +588,8 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
         <Card t={t}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:'16px',flexWrap:'wrap',gap:'10px'}}>
             <div>
-              <Eb text={`ADN DE ${clienteCtx.toUpperCase()}`} t={t}/>
-              <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de {clienteCtx}</h3>
+              <Eb text={`ADN DE ${clienteGlobal.toUpperCase()}`} t={t}/>
+              <h3 style={{fontSize:'18px',fontWeight:700,color:c.text,margin:0}}>Filosofía de {clienteGlobal}</h3>
             </div>
             <div style={{display:'flex',gap:'8px'}}>
               {editandoFilosofia&&(
@@ -597,7 +603,7 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
             </div>
           </div>
           <div style={{fontSize:'13px',color:c.text2,marginBottom:'16px',lineHeight:'1.6'}}>
-            Gemini aprende de este texto para responder siempre alineado con la identidad de {clienteCtx}.
+            Gemini aprende de este texto para responder siempre alineado con la identidad de {clienteGlobal}.
           </div>
           <div style={{display:'grid',gap:'12px',marginBottom:'16px'}}>
             {(['tono','estilo','publico'] as const).map(campo=>(
@@ -605,13 +611,13 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
                 <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>{campo.toUpperCase()}</div>
                 {editandoFilosofia?(
                   <input
-                    value={getFilosofia(clienteCtx)[campo]||''}
-                    onChange={e=>setFilosofias(prev=>({...prev,[clienteCtx]:{...getFilosofia(clienteCtx),[campo]:e.target.value}}))}
+                    value={getFilosofia(clienteGlobal)[campo]||''}
+                    onChange={e=>setFilosofias(prev=>({...prev,[clienteGlobal]:{...getFilosofia(clienteGlobal),[campo]:e.target.value}}))}
                     style={inputSt}
                   />
                 ):(
                   <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'8px',padding:'10px 14px',fontSize:'13px',color:c.text2}}>
-                    {getFilosofia(clienteCtx)[campo]||'—'}
+                    {getFilosofia(clienteGlobal)[campo]||'—'}
                   </div>
                 )}
               </div>
@@ -620,13 +626,13 @@ La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específi
               <div style={{fontSize:'11px',color:c.text3,marginBottom:'6px',letterSpacing:'1px'}}>DESCRIPCIÓN COMPLETA</div>
               {editandoFilosofia?(
                 <textarea
-                  value={getFilosofia(clienteCtx).descripcion||''}
-                  onChange={e=>setFilosofias(prev=>({...prev,[clienteCtx]:{...getFilosofia(clienteCtx),descripcion:e.target.value}}))}
+                  value={getFilosofia(clienteGlobal).descripcion||''}
+                  onChange={e=>setFilosofias(prev=>({...prev,[clienteGlobal]:{...getFilosofia(clienteGlobal),descripcion:e.target.value}}))}
                   style={{...inputSt,height:'160px',resize:'none'}}
                 />
               ):(
                 <div style={{background:c.s2,border:`1px solid ${c.border}`,borderRadius:'12px',padding:'18px',fontSize:'13px',color:c.text2,lineHeight:'1.8'}}>
-                  {getFilosofia(clienteCtx).descripcion||'—'}
+                  {getFilosofia(clienteGlobal).descripcion||'—'}
                 </div>
               )}
             </div>
