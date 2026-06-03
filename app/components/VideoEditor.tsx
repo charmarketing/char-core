@@ -1,5 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
+import { useGlobal } from '../context/GlobalContext' // Ajustá la cantidad de puntos según la ubicación exacta de tu carpeta context
 
 // ── CONSTANTES DE CONFIGURACIÓN Y DIRECCIÓN DE ARTE ───────────────────────
 const GOLD = '#D4AF37'; 
@@ -133,7 +134,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 
   // Estados de Configuración y Filtros Conectados
   const [sesion, setSesion] = useState('')
-  const [selectedClientId, setSelectedClientId] = useState('')
+  const { clienteGlobal } = useGlobal()
   const [tipo, setTipo] = useState(TIPOS[0])
   const [cantidad, setCantidad] = useState(5)
   const [formato, setFormato] = useState(FORMATOS[0].id)
@@ -149,7 +150,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
   const [resultado, setResultado] = useState<{clips:Clip[];resumen:string;palabras:number}|null>(null)
 
   // Obtener la información del cliente seleccionado para inyectar al "cerebro"
-  const clienteActivo = clientes.find(cl => cl.id === selectedClientId) || null;
+  const clienteActivo = clientes.find(cl => cl.id === clienteGlobal || cl.nombre === clienteGlobal) || null;
 
   useEffect(() => {
     const video = videoPlayerRef.current;
