@@ -12,6 +12,7 @@ import PanelCM from './components/PanelCM'
 import PanelSEM from './components/PanelSEM'
 import PanelSEO from './components/PanelSEO'
 import { supabase } from './lib/supabase'
+import { useGlobal } from './context/GlobalContext'
 
 async function subirVideo(file: File): Promise<{ url: string }> {
   const r1 = await fetch('/api/upload-url', {
@@ -307,11 +308,19 @@ onSelect(nombre)
 }
 
 // ── VISTA DASHBOARD ───────────────────────────────────────────────────────
-function VDash({t,usuario,irA,permisos,clientes}:any){
-  const c=th(t)
-  const h=new Date().getHours()
-  const sal=h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches'
-  const fecha=new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
+function VDash({t,usuario,irA,permisos,clientes: clientesProp}:any){
+  const c = th(t)
+  const h = new Date().getHours()
+  const sal = h < 12 ? 'Buenos días' : h < 19 ? 'Buenas tardes' : 'Buenas noches'
+  const fecha = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'})
+  
+  // ── TOMAMOS EL CLIENTE GLOBAL ACTIVO ──
+  const { clienteGlobal } = useGlobal();
+
+  // Filtramos la lista de clientes completa para enfocarnos en el activo o mostramos todos si es "CHAR"
+  const clientesFiltrados = clienteGlobal === 'CHAR' 
+    ? clientesProp 
+    : clientesProp.filter((cl: any) => cl.nombre === clienteGlobal || cl.id === clienteGlobal);
   return(
     <div className="char-fade" style={{display:'grid',gap:'32px'}}>
       <div className="topbar" style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
@@ -328,9 +337,9 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
       <div>
         <SHead ey="RESUMEN EJECUTIVO" ti="Métricas del Día" t={t}/>
         <div className="g4" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:'14px'}}>
-<MCard label="Clientes Activos"  val={String(clientes.length)}  note={`${clientes.length} de 10 slots`} icon={I.trend}  color={GOLD}   t={t}/>
+<MCard label="Clientes Activos"  val={String(clientesFiltrados.length)}  note={`${clientesFiltrados.length} de 10 slots`} icon={I.trend}  color={GOLD}   t={t}/>
 <MCard label="Tareas Pendientes" val="—"  note="Conectando..."    icon={I.task}   color={BLUE}   t={t}/>
-<MCard label="Alertas Críticas"  val={String(clientes.filter((cl:any)=>cl.horas>=48).length)}  note={clientes.filter((cl:any)=>cl.horas>=48).length>0?'Requiere acción':'Todo en orden'} icon={I.alert2} color={RED}    t={t}/>
+<MCard label="Alertas Críticas"  val={String(clientesFiltrados.filter((cl:any)=>cl.horas>=48).length)}  note={clientesFiltrados.filter((cl:any)=>cl.horas>=48).length>0?'Requiere acción':'Todo en orden'} icon={I.alert2} color={RED}    t={t}/>
 <MCard label="Clips Generados"   val="—"  note="Próximo módulo"  icon={I.film}   color={PURPLE} t={t}/>
         </div>
       </div>
@@ -338,7 +347,7 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
       <div>
         <SHead ey="ESTADO EN TIEMPO REAL" ti="Semáforo de Clientes" t={t} action={<span style={{fontSize:'11px',color:c.text3}}>3 / 10 slots</span>}/>
         <div className="g3" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'14px'}}>
-          {clientes.map(cl=>{
+          {clientesFiltrados.map(cl=>{
             const e=est(cl.horas)
             return(
               <Card key={cl.id} t={t} style={{padding:'18px',cursor:'pointer',borderTop:`2px solid ${e.c}`}}>
@@ -374,9 +383,9 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
         <Card t={t}>
           <SHead ey="PRIORIDAD HOY" ti="Tareas Urgentes" t={t} action={<Btn t={t} onClick={()=>irA('ceo')}>Ver todas</Btn>}/>
           <Div t={t}/>
-          {clientes.length===0
+          {clientesFiltrados.length===0
   ?<div style={{fontSize:'13px',color:c.text3,padding:'10px 8px'}}>Sin tareas pendientes</div>
-  :clientes.slice(0,5).map((cl:any,i:number)=>(
+  :clientesFiltrados.slice(0,5).map((cl:any,i:number)=>(
     <div key={i} className="char-row" style={{display:'flex',alignItems:'center',gap:'10px',padding:'9px 8px',borderRadius:'6px'}}>
       <div style={{width:'6px',height:'6px',borderRadius:'50%',background:i<2?RED:AMBER,flexShrink:0,boxShadow:`0 0 6px ${i<2?RED:AMBER}`}}/>
       <span style={{fontSize:'13px',color:c.text2,flex:1,lineHeight:'1.4'}}>Revisar contenido y métricas — {cl.nombre}</span>
@@ -388,9 +397,9 @@ function VDash({t,usuario,irA,permisos,clientes}:any){
         <Card t={t}>
           <SHead ey="NOTIFICACIONES" ti="Alertas Activas" t={t}/>
           <Div t={t}/>
-          {clientes.filter((cl:any)=>cl.horas>=24).length===0
+          {clientesFiltrados.filter((cl:any)=>cl.horas>=24).length===0
   ?<div style={{fontSize:'13px',color:c.text3,padding:'10px 8px'}}>Sin alertas activas ✓</div>
-  :clientes.filter((cl:any)=>cl.horas>=24).slice(0,3).map((cl:any,i:number)=>(
+  :clientesFiltrados.filter((cl:any)=>cl.horas>=24).slice(0,3).map((cl:any,i:number)=>(
     <div key={i} className="char-row" style={{display:'flex',gap:'10px',padding:'10px 8px',borderRadius:'6px'}}>
       <div style={{color:cl.horas>=48?RED:AMBER,marginTop:'1px',flexShrink:0}}>{cl.horas>=48?I.warn:I.info}</div>
       <div style={{flex:1}}>
@@ -696,6 +705,7 @@ type AlertaItem = {
   origen:'automatica'|'manual'
 }
 export default function App(){
+  const { clienteGlobal, setClienteGlobal } = useGlobal();
   const [alertasNoLeidas,setAlertasNoLeidas]=useState(3)
 const [alertasData,setAlertasData]=useState<AlertaItem[]>([])
   const [clientes,setClientes]=useState<any[]>([])
