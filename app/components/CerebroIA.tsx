@@ -265,7 +265,6 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
 
   const enviarMensaje = async () => {
-    // Forzamos a que trate la pestaña como texto plano para evitar bloqueos de TypeScript
     const pestañaActual = String(tab).toLowerCase();
 
     if (pestañaActual.includes('chat') && (!input.trim() || escribiendo)) return;
@@ -299,7 +298,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           cliente: clienteGlobal,
           filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
           historial: historialReciente,
-          pestaña: pestañaActual, // Enviamos el nombre limpio al backend
+          pestaña: pestañaActual,
           promptShadow: shadowTexto,
           datosPitch: {
             empresa: inputEmpresa, 
@@ -312,8 +311,8 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       const data = await res.json();
       
-      if (res.ok) {
-        const textoRespuesta = typeof data === 'string' ? data : (data.respuesta || data.resultado || JSON.stringify(data));
+      if (res.ok && data.success) {
+        const textoRespuesta = data.resultado;
 
         if (pestañaActual.includes('chat')) {
           const iaMsg: Mensaje = { id: (Date.now() + 1).toString(), rol: 'ia', texto: textoRespuesta, tiempo: 'ahora' };
@@ -326,11 +325,9 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           } else {
             const areaResultado = document.querySelector('.shadow-resultado, textarea[readonly]') as HTMLTextAreaElement;
             if (areaResultado) areaResultado.value = textoRespuesta;
-            else alert("Análisis Shadow:\n\n" + textoRespuesta);
           }
         } 
         else if (pestañaActual.includes('pitch') || pestañaActual.includes('auto')) {
-          // Buscamos dinámicamente cualquier contenedor o caja de texto del resultado
           const areaPitch = document.querySelector('.pitch-resultado, textarea[readonly], [id*="pitch"]') as HTMLElement;
           if (areaPitch) {
             if (areaPitch.tagName === 'TEXTAREA' || areaPitch.tagName === 'INPUT') {
@@ -343,14 +340,14 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           }
         }
       } else {
-        throw new Error(data.error || 'Sin respuesta del Cerebro IA');
+        throw new Error(data.error || 'Ocurrió un problema en los servidores de la IA.');
       }
     } catch (err: any) {
-      console.error("Error conectando con Grok:", err);
+      console.error("Error conectando con el backend:", err);
       if (pestañaActual.includes('chat')) {
-        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}.`, tiempo: 'ahora' }]);
+        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}`, tiempo: 'ahora' }]);
       } else {
-        alert("Error en Cerebro IA: " + err.message);
+        alert("Aviso del sistema: " + err.message);
       }
     } finally {
       setEscribiendo(false);
