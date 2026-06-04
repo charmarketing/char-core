@@ -345,6 +345,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     } finally {
       setEscribiendo(false);
     }
+    };
 
   const analizarShadow=async()=>{
     if(!shadowTexto.trim()||escribiendo) return
