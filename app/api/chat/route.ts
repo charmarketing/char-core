@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
         "Authorization": `Bearer ${API_KEY}`
       },
       body: JSON.stringify({
-        model: "llama3-8b-8192", // Usamos el modelo ultra veloz y estándar de Groq para evitar fallas
+        model: "llama-3.1-8b-instant", // Usamos el modelo ultra veloz y estándar de Groq para evitar fallas
         messages: messagesForGrok,
         temperature: 0.7
       })
