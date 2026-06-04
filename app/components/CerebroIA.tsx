@@ -265,17 +265,14 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
 
   const enviarMensaje = async () => {
-    // Si estamos en la pestaña chat y no hay texto, o ya está escribiendo, cancelamos
     if (tab === 'chat' && (!input.trim() || escribiendo)) return;
     if (escribiendo) return;
 
-    // Detectamos el texto según la pestaña en la que estás parado
     let texto = input.trim();
     if (tab === 'shadow') texto = shadowTexto || '';
     
     setEscribiendo(true);
 
-    // Solo si es el chat tradicional, agregamos visualmente tu mensaje al historial de la pantalla
     if (tab === 'chat') {
       const userMsg: Mensaje = { id: Date.now().toString(), rol: 'user', texto, tiempo: 'ahora' };
       setMensajes(prev => [...prev, userMsg]);
@@ -286,14 +283,11 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     try {
       const historialReciente = mensajes.slice(-10).filter(m => m.id !== 'init');
       
-      // Intentamos capturar lo que haya escrito en los inputs de la pantalla usando trucos del navegador
-      // Esto evita que TypeScript falle si las variables tienen otros nombres
       const inputEmpresa = (document.querySelector('input[placeholder*="empresa"]') as HTMLInputElement)?.value || '';
       const inputRubro = (document.querySelector('input[placeholder*="rubro"]') as HTMLInputElement)?.value || '';
       const inputProblema = (document.querySelector('input[placeholder*="problema"]') as HTMLInputElement)?.value || '';
       const selectRed = (document.querySelector('select') as HTMLSelectElement)?.value || 'Instagram';
 
-      // Llamamos a la API pasándole todo el contexto extendido
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -302,7 +296,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           cliente: clienteGlobal,
           filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
           historial: historialReciente,
-          pestaña: tab, // Le avisa al servidor si estás en 'chat', 'shadow', 'auto-pitch' o 'noticias'
+          pestaña: tab,
           promptShadow: shadowTexto,
           datosPitch: {
             empresa: inputEmpresa, 
@@ -315,7 +309,6 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
       const data = await res.json();
       
-      // Procesamos la respuesta según la pestaña para guardarla en el lugar correcto
       if (res.ok) {
         const textoRespuesta = typeof data === 'string' ? data : (data.respuesta || data.resultado || JSON.stringify(data));
 
@@ -325,15 +318,28 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           await guardarMensaje('ia', textoRespuesta, clienteGlobal);
         } 
         else if (tab === 'shadow') {
-          if (typeof setShadowResultado === 'function') setShadowResultado(textoRespuesta);
-          else alert("Análisis Shadow de Grok:\n\n" + textoRespuesta);
+          // Usamos el nombre correcto detectado por el compilador
+          if (typeof setShadowRespuesta === 'function') {
+            setShadowRespuesta(textoRespuesta);
+          } else {
+            // Alternativa segura por si el estado cambia en el componente
+            const areaResultado = document.querySelector('.shadow-resultado, textarea[readonly]') as HTMLTextAreaElement;
+            if (areaResultado) areaResultado.value = textoRespuesta;
+            else alert("Análisis Shadow:\n\n" + textoRespuesta);
+          }
         } 
         else if (tab === 'auto-pitch') {
-          if (typeof setPitchResultado === 'function') setPitchResultado(textoRespuesta);
-          else alert("Propuesta Auto-Pitch de Grok:\n\n" + textoRespuesta);
-        }
-        else if (tab === 'noticias') {
-          if (typeof setNoticiasResultado === 'function') setNoticiasResultado(textoRespuesta);
+          // Buscamos dinámicamente el contenedor del resultado de la propuesta para inyectarla de forma segura
+          const areaPitch = document.querySelector('.pitch-resultado, textarea[readonly], [id*="pitch"]') as HTMLElement;
+          if (areaPitch) {
+            if (areaPitch.tagName === 'TEXTAREA' || areaPitch.tagName === 'INPUT') {
+              (areaPitch as HTMLInputElement).value = textoRespuesta;
+            } else {
+              areaPitch.innerText = textoRespuesta;
+            }
+          } else {
+            alert("Propuesta Comercial:\n\n" + textoRespuesta);
+          }
         }
       } else {
         throw new Error(data.error || 'Sin respuesta del Cerebro IA');
@@ -349,7 +355,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       setEscribiendo(false);
     }
   };
-
+  
   const analizarShadow=async()=>{
     if(!shadowTexto.trim()||escribiendo) return
     setEscribiendo(true)
