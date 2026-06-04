@@ -119,6 +119,7 @@ function ColorPicker({ color, onChange }: { color: string; onChange: (c: string)
 // ── COMPONENTE PRINCIPAL (PANEL INTEGRADO) ────────────────────────────────
 export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }: Props) {
   const c = useTheme(theme)
+  const { clienteGlobal, setClienteGlobal } = useGlobal();
   const [inputTipo, setInputTipo] = useState<'archivo'|'youtube'>('archivo')
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [videoFile, setVideoFile] = useState<File|null>(null)
@@ -304,16 +305,21 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
               </div>
               
               {/* Selector de Cliente Conectado */}
-              <div>
-                <label style={lbl()}>Vincular con Cliente del Panel</label>
-                <select value={selectedClientId} onChange={(e) => setSelectedClientId(e.target.value)} style={sel()}>
-                  <option value="">-- No vincular / General --</option>
-                  {clientes.map(cl => (
-                    <option key={cl.id} value={cl.id}>
-                      {cl.nombre} — [{cl.nicho}]
-                    </option>
-                  ))}
-                </select>
+          <div>
+            <label style={lbl()}>Vincular con Cliente del Panel</label>
+            <select 
+              value={clienteGlobal} 
+              onChange={(e) => setClienteGlobal(e.target.value)} 
+              style={sel()}
+            >
+              <option value="CHAR">-- No vincular / General --</option>
+              {clientes.map(cl => (
+                <option key={cl.id} value={cl.id}>
+                  {cl.nombre} — [{cl.nicho}]
+                </option>
+              ))}
+            </select>
+          </div>
                 {clienteActivo && (
                   <div style={{ marginTop:10, padding:12, background:c.s2, borderRadius:8, border:`1px solid ${GOLD}30`, fontSize:12, color:c.text2 }}>
                     📌 <strong>Contexto Inyectado a la IA:</strong> Dolor principal: <em>{clienteActivo.dolor_principal}</em>
