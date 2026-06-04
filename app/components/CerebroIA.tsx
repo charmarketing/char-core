@@ -264,41 +264,87 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
 
   const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
 
-  const enviarMensaje=async()=>{
-    if(!input.trim()||escribiendo) return
-    const texto=input.trim()
-    setInput('')
+  const enviarMensaje = async () => {
+    // Si estamos en la pestaña chat y no hay texto, o ya está escribiendo, cancelamos
+    if (tab === 'chat' && (!input.trim() || escribiendo)) return;
+    if (escribiendo) return;
 
-    const userMsg:Mensaje={id:Date.now().toString(),rol:'user',texto,tiempo:'ahora'}
-    setMensajes(prev=>[...prev,userMsg])
-    await guardarMensaje('user',texto,clienteGlobal)
-    setEscribiendo(true)
+    // Detectamos el texto según la pestaña en la que estás parado
+    let texto = input.trim();
+    if (tab === 'shadow') texto = shadowTexto || '';
+    
+    setEscribiendo(true);
 
-    try{
-      const historialReciente=mensajes.slice(-10).filter(m=>m.id!=='init')
-      const res=await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          mensaje:texto,
-          cliente:clienteGlobal,
-          filosofia:getFilosofia(clienteGlobal).descripcion,
-          historial:historialReciente,
-        })
-      })
-      const data=await res.json()
-      if(data.respuesta){
-        const iaMsg:Mensaje={id:(Date.now()+1).toString(),rol:'ia',texto:data.respuesta,tiempo:'ahora'}
-        setMensajes(prev=>[...prev,iaMsg])
-        await guardarMensaje('ia',data.respuesta,clienteGlobal)
-      } else {
-        throw new Error(data.error||'Sin respuesta')
-      }
-    }catch(err:any){
-      setMensajes(prev=>[...prev,{id:(Date.now()+1).toString(),rol:'ia',texto:`Error: ${err.message}. Verificá la API key en Vercel.`,tiempo:'ahora'}])
+    // Solo si es el chat tradicional, agregamos visualmente tu mensaje al historial de la pantalla
+    if (tab === 'chat') {
+      const userMsg: Mensaje = { id: Date.now().toString(), rol: 'user', texto, tiempo: 'ahora' };
+      setMensajes(prev => [...prev, userMsg]);
+      await guardarMensaje('user', texto, clienteGlobal);
+      setInput('');
     }
-    setEscribiendo(false)
-  }
+
+    try {
+      const historialReciente = mensajes.slice(-10).filter(m => m.id !== 'init');
+      
+      // Llamamos a la API pasándole todo el contexto extendido
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mensaje: texto,
+          cliente: clienteGlobal,
+          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
+          historial: historialReciente,
+          pestaña: tab, // Le avisa al servidor si estás en 'chat', 'shadow', 'auto-pitch' o 'noticias'
+          promptShadow: shadowTexto,
+          datosPitch: {
+            // Pasamos las variables que usen tus inputs en la pestaña de Auto-Pitch
+            empresa: typeof leadEmpresa !== 'undefined' ? leadEmpresa : '', 
+            rubro: typeof leadRubro !== 'undefined' ? leadRubro : '',
+            redSocial: typeof leadRed !== 'undefined' ? leadRed : 'Instagram',
+            problema: typeof leadProblema !== 'undefined' ? leadProblema : ''
+          }
+        })
+      });
+
+      const data = await res.json();
+      
+      // Procesamos la respuesta según la pestaña para guardarla en el lugar correcto
+      if (res.ok) {
+        // Si viene envuelta en un objeto o directa como string string plano
+        const textoRespuesta = typeof data === 'string' ? data : (data.respuesta || data.resultado || JSON.stringify(data));
+
+        if (tab === 'chat') {
+          const iaMsg: Mensaje = { id: (Date.now() + 1).toString(), rol: 'ia', texto: textoRespuesta, tiempo: 'ahora' };
+          setMensajes(prev => [...prev, iaMsg]);
+          await guardarMensaje('ia', textoRespuesta, clienteGlobal);
+        } 
+        else if (tab === 'shadow') {
+          // Si tenés un estado para guardar el análisis de Shadow, lo inyectamos acá
+          if (typeof setShadowResultado === 'function') setShadowResultado(textoRespuesta);
+          else alert("Análisis Shadow de Grok:\n\n" + textoRespuesta);
+        } 
+        else if (tab === 'auto-pitch') {
+          // Si tenés un estado para el resultado del Pitch, lo inyectamos acá
+          if (typeof setPitchResultado === 'function') setPitchResultado(textoRespuesta);
+          else alert("Propuesta Auto-Pitch de Grok:\n\n" + textoRespuesta);
+        }
+        else if (tab === 'noticias') {
+          if (typeof setNoticiasResultado === 'function') setNoticiasResultado(textoRespuesta);
+        }
+      } else {
+        throw new Error(data.error || 'Sin respuesta del Cerebro IA');
+      }
+    } catch (err: any) {
+      console.error("Error conectando con Grok:", err);
+      if (tab === 'chat') {
+        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}. Verificá la conexión en Vercel.`, tiempo: 'ahora' }]);
+      } else {
+        alert("Error en Cerebro IA: " + err.message);
+      }
+    } finally {
+      setEscribiendo(false);
+    }
 
   const analizarShadow=async()=>{
     if(!shadowTexto.trim()||escribiendo) return
