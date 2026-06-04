@@ -304,7 +304,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                 <input value={sesion} onChange={e => setSesion(e.target.value)} placeholder="Ej: Grabación Chalet - Sesión 1" style={inp()} />
               </div>
               
-              {/* Selector de Cliente Conectado */}
+             {/* Selector de Cliente Conectado */}
           <div>
             <label style={lbl()}>Vincular con Cliente del Panel</label>
             <select 
@@ -320,22 +320,20 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
               ))}
             </select>
           </div>
-                {clienteActivo && (
-                  <div style={{ marginTop:10, padding:12, background:c.s2, borderRadius:8, border:`1px solid ${GOLD}30`, fontSize:12, color:c.text2 }}>
-                    📌 <strong>Contexto Inyectado a la IA:</strong> Dolor principal: <em>{clienteActivo.dolor_principal}</em>
-                  </div>
-                )}
-              </div>
 
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
-                <div>
-                  <label style={lbl()}>Tipo de Contenido</label>
-                  <select value={tipo} onChange={e => setTipo(e.target.value)} style={sel()}>
-                    {TIPOS.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label style={lbl()}>Clips Requeridos</label>
+          {clienteActivo && (
+            <div style={{ marginTop: 10, padding: 12, background: c.s2, borderRadius: 8, border: `1px solid ${GOLD}30`, fontSize: 12, color: c.text2 }}>
+              <strong>Contexto Inyectado a la IA:</strong> Dolor principal: <em>{clienteActivo.dolor_principal}</em>
+            </div>
+          )}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={lbl()}>Tipo de Contenido</label>
+              <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={sel()}>
+                {TIPOS.map(t => <option key={t}>{t}</option>)}
+              </select>
+            </div>
                   <select value={cantidad} onChange={e => setCantidad(+e.target.value)} style={sel()}>
                     {CLIPS_N.map(n => <option key={n} value={n}>{n} Destacados</option>)}
                   </select>
