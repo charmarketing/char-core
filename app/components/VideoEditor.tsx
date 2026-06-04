@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { useGlobal } from '../context/GlobalContext' // Ajustá la cantidad de puntos según la ubicación exacta de tu carpeta context
+import { useGlobal } from '../context/GlobalContext' 
 
 // ── CONSTANTES DE CONFIGURACIÓN Y DIRECCIÓN DE ARTE ───────────────────────
 const GOLD = '#D4AF37'; 
@@ -135,7 +135,6 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
 
   // Estados de Configuración y Filtros Conectados
   const [sesion, setSesion] = useState('')
-  const { clienteGlobal } = useGlobal()
   const [tipo, setTipo] = useState(TIPOS[0])
   const [cantidad, setCantidad] = useState(5)
   const [formato, setFormato] = useState(FORMATOS[0].id)
@@ -304,43 +303,41 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                 <input value={sesion} onChange={e => setSesion(e.target.value)} placeholder="Ej: Grabación Chalet - Sesión 1" style={inp()} />
               </div>
               
-             {/* Selector de Cliente Conectado */}
-          <div>
-            <label style={lbl()}>Vincular con Cliente del Panel</label>
-            <select 
-              value={clienteGlobal} 
-              onChange={(e) => setClienteGlobal(e.target.value)} 
-              style={sel()}
-            >
-              <option value="CHAR">-- No vincular / General --</option>
-              {clientes.map(cl => (
-                <option key={cl.id} value={cl.id}>
-                  {cl.nombre} — [{cl.nicho}]
-                </option>
-              ))}
-            </select>
-          </div>
+              {/* Selector de Cliente Conectado */}
+              <div>
+                <label style={lbl()}>Vincular con Cliente del Panel</label>
+                <select 
+                  value={clienteGlobal} 
+                  onChange={(e) => setClienteGlobal(e.target.value)} 
+                  style={sel()}
+                >
+                  <option value="CHAR">-- No vincular / General --</option>
+                  {clientes.map(cl => (
+                    <option key={cl.id} value={cl.id}>
+                      {cl.nombre} — [{cl.nicho}]
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-          {clienteActivo && (
-            <div style={{ marginTop: 10, padding: 12, background: c.s2, borderRadius: 8, border: `1px solid ${GOLD}30`, fontSize: 12, color: c.text2 }}>
-              <strong>Contexto Inyectado a la IA:</strong> Dolor principal: <em>{clienteActivo.dolor_principal}</em>
-            </div>
-          )}
+              {clienteActivo && (
+                <div style={{ marginTop: 10, padding: 12, background: c.s2, borderRadius: 8, border: `1px solid ${GOLD}30`, fontSize: 12, color: c.text2 }}>
+                  <strong>Contexto Inyectado a la IA:</strong> Dolor principal: <em>{clienteActivo.dolor_principal}</em>
+                </div>
+              )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div>
-              <label style={lbl()}>Tipo de Contenido</label>
-              <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={sel()}>
-                {TIPOS.map(t => <option key={t}>{t}</option>)}
-              </select>
-            </div>
-            <div>
-              <label style={lbl()}>Clips Requeridos</label>
-              <select value={cantidad} onChange={(e) => setCantidad(Number(e.target.value))} style={sel()}>
-                {CLIPS_N.map(n => <option key={n} value={n}>{n} Destacados</option>)}
-              </select>
-            </div>
-          </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                <div>
+                  <label style={lbl()}>Tipo de Contenido</label>
+                  <select value={tipo} onChange={(e) => setTipo(e.target.value)} style={sel()}>
+                    {TIPOS.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label style={lbl()}>Clips Requeridos</label>
+                  <select value={cantidad} onChange={(e) => setCantidad(Number(e.target.value))} style={sel()}>
+                    {CLIPS_N.map(n => <option key={n} value={n}>{n} Destacados</option>)}
+                  </select>
                 </div>
               </div>
             </div>
@@ -402,7 +399,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
               {/* Reproductor de Video Anclado (Sticky) */}
               <div style={{ position:'sticky', top:20, zIndex:10 }}>
                 <div style={{ background:'#000', border:`1px solid ${c.border}`, borderRadius:14, padding:15, boxShadow:'0 10px 40px rgba(0,0,0,0.4)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
                     <span style={{ fontSize:10, color:'#999', letterSpacing:2, fontWeight:700, textTransform:'uppercase' }}>Monitor de Control Táctico</span>
                     <span style={{ fontSize:10, color:GOLD, fontWeight:800, background:`${GOLD}20`, padding:'2px 6px', borderRadius:4 }}>Formato: {formato}</span>
                   </div>
@@ -517,29 +514,29 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                     </div>
                   </div>
 
-                  <div>
+                  <div style={{ marginBottom: 12 }}>
                     <label style={lbl()}>Prompt de Composición de Fondo (Copiar a DALL-E / Midjourney):</label>
                     <div style={{ position: 'relative' }}>
                       <textarea readOnly value={activeClip.portada_prompt_ia} style={{ width: '100%', background: c.s2, border: `1px solid ${c.border}`, borderRadius: 8, color: c.text, padding: '10px', fontSize: 12, height: 90, fontFamily: 'monospace', resize: 'none' }} />
-                      <button onClick={() => copyProfessionalData(activeClip.portada_prompt_ia)} style={{ position: 'absolute', bottom: 10, right: 10, background: 'transparent', border: `1px solid ${GOLD}`, color: GOLD, padding: '4px 8px', borderRadius: 4, fontSize: 10, fontWeight: 700, cursor: 'pointer' }}>
+                      <button onClick={() => copyProfessionalData(activeClip.portada_prompt_ia)} style={{ position: 'absolute', bottom: 10, right: 10, background: 'transparent', border: `1px solid ${GOLD}`, color: GOLD, padding: '4px 8px', borderRadius: 4, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
                         📋 Copiar Prompt
                       </button>
                     </div>
                   </div>
-                </div>
 
-                {/* Bloque Fónico de Subtítulos */}
-                <div>
-                  <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, display: 'block', marginBottom: 6 }}>💬 SUBTÍTULOS CRUCIALES DEL BLOQUE</span>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
-                    {activeClip.subtitulos?.map((sub: string, sIdx: number) => (
-                      <div key={sIdx} style={{ fontSize: 12, color: c.text2, background: c.s2, padding: '8px 12px', borderRadius: 6, borderLeft: `3px solid ${GOLD}` }}>
-                        {sub}
-                      </div>
-                    ))}
+                  {/* Bloque Fónico de Subtítulos */}
+                  <div>
+                    <span style={{ fontSize: 10, color: c.text3, fontWeight: 800, display: 'block', marginBottom: 6 }}>⌨️ SUBTÍTULOS CRUCIALES DEL BLOQUE</span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 150, overflowY: 'auto' }}>
+                      {activeClip.subtitulos?.map((sub: string, sIdx: number) => (
+                        <div key={sIdx} style={{ fontSize: 12, color: c.text2, background: c.s2, padding: '8px 12px', borderRadius: 6, borderLeft: `3px solid ${GOLD}` }}>
+                          {sub}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
+                </div>
               </div>
 
             </div>
