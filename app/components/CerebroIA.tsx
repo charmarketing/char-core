@@ -286,6 +286,13 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     try {
       const historialReciente = mensajes.slice(-10).filter(m => m.id !== 'init');
       
+      // Intentamos capturar lo que haya escrito en los inputs de la pantalla usando trucos del navegador
+      // Esto evita que TypeScript falle si las variables tienen otros nombres
+      const inputEmpresa = (document.querySelector('input[placeholder*="empresa"]') as HTMLInputElement)?.value || '';
+      const inputRubro = (document.querySelector('input[placeholder*="rubro"]') as HTMLInputElement)?.value || '';
+      const inputProblema = (document.querySelector('input[placeholder*="problema"]') as HTMLInputElement)?.value || '';
+      const selectRed = (document.querySelector('select') as HTMLSelectElement)?.value || 'Instagram';
+
       // Llamamos a la API pasándole todo el contexto extendido
       const res = await fetch('/api/chat', {
         method: 'POST',
@@ -298,11 +305,10 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           pestaña: tab, // Le avisa al servidor si estás en 'chat', 'shadow', 'auto-pitch' o 'noticias'
           promptShadow: shadowTexto,
           datosPitch: {
-            // Pasamos las variables que usen tus inputs en la pestaña de Auto-Pitch
-            empresa: typeof leadEmpresa !== 'undefined' ? leadEmpresa : '', 
-            rubro: typeof leadRubro !== 'undefined' ? leadRubro : '',
-            redSocial: typeof leadRed !== 'undefined' ? leadRed : 'Instagram',
-            problema: typeof leadProblema !== 'undefined' ? leadProblema : ''
+            empresa: inputEmpresa, 
+            rubro: inputRubro,
+            redSocial: selectRed,
+            problema: inputProblema
           }
         })
       });
@@ -311,7 +317,6 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       
       // Procesamos la respuesta según la pestaña para guardarla en el lugar correcto
       if (res.ok) {
-        // Si viene envuelta en un objeto o directa como string string plano
         const textoRespuesta = typeof data === 'string' ? data : (data.respuesta || data.resultado || JSON.stringify(data));
 
         if (tab === 'chat') {
@@ -320,12 +325,10 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           await guardarMensaje('ia', textoRespuesta, clienteGlobal);
         } 
         else if (tab === 'shadow') {
-          // Si tenés un estado para guardar el análisis de Shadow, lo inyectamos acá
           if (typeof setShadowResultado === 'function') setShadowResultado(textoRespuesta);
           else alert("Análisis Shadow de Grok:\n\n" + textoRespuesta);
         } 
         else if (tab === 'auto-pitch') {
-          // Si tenés un estado para el resultado del Pitch, lo inyectamos acá
           if (typeof setPitchResultado === 'function') setPitchResultado(textoRespuesta);
           else alert("Propuesta Auto-Pitch de Grok:\n\n" + textoRespuesta);
         }
@@ -345,7 +348,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     } finally {
       setEscribiendo(false);
     }
-    };
+  };
 
   const analizarShadow=async()=>{
     if(!shadowTexto.trim()||escribiendo) return
