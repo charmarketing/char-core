@@ -334,6 +334,7 @@ export default function VideoEditor({ theme = 'dark', clientes = [], onUpload }:
                 {TIPOS.map(t => <option key={t}>{t}</option>)}
               </select>
             </div>
+            </div>
                   <select value={cantidad} onChange={e => setCantidad(+e.target.value)} style={sel()}>
                     {CLIPS_N.map(n => <option key={n} value={n}>{n} Destacados</option>)}
                   </select>
