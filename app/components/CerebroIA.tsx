@@ -265,15 +265,18 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
 
   const enviarMensaje = async () => {
-    if (tab === 'chat' && (!input.trim() || escribiendo)) return;
+    // Forzamos a que trate la pestaña como texto plano para evitar bloqueos de TypeScript
+    const pestañaActual = String(tab).toLowerCase();
+
+    if (pestañaActual.includes('chat') && (!input.trim() || escribiendo)) return;
     if (escribiendo) return;
 
     let texto = input.trim();
-    if (tab === 'shadow') texto = shadowTexto || '';
+    if (pestañaActual.includes('shadow')) texto = shadowTexto || '';
     
     setEscribiendo(true);
 
-    if (tab === 'chat') {
+    if (pestañaActual.includes('chat')) {
       const userMsg: Mensaje = { id: Date.now().toString(), rol: 'user', texto, tiempo: 'ahora' };
       setMensajes(prev => [...prev, userMsg]);
       await guardarMensaje('user', texto, clienteGlobal);
@@ -296,7 +299,7 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
           cliente: clienteGlobal,
           filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
           historial: historialReciente,
-          pestaña: tab,
+          pestaña: pestañaActual, // Enviamos el nombre limpio al backend
           promptShadow: shadowTexto,
           datosPitch: {
             empresa: inputEmpresa, 
@@ -312,24 +315,22 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       if (res.ok) {
         const textoRespuesta = typeof data === 'string' ? data : (data.respuesta || data.resultado || JSON.stringify(data));
 
-        if (tab === 'chat') {
+        if (pestañaActual.includes('chat')) {
           const iaMsg: Mensaje = { id: (Date.now() + 1).toString(), rol: 'ia', texto: textoRespuesta, tiempo: 'ahora' };
           setMensajes(prev => [...prev, iaMsg]);
           await guardarMensaje('ia', textoRespuesta, clienteGlobal);
         } 
-        else if (tab === 'shadow') {
-          // Usamos el nombre correcto detectado por el compilador
+        else if (pestañaActual.includes('shadow')) {
           if (typeof setShadowRespuesta === 'function') {
             setShadowRespuesta(textoRespuesta);
           } else {
-            // Alternativa segura por si el estado cambia en el componente
             const areaResultado = document.querySelector('.shadow-resultado, textarea[readonly]') as HTMLTextAreaElement;
             if (areaResultado) areaResultado.value = textoRespuesta;
             else alert("Análisis Shadow:\n\n" + textoRespuesta);
           }
         } 
-        else if (tab === 'auto-pitch') {
-          // Buscamos dinámicamente el contenedor del resultado de la propuesta para inyectarla de forma segura
+        else if (pestañaActual.includes('pitch') || pestañaActual.includes('auto')) {
+          // Buscamos dinámicamente cualquier contenedor o caja de texto del resultado
           const areaPitch = document.querySelector('.pitch-resultado, textarea[readonly], [id*="pitch"]') as HTMLElement;
           if (areaPitch) {
             if (areaPitch.tagName === 'TEXTAREA' || areaPitch.tagName === 'INPUT') {
@@ -346,8 +347,8 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       }
     } catch (err: any) {
       console.error("Error conectando con Grok:", err);
-      if (tab === 'chat') {
-        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}. Verificá la conexión en Vercel.`, tiempo: 'ahora' }]);
+      if (pestañaActual.includes('chat')) {
+        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}.`, tiempo: 'ahora' }]);
       } else {
         alert("Error en Cerebro IA: " + err.message);
       }
