@@ -265,23 +265,16 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
   const getFilosofia=(nombre:string)=>filosofias[nombre]||FILOSOFIAS_DEFAULT['CHAR']
 
   const enviarMensaje = async () => {
-    // Convertimos la pestaña actual a texto para evitar errores de TypeScript
     const pestañaActual = String(tab).toLowerCase();
 
-    // Validamos según la pestaña si hay texto para enviar
     if (pestañaActual.includes('chat') && (!input.trim() || escribiendo)) return;
     if (escribiendo) return;
 
     let texto = input.trim();
-    
-    // Si estás en Shadow, tomamos el texto de la caja de auditoría
-    if (pestañaActual.includes('shadow')) {
-      texto = shadowTexto || '';
-    }
+    if (pestañaActual.includes('shadow')) texto = shadowTexto || '';
     
     setEscribiendo(true);
 
-    // Si es el chat común, lo mostramos en el historial al instante
     if (pestañaActual.includes('chat')) {
       const userMsg: Mensaje = { id: Date.now().toString(), rol: 'user', texto, tiempo: 'ahora' };
       setMensajes(prev => [...prev, userMsg]);
@@ -292,13 +285,11 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     try {
       const historialReciente = mensajes.slice(-10).filter(m => m.id !== 'init');
       
-      // Capturamos los valores de los formularios en caso de que estés en Auto-Pitch
       const inputEmpresa = (document.querySelector('input[placeholder*="empresa"]') as HTMLInputElement)?.value || '';
       const inputRubro = (document.querySelector('input[placeholder*="rubro"]') as HTMLInputElement)?.value || '';
       const inputProblema = (document.querySelector('input[placeholder*="problema"]') as HTMLInputElement)?.value || '';
       const selectRed = (document.querySelector('select') as HTMLSelectElement)?.value || 'Instagram';
 
-      // Llamamos a nuestra API unificada
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -323,33 +314,20 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
       if (res.ok && data.success) {
         const textoRespuesta = data.resultado;
 
-        // 1. SI ES EL CHAT
         if (pestañaActual.includes('chat')) {
           const iaMsg: Mensaje = { id: (Date.now() + 1).toString(), rol: 'ia', texto: textoRespuesta, tiempo: 'ahora' };
           setMensajes(prev => [...prev, iaMsg]);
           await guardarMensaje('ia', textoRespuesta, clienteGlobal);
         } 
-        // 2. SI ES SHADOW (AUDITORÍA)
         else if (pestañaActual.includes('shadow')) {
-          // Buscamos tu función nativa para guardar la respuesta de Shadow
           if (typeof setShadowRespuesta === 'function') {
             setShadowRespuesta(textoRespuesta);
           } else {
-            // Si el estado no responde, lo inyectamos a la fuerza en la caja de texto visual
             const areaResultado = document.querySelector('.shadow-resultado, textarea[readonly]') as HTMLTextAreaElement;
             if (areaResultado) areaResultado.value = textoRespuesta;
           }
         } 
-        // 3. SI ES AUTO-PITCH (PROPUESTAS COMMERCIALES)
         else if (pestañaActual.includes('pitch') || pestañaActual.includes('auto')) {
-          // Buscamos si tenés un estado nativo para el pitch
-          if (typeof setPitchRespuesta === 'function') {
-            setPitchRespuesta(textoRespuesta);
-          } else if (typeof setPitchResultado === 'function') {
-            (setPitchResultado as Function)(textoRespuesta);
-          }
-          
-          // Inyección directa en el bloque visual derecho de la pantalla
           const areaPitch = document.querySelector('.pitch-resultado, textarea[readonly], [id*="pitch"]') as HTMLElement;
           if (areaPitch) {
             if (areaPitch.tagName === 'TEXTAREA' || areaPitch.tagName === 'INPUT') {
@@ -357,99 +335,76 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
             } else {
               areaPitch.innerText = textoRespuesta;
             }
-          }
-        }
-        // 4. SI ES EL DAILY BLOG / NOTICIAS (Captura image_ed9eaf.png)
-        else if (pestañaActual.includes('noticia') || pestañaActual.includes('blog')) {
-          // Buscamos dinámicamente la caja o contenedor donde se renderizan las noticias del blog
-          const contenedorBlog = document.querySelector('.blog-content, .noticias-container, main') as HTMLElement;
-          
-          if (typeof setNoticiasResultado === 'function') {
-            setNoticiasResultado(textoRespuesta);
           } else {
-            // Forzamos a que aparezca la nueva noticia redactada por Groq arriba de las viejas fijas
-            const alertaNoticia = document.createElement('div');
-            alertaNoticia.className = "p-4 mb-4 bg-zinc-900 border border-amber-500/30 rounded-xl text-white";
-            alertaNoticia.innerHTML = `<h4 class="text-amber-400 font-bold mb-2">🔥 Tendencia IA Generada por Groq:</h4><p class="whitespace-pre-line text-sm text-zinc-300">${textoRespuesta}</p>`;
-            if (contenedorBlog) {
-              contenedorBlog.insertBefore(alertaNoticia, contenedorBlog.firstChild);
-            }
+            alert("Propuesta Comercial:\n\n" + textoRespuesta);
           }
         }
       } else {
-        throw new Error(data.error || 'No se obtuvo una respuesta válida del Cerebro IA.');
+        throw new Error(data.error || 'Ocurrió un problema en los servidores de la IA.');
       }
     } catch (err: any) {
-      console.error("Error en la interacción del panel:", err);
-      alert("Aviso de CHAR CORE: " + err.message);
+      console.error("Error conectando con el backend:", err);
+      if (pestañaActual.includes('chat')) {
+        setMensajes(prev => [...prev, { id: (Date.now() + 1).toString(), rol: 'ia', texto: `Error: ${err.message}`, tiempo: 'ahora' }]);
+      } else {
+        alert("Aviso del sistema: " + err.message);
+      }
     } finally {
       setEscribiendo(false);
     }
   };
   
-const analizarShadow = async () => {
-    if (!shadowTexto.trim() || escribiendo) return;
-    setEscribiendo(true);
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mensaje: shadowTexto,
-          cliente: clienteGlobal,
-          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
-          historial: [],
-          pestaña: 'shadow', // Le avisa al backend que procese modo Shadow
-          promptShadow: shadowTexto
+  const analizarShadow=async()=>{
+    if(!shadowTexto.trim()||escribiendo) return
+    setEscribiendo(true)
+    try{
+      const res=await fetch('/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          mensaje:`Analizá este contenido desde la filosofía de ${clienteGlobal} y decime si representa bien la marca, qué está bien, qué mejorarías y dale una puntuación del 1 al 10:\n\n${shadowTexto}`,
+          cliente:clienteGlobal,
+          filosofia:getFilosofia(clienteGlobal).descripcion,
+          historial:[],
         })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setShadowRespuesta(data.resultado || 'Error al analizar');
-      } else {
-        setShadowRespuesta(`Aviso: ${data.error || 'Error en el servidor'}`);
-      }
-    } catch (err: any) {
-      setShadowRespuesta(`Error: ${err.message}`);
+      })
+      const data=await res.json()
+      setShadowRespuesta(data.respuesta||'Error al analizar')
+    }catch(err:any){
+      setShadowRespuesta(`Error: ${err.message}`)
     }
-    setEscribiendo(false);
-  };
+    setEscribiendo(false)
+  }
 
-  const generarPitch = async () => {
-    if (!pitchData.empresa.trim() || escribiendo) return;
-    setEscribiendo(true);
-    try {
-      const res = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mensaje: `Generar propuesta comercial`,
-          cliente: clienteGlobal,
-          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
-          historial: [],
-          pestaña: 'pitch', // Le avisa al backend que procese modo Auto-Pitch
-          datosPitch: {
-            empresa: pitchData.empresa,
-            rubro: pitchData.rubro || 'No especificado',
-            redSocial: pitchData.red,
-            problema: pitchData.problema || 'Presencia digital débil'
-          }
+  const generarPitch=async()=>{
+    if(!pitchData.empresa.trim()||escribiendo) return
+    setEscribiendo(true)
+    try{
+      const res=await fetch('/api/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          mensaje:`Generá una propuesta comercial profesional y persuasiva de CHAR para esta empresa:
+- Empresa: ${pitchData.empresa}
+- Rubro: ${pitchData.rubro||'No especificado'}
+- Red principal: ${pitchData.red}
+- Problema detectado: ${pitchData.problema||'Presencia digital débil'}
+
+La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específicos, por qué CHAR y próximo paso. Formato profesional listo para enviar.`,
+          cliente:clienteGlobal,
+          filosofia:getFilosofia(clienteGlobal).descripcion,
+          historial:[],
         })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        // Probamos con ambas variables de estado por si TypeScript cambió de nombre el componente
-        if (typeof setPitchGenerado === 'function') setPitchGenerado(data.resultado);
-        else if (typeof setPitchResultado === 'function') (setPitchResultado as Function)(data.resultado);
-      } else {
-        const errMsg = `Aviso: ${data.error || 'Error al generar'}`;
-        if (typeof setPitchGenerado === 'function') setPitchGenerado(errMsg);
-      }
-    } catch (err: any) {
-      if (typeof setPitchGenerado === 'function') setPitchGenerado(`Error: ${err.message}`);
+      })
+      const data=await res.json()
+      setPitchGenerado(data.respuesta||'Error al generar')
+    }catch(err:any){
+      setPitchGenerado(`Error: ${err.message}`)
     }
-    setEscribiendo(false);
-  };
+    setEscribiendo(false)
+  }
+
+  const guardarFilosofia=async()=>{
     setGuardando(true)
     const f=getFilosofia(clienteGlobal)
     await supabase.from('cerebro_conversaciones').insert({
