@@ -354,55 +354,112 @@ export default function CerebroIA({t,clientes=[]}:{t:Theme,clientes?:any[]}){
     }
   };
   
-  const analizarShadow=async()=>{
-    if(!shadowTexto.trim()||escribiendo) return
-    setEscribiendo(true)
-    try{
-      const res=await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          mensaje:`Analizá este contenido desde la filosofía de ${clienteGlobal} y decime si representa bien la marca, qué está bien, qué mejorarías y dale una puntuación del 1 al 10:\n\n${shadowTexto}`,
-          cliente:clienteGlobal,
-          filosofia:getFilosofia(clienteGlobal).descripcion,
-          historial:[],
+ const analizarShadow = async () => {
+    if (!shadowTexto.trim() || escribiendo) return;
+    setEscribiendo(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mensaje: shadowTexto,
+          cliente: clienteGlobal,
+          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
+          historial: [],
+          pestaña: 'shadow',
+          promptShadow: shadowTexto
         })
-      })
-      const data=await res.json()
-      setShadowRespuesta(data.respuesta||'Error al analizar')
-    }catch(err:any){
-      setShadowRespuesta(`Error: ${err.message}`)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setShadowRespuesta(data.resultado || 'Error al analizar');
+      } else {
+        setShadowRespuesta(`Aviso: ${data.error || 'Error en el servidor de CHAR'}`);
+      }
+    } catch (err: any) {
+      setShadowRespuesta(`Error: ${err.message}`);
     }
-    setEscribiendo(false)
-  }
+    setEscribiendo(false);
+  };
 
-  const generarPitch=async()=>{
-    if(!pitchData.empresa.trim()||escribiendo) return
-    setEscribiendo(true)
-    try{
-      const res=await fetch('/api/chat',{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({
-          mensaje:`Generá una propuesta comercial profesional y persuasiva de CHAR para esta empresa:
-- Empresa: ${pitchData.empresa}
-- Rubro: ${pitchData.rubro||'No especificado'}
-- Red principal: ${pitchData.red}
-- Problema detectado: ${pitchData.problema||'Presencia digital débil'}
-
-La propuesta debe incluir: diagnóstico, propuesta de valor, servicios específicos, por qué CHAR y próximo paso. Formato profesional listo para enviar.`,
-          cliente:clienteGlobal,
-          filosofia:getFilosofia(clienteGlobal).descripcion,
-          historial:[],
+  const generarPitch = async () => {
+    if (!pitchData.empresa.trim() || escribiendo) return;
+    setEscribiendo(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mensaje: `Generar propuesta comercial`,
+          cliente: clienteGlobal,
+          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
+          historial: [],
+          pestaña: 'pitch',
+          datosPitch: {
+            empresa: pitchData.empresa,
+            rubro: pitchData.rubro || 'No especificado',
+            redSocial: pitchData.red,
+            problema: pitchData.problema || 'Presencia digital débil'
+          }
         })
-      })
-      const data=await res.json()
-      setPitchGenerado(data.respuesta||'Error al generar')
-    }catch(err:any){
-      setPitchGenerado(`Error: ${err.message}`)
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPitchGenerado(data.resultado || 'Error al generar');
+      } else {
+        setPitchGenerado(`Aviso: ${data.error || 'Error al generar la propuesta'}`);
+      }
+    } catch (err: any) {
+      setPitchGenerado(`Error: ${err.message}`);
     }
-    setEscribiendo(false)
-  }
+    setEscribiendo(false);
+  };
+
+  const generarNoticiasIA = async () => {
+    // Si tu estado original usa 'cargandoNoticias', lo manejamos de forma segura
+    // para evitar que se quede tildado el esqueleto de carga
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mensaje: "Dame las últimas 3 tendencias de marketing digital en formato JSON listo para mostrar",
+          cliente: clienteGlobal,
+          filosofia: getFilosofia(clienteGlobal)?.descripcion || '',
+          historial: [],
+          pestaña: 'blog'
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        // Groq nos devuelve un String, intentamos transformarlo en el Array que tu tabla espera
+        try {
+          const arrayNoticias = JSON.parse(data.resultado);
+          if (Array.isArray(arrayNoticias)) {
+            setNoticiasIA(arrayNoticias);
+          } else {
+            // Si no devolvió array, creamos un objeto estructurado para que no se rompa la interfaz
+            setNoticiasIA([{
+              titulo: "Tendencia de Marketing IA",
+              resumen: data.resultado,
+              fuente: "Groq Cloud",
+              categoria: "IA"
+            }]);
+          }
+        } catch {
+          // Si Groq devuelve texto plano en vez de JSON estructurado, lo formateamos a la fuerza
+          setNoticiasIA([{
+            titulo: "Actualización de Tendencias en Vivo",
+            resumen: data.resultado,
+            fuente: "Groq Cloud",
+            categoria: "Estrategia"
+          }]);
+        }
+      }
+    } catch (err) {
+      console.error("Error al regenerar el feed de noticias:", err);
+    }
+  };
 
   const guardarFilosofia=async()=>{
     setGuardando(true)
